@@ -75,7 +75,6 @@ export default function ChatInterface() {
 
       // Read as Stream
       const reader = response.body.getReader()
-      const decoder = new TextEncoder().decode("") // Just to check
       const textDecoder = new TextDecoder()
       
       let fullText = ""

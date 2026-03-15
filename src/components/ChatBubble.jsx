@@ -1,3 +1,6 @@
+import ReactMarkdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
+
 /**
  * ChatBubble - Reusable message bubble component
  * Displays individual chat messages with different styling for user vs AI
@@ -12,7 +15,15 @@ export default function ChatBubble({ message, isUser }) {
             : 'bg-gray-100 text-gray-900 rounded-bl-none border border-gray-200'
         }`}
       >
-        <p className="text-sm leading-relaxed">{message}</p>
+        <div className="text-sm leading-relaxed prose prose-sm max-w-none">
+          {isUser ? (
+            <p>{message}</p>
+          ) : (
+            <ReactMarkdown remarkPlugins={[remarkGfm]}>
+              {message}
+            </ReactMarkdown>
+          )}
+        </div>
       </div>
     </div>
   )

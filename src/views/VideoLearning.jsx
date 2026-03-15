@@ -124,7 +124,14 @@ export default function VideoLearning() {
               Visualizing: <span className="font-semibold">{document.name}</span>
             </p>
           </div>
-          <button className="flex items-center gap-2 text-primary hover:bg-primary/5 px-4 py-2 rounded-lg transition-colors">
+          <button 
+            onClick={() => {
+              const url = window.location.href;
+              navigator.clipboard.writeText(url);
+              alert('Lesson link copied to clipboard!');
+            }}
+            className="flex items-center gap-2 text-primary hover:bg-primary/5 px-4 py-2 rounded-lg transition-colors"
+          >
             <Share2 size={18} />
             <span className="text-sm font-medium">Share Lesson</span>
           </button>
@@ -133,7 +140,10 @@ export default function VideoLearning() {
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
           {/* Main Video Section */}
           <div className="lg:col-span-3">
-            <div className="relative aspect-video bg-dark rounded-3xl overflow-hidden shadow-2xl group border-4 border-white">
+            <div 
+              className="relative aspect-video bg-dark rounded-3xl overflow-hidden shadow-2xl group border-4 border-white cursor-pointer"
+              onClick={() => setIsPlaying(!isPlaying)}
+            >
               {/* This would be the actual canvas/video component */}
               <div className="absolute inset-0 flex items-center justify-center">
                 <div className="text-center p-12">
@@ -165,7 +175,10 @@ export default function VideoLearning() {
               </div>
 
               {/* Hover Controls */}
-              <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-8">
+              <div 
+                className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-8 z-30"
+                onClick={(e) => e.stopPropagation()}
+              >
                 <button 
                   onClick={handleRestart}
                   className="p-4 bg-white/10 hover:bg-white/20 rounded-full backdrop-blur-md transition-all"
@@ -195,8 +208,13 @@ export default function VideoLearning() {
                   <p className="text-xs text-gray-500">Duration: 45 seconds • 1080p AI Generated</p>
                 </div>
               </div>
-              <div className="flex gap-2">
-                <button className="p-2 hover:bg-gray-100 rounded-lg"><Settings size={20} /></button>
+               <div className="flex gap-2">
+                <button 
+                  onClick={() => alert('Visual settings coming soon!')}
+                  className="p-2 hover:bg-gray-100 rounded-lg"
+                >
+                  <Settings size={20} />
+                </button>
               </div>
             </div>
           </div>
@@ -234,10 +252,13 @@ export default function VideoLearning() {
               </div>
             </div>
 
-            <div className="card bg-gradient-to-br from-primary to-secondary text-white border-none">
+             <div className="card bg-gradient-to-br from-primary to-secondary text-white border-none">
               <h3 className="font-bold mb-2">Want a custom lesson?</h3>
               <p className="text-xs text-white/80 mb-4 leading-relaxed">Adjust the teaching tone or focus on specific chapters of your document.</p>
-              <button className="w-full py-2 bg-white/20 hover:bg-white/30 backdrop-blur-md rounded-lg text-xs font-bold transition-all">
+              <button 
+                onClick={() => alert('Customization feature coming soon!')}
+                className="w-full py-2 bg-white/20 hover:bg-white/30 backdrop-blur-md rounded-lg text-xs font-bold transition-all"
+              >
                 Customize AI Output
               </button>
             </div>

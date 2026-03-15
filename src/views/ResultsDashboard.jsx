@@ -1,14 +1,20 @@
 "use client";
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useRouter } from "next/navigation";
 import { FileText, Download, BarChart2, PieChart, Activity, Loader2 } from 'lucide-react'
 import { useDocument } from '../context/DocumentContext'
+import { jsPDF } from "jspdf"
+import html2canvas from "html2canvas"
+import ReactMarkdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
 
 export default function ResultsDashboard() {
   const { document, documentId, results, setResultsData } = useDocument()
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
+  const [exporting, setExporting] = useState(false)
+  const reportRef = useRef(null)
   
   useEffect(() => {
     if (!document) {
@@ -40,6 +46,35 @@ export default function ResultsDashboard() {
       setError(error.message || 'Failed to generate summary. Please try again.')
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleExportPDF = async () => {
+    if (!reportRef.current) return
+    
+    setExporting(true)
+    try {
+      const canvas = await html2canvas(reportRef.current, {
+        scale: 2,
+        useCORS: true,
+        logging: false,
+        backgroundColor: '#f9fafb'
+      })
+      
+      const imgData = canvas.toDataURL('image/png')
+      const pdf = new jsPDF({
+        orientation: 'portrait',
+        unit: 'px',
+        format: [canvas.width / 2, canvas.height / 2]
+      })
+      
+      pdf.addImage(imgData, 'PNG', 0, 0, canvas.width / 2, canvas.height / 2)
+      pdf.save(`Explainify_Analysis_${document.name.split('.')[0]}.pdf`)
+    } catch (err) {
+      console.error('PDF Export failed:', err)
+      alert('Failed to export PDF. Please try again.')
+    } finally {
+      setExporting(false)
     }
   }
   
@@ -83,9 +118,13 @@ export default function ResultsDashboard() {
             <p className="text-gray-600">Detailed insights from: <span className="font-semibold text-primary">{document.name}</span></p>
           </div>
           <div className="flex gap-4">
-            <button className="btn-outline flex items-center gap-2">
-              <Download size={20} />
-              Export PDF
+            <button 
+              onClick={handleExportPDF}
+              disabled={exporting}
+              className="btn-outline flex items-center gap-2 disabled:opacity-50"
+            >
+              {exporting ? <Loader2 size={18} className="animate-spin" /> : <Download size={20} />}
+              {exporting ? 'Exporting...' : 'Export PDF'}
             </button>
             <button 
               onClick={() => router.push('/video')}
@@ -96,7 +135,7 @@ export default function ResultsDashboard() {
           </div>
         </div>
         
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div ref={reportRef} className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Main Summary Section */}
           <div className="lg:col-span-2 space-y-8">
             <div className="card">
@@ -104,10 +143,10 @@ export default function ResultsDashboard() {
                 <FileText className="text-primary" size={24} />
                 <h2 className="text-xl font-bold">Comprehensive Summary</h2>
               </div>
-              <div className="prose max-w-none text-gray-700 leading-relaxed">
-                {summary.split('\n\n').map((para, i) => (
-                  <p key={i} className="mb-4">{para}</p>
-                ))}
+              <div className="prose prose-indigo max-w-none text-gray-700 leading-relaxed">
+                <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                  {summary}
+                </ReactMarkdown>
               </div>
             </div>
             
@@ -121,7 +160,11 @@ export default function ResultsDashboard() {
                   {keyTakeaways.map((item, i) => (
                     <li key={i} className="flex items-start gap-2">
                       <div className="w-1.5 h-1.5 rounded-full bg-accent mt-2 flex-shrink-0" />
-                      <span className="text-gray-600 text-sm">{item}</span>
+                      <div className="text-gray-600 text-sm prose prose-sm max-w-none">
+                        <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                          {item}
+                        </ReactMarkdown>
+                      </div>
                     </li>
                   ))}
                 </ul>
