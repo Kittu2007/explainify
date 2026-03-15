@@ -45,14 +45,42 @@ export async function POST(request: NextRequest) {
     const arrayBuffer = await fileData.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
 
-    // Extract text from PDF
-    const { text, pageCount } = await extractText(buffer);
+    // Extract text based on file type
+    const fileExt = filename ? filename.split('.').pop()?.toLowerCase() : "";
+    let text = "";
+    let pageCount = 1;
+
+    try {
+      if (fileExt === "pdf") {
+        const { extractText: extractPdf } = await import("@/lib/pdf");
+        const extracted = await extractPdf(buffer);
+        text = extracted.text;
+        pageCount = extracted.pageCount;
+      } else if (fileExt === "doc" || fileExt === "docx") {
+        const { extractWordText } = await import("@/lib/docx");
+        const extracted = await extractWordText(buffer);
+        text = extracted.text;
+        pageCount = extracted.pageCount;
+      } else if (fileExt === "txt") {
+        text = buffer.toString("utf-8");
+      } else {
+        return NextResponse.json(
+          { error: `Unsupported file type: .${fileExt}. Please upload PDF, Word, or TXT.` },
+          { status: 400 }
+        );
+      }
+    } catch (extractErr: any) {
+      console.error("Text extraction failed:", extractErr);
+      return NextResponse.json(
+        { error: extractErr.message || "Failed to read the document. It may contain complex images or be encrypted." },
+        { status: 422 }
+      );
+    }
 
     if (!text || text.trim().length === 0) {
       return NextResponse.json(
         {
-          error:
-            "Could not extract text from this PDF. It may be a scanned/image-only document.",
+          error: "Could not extract text from this document. It may be a scanned image-only file without OCR.",
         },
         { status: 422 }
       );
