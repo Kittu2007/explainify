@@ -1,60 +1,62 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import FloatingLinesBackground from "./FloatingLinesBackground";
 
 export default function HeroSection() {
   const navigate = useNavigate();
 
   const phrases = [
-    "AI explanations",
-    "AI videos",
-    "AI insights",
-    "AI summaries",
+    "Learn through AI explanations",
+    "Learn through AI videos",
+    "Learn through AI insights",
+    "Learn through AI summaries",
   ];
 
   const [index, setIndex] = useState(0);
   const [displayedText, setDisplayedText] = useState("");
   const [isTyping, setIsTyping] = useState(true);
+  const [fadeOut, setFadeOut] = useState(false);
 
-  // Typing animation for the dynamic text
   useEffect(() => {
-    if (!isTyping) return;
+    if (fadeOut) {
+      // After fade out, switch phrase and start typing
+      const timeout = setTimeout(() => {
+        setFadeOut(false);
+        setDisplayedText("");
+        setIsTyping(true);
+        setIndex((prev) => (prev + 1) % phrases.length);
+      }, 400); // fade out duration
+      return () => clearTimeout(timeout);
+    }
 
+    if (!isTyping) {
+      // After typing, keep phrase for 2 seconds then fade out
+      const timeout = setTimeout(() => {
+        setFadeOut(true);
+      }, 2000);
+      return () => clearTimeout(timeout);
+    }
+
+    // Typing animation
     const currentPhrase = phrases[index];
     let charIndex = 0;
-
+    setDisplayedText("");
     const typingInterval = setInterval(() => {
       if (charIndex <= currentPhrase.length) {
         setDisplayedText(currentPhrase.slice(0, charIndex));
         charIndex++;
       } else {
-        // Typing complete
         setIsTyping(false);
         clearInterval(typingInterval);
-        
-        // Wait 2 seconds before moving to next phrase
-        const delayTimer = setTimeout(() => {
-          setIndex((prev) => (prev + 1) % phrases.length);
-          setIsTyping(true);
-        }, 2000);
-
-        return () => clearTimeout(delayTimer);
       }
-    }, 60); // Typing speed
-
+    }, 60);
     return () => clearInterval(typingInterval);
-  }, [index, isTyping, phrases]);
+  }, [index, isTyping, fadeOut, phrases]);
 
   return (
     <div className="relative min-h-screen flex flex-col items-center justify-center text-white px-6 overflow-hidden pt-20">
-      {/* Floating Lines Background */}
-      <div className="absolute inset-0 -z-20">
-        <FloatingLinesBackground />
-      </div>
-
-      {/* Background Gradient */}
-      <div className="absolute inset-0 bg-gradient-to-br from-gray-950 via-gray-900 to-gray-950 -z-20" />
+      {/* Subtle radial gradient overlay for depth */}
+      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-gray-950/30 to-gray-950/60 pointer-events-none" />
 
       {/* Glow Effects */}
       <div className="absolute top-20 left-10 w-96 h-96 bg-purple-600 rounded-full blur-3xl opacity-20 -z-10 animate-pulse" />
@@ -75,24 +77,25 @@ export default function HeroSection() {
           </span>
         </h1>
 
-        {/* Rotating Text with Typing Animation */}
+        {/* Rotating Text with Typing Animation & Smooth Fade */}
         <div className="h-12 md:h-16 mb-12 flex items-center justify-center">
-          <div className="text-lg md:text-xl text-gray-300 font-light text-center">
-            <span className="text-purple-400 font-semibold">Learn through</span>
-            {" "}
-            <span>
-              {displayedText}
-              {isTyping && (
-                <motion.span
-                  animate={{ opacity: [1, 0.3, 1] }}
-                  transition={{ duration: 0.8, repeat: Infinity }}
-                  className="inline-block ml-0.5"
-                >
-                  |
-                </motion.span>
-              )}
-            </span>
-          </div>
+          <motion.div
+            className="text-lg md:text-xl text-gray-300 font-light text-center"
+            animate={fadeOut ? { opacity: 0, y: 20 } : { opacity: 1, y: 0 }}
+            transition={{ duration: 0.4 }}
+            key={index}
+          >
+            {displayedText}
+            {isTyping && (
+              <motion.span
+                animate={{ opacity: [1, 0.3, 1] }}
+                transition={{ duration: 0.8, repeat: Infinity }}
+                className="inline-block ml-0.5"
+              >
+                |
+              </motion.span>
+            )}
+          </motion.div>
         </div>
 
         {/* CTA Button */}

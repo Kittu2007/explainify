@@ -38,35 +38,17 @@ const featureData = [
 function FeatureItem({ icon: Icon, title, description, index }) {
   const ref = useRef(null);
   // Use a high threshold so feature is considered "in view" when centered on screen
-  const isInView = useInView(ref, { threshold: 0.5, margin: "0px" });
-
-  // Determine if this is the active/focused feature
-  const animationVariants = {
-    active: {
-      scale: 1,
-      opacity: 1,
-      filter: "blur(0px)",
-      transition: {
-        duration: 0.5,
-        ease: "easeOut",
-      },
-    },
-    inactive: {
-      scale: 0.85,
-      opacity: 0.5,
-      filter: "blur(6px)",
-      transition: {
-        duration: 0.5,
-        ease: "easeOut",
-      },
-    },
-  };
+  const isInView = useInView(ref, { threshold: 0.7, margin: "0px" });
 
   return (
     <motion.div
       ref={ref}
-      animate={isInView ? "active" : "inactive"}
-      variants={animationVariants}
+      style={{
+        transform: isInView ? "scale(1.08)" : "scale(0.92)",
+        filter: isInView ? "blur(0px)" : "blur(6px)",
+        opacity: isInView ? 1 : 0.5,
+        transition: "transform 0.5s cubic-bezier(.68,-0.55,.27,1.55), filter 0.5s, opacity 0.5s"
+      }}
       className="py-10 border-b border-gray-800 last:border-b-0"
     >
       <div className="max-w-3xl mx-auto px-6 text-center">

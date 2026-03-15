@@ -12,7 +12,7 @@ export default function App() {
   return (
     <Router>
       <DocumentProvider>
-        <div className="flex flex-col min-h-screen bg-light">
+        <div className="flex flex-col min-h-screen bg-gray-950">
           <Navbar />
           <main className="flex-grow">
             <Routes>

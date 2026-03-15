@@ -1,81 +1,87 @@
-import { useCallback } from "react";
-import Particles from "react-tsparticles";
-import { loadSlim } from "tsparticles-slim";
+import { useEffect, useRef } from "react";
 
+/**
+ * ParticlesBackground — Canvas-based animated particle network.
+ * Replaces broken react-tsparticles (v2 API incompatible with tsparticles v3).
+ * Renders purple floating dots with connecting lines on a dark background.
+ */
 export default function ParticlesBackground() {
-  const particlesInit = useCallback(async (engine) => {
-    await loadSlim(engine);
+  const canvasRef = useRef(null);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const ctx = canvas.getContext("2d");
+    let animFrameId;
+
+    const resize = () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    };
+    resize();
+
+    // Generate particles
+    const particles = Array.from({ length: 80 }, () => ({
+      x: Math.random() * canvas.width,
+      y: Math.random() * canvas.height,
+      vx: (Math.random() - 0.5) * 0.4,
+      vy: (Math.random() - 0.5) * 0.4,
+      r: Math.random() * 2 + 1,
+      opacity: Math.random() * 0.3 + 0.1,
+    }));
+
+    const draw = () => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      particles.forEach((p, i) => {
+        // Move
+        p.x += p.vx;
+        p.y += p.vy;
+
+        // Bounce walls
+        if (p.x < p.r || p.x > canvas.width - p.r) { p.vx *= -1; p.x = Math.max(p.r, Math.min(canvas.width - p.r, p.x)); }
+        if (p.y < p.r || p.y > canvas.height - p.r) { p.vy *= -1; p.y = Math.max(p.r, Math.min(canvas.height - p.r, p.y)); }
+
+        // Draw dot
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(139, 92, 246, ${p.opacity})`;
+        ctx.fill();
+
+        // Draw connecting lines to nearby particles
+        for (let j = i + 1; j < particles.length; j++) {
+          const q = particles[j];
+          const dist = Math.hypot(p.x - q.x, p.y - q.y);
+          if (dist < 150) {
+            const alpha = 0.2 * (1 - dist / 150);
+            ctx.beginPath();
+            ctx.moveTo(p.x, p.y);
+            ctx.lineTo(q.x, q.y);
+            ctx.strokeStyle = `rgba(99, 102, 241, ${alpha})`;
+            ctx.lineWidth = 1;
+            ctx.stroke();
+          }
+        }
+      });
+
+      animFrameId = requestAnimationFrame(draw);
+    };
+
+    draw();
+
+    window.addEventListener("resize", resize);
+    return () => {
+      cancelAnimationFrame(animFrameId);
+      window.removeEventListener("resize", resize);
+    };
   }, []);
 
   return (
-    <Particles
-      id="tsparticles"
-      init={particlesInit}
-      options={{
-        background: {
-          color: {
-            value: "transparent",
-          },
-        },
-        fpsLimit: 120,
-        interactivity: {
-          events: {
-            onClick: {
-              enable: false,
-            },
-            onHover: {
-              enable: true,
-              mode: "repulse",
-            },
-          },
-          modes: {
-            repulse: {
-              distance: 200,
-              duration: 0.4,
-            },
-          },
-        },
-        particles: {
-          color: {
-            value: "#8b5cf6",
-          },
-          links: {
-            color: "#6366f1",
-            distance: 150,
-            enable: true,
-            opacity: 0.3,
-            width: 1,
-          },
-          move: {
-            brownian: true,
-            enable: true,
-            outModes: {
-              default: "bounce",
-            },
-            random: false,
-            speed: 0.5,
-            straight: false,
-          },
-          number: {
-            density: {
-              enable: true,
-              area: 800,
-            },
-            value: 80,
-          },
-          opacity: {
-            value: 0.4,
-          },
-          shape: {
-            type: "circle",
-          },
-          size: {
-            value: { min: 1, max: 3 },
-          },
-        },
-        detectRetina: true,
-      }}
-      className="absolute inset-0 -z-10"
+    <canvas
+      ref={canvasRef}
+      className="fixed inset-0 pointer-events-none"
+      style={{ zIndex: 0, background: "transparent" }}
     />
   );
 }
