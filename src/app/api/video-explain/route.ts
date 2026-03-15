@@ -35,26 +35,29 @@ export async function POST(request: NextRequest) {
 
     // If a documentId is provided, retrieve and rerank relevant chunks
     if (documentId) {
+      console.log(`[Video] Embedding topic for document grounding: "${topic.substring(0, 50)}..."`);
       const topicEmbedding = await generateEmbedding(topic, "query");
 
+      console.log(`[Video] Searching for matches in document ${documentId}...`);
       const { data: matches, error: matchError } = await supabase.rpc(
         "match_chunks",
         {
-          query_embedding: JSON.stringify(topicEmbedding),
+          query_embedding: topicEmbedding, // Pass array directly
           match_count: 15,
           filter_document_id: documentId,
         }
       );
 
       if (matchError) {
-        console.error("Vector search error:", matchError);
+        console.error("[Video] Vector search error:", matchError);
         return NextResponse.json(
-          { error: "Failed to search document chunks." },
+          { error: `Database Search Error: ${matchError.message}` },
           { status: 500 }
         );
       }
 
       if (matches && matches.length > 0) {
+        console.log(`[Video] Found ${matches.length} matches. Reranking...`);
         // Rerank for better context quality
         const passages = matches.map(
           (m: { content: string }, i: number) => ({
@@ -65,20 +68,24 @@ export async function POST(request: NextRequest) {
 
         const reranked = await rerankPassages(topic, passages, 8);
         contextChunks = reranked.map((r) => r.content);
+      } else {
+        console.log("[Video] No matches found. Proceeding with general knowledge.");
       }
     }
 
     // Generate the baseline script text
+    console.log("[Video] Generating script with LLM...");
     const script = await generateVideoScript(topic, contextChunks);
 
     // Generate TTS Audio for each scene in parallel
+    console.log(`[Video] Generating TTS audio for ${script.scenes.length} scenes...`);
     const scenesWithAudio = await Promise.all(
       script.scenes.map(async (scene) => {
         try {
           const audioUrl = await generateNarrationAudio(scene.narration);
           return { ...scene, audioUrl };
-        } catch (audioError) {
-          console.error("Failed to generate audio for scene " + scene.sceneNumber + ":", audioError);
+        } catch (audioError: any) {
+          console.error(`[Video] TTS failed for scene ${scene.sceneNumber}:`, audioError.message);
           // Return null audio if generation fails, so the app doesn't crash completely
           return { ...scene, audioUrl: null };
         }
@@ -86,16 +93,17 @@ export async function POST(request: NextRequest) {
     );
 
     const finalScript = { ...script, scenes: scenesWithAudio };
+    console.log("[Video] Success.");
 
     return NextResponse.json({
       script: finalScript,
       topic,
       documentGrounded: contextChunks.length > 0,
     });
-  } catch (error) {
-    console.error("Video explain error:", error);
+  } catch (error: any) {
+    console.error("[Video] Unhandled error:", error);
     return NextResponse.json(
-      { error: "Internal server error during video explanation generation." },
+      { error: `Video explanation failed: ${error.message || String(error)}` },
       { status: 500 }
     );
   }

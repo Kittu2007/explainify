@@ -31,33 +31,38 @@ export async function POST(request: NextRequest) {
     }
 
     // Step 1: Embed the question (input_type: "query")
+    console.log(`[Query] Embedding question: "${question.substring(0, 50)}..."`);
     const queryEmbedding = await generateEmbedding(question, "query");
 
     // Step 2: Vector similarity search — retrieve top 20 candidates
+    console.log(`[Query] Searching for matches (docId: ${documentId || 'all'})...`);
     const { data: matches, error: matchError } = await supabase.rpc(
       "match_chunks",
       {
-        query_embedding: JSON.stringify(queryEmbedding),
+        query_embedding: queryEmbedding, // Pass array directly
         match_count: 20,
-        filter_document_id: documentId || null,
+        filter_document_id: (documentId && documentId.trim() !== "") ? documentId : null,
       }
     );
 
     if (matchError) {
-      console.error("Vector search error:", matchError);
+      console.error("[Query] Vector search error:", matchError);
       return NextResponse.json(
-        { error: "Failed to search document chunks." },
+        { error: `Database Search Error: ${matchError.message}` },
         { status: 500 }
       );
     }
 
     if (!matches || matches.length === 0) {
+      console.log("[Query] No matches found.");
       return NextResponse.json({
         answer:
           "No relevant content found. Please upload a document first or rephrase your question.",
         sources: [],
       });
     }
+
+    console.log(`[Query] Found ${matches.length} matches. Proceeding to rerank...`);
 
     // Step 3: Rerank — pass top 20 candidates through reranker, keep top 5
     const passages = matches.map(
@@ -70,8 +75,11 @@ export async function POST(request: NextRequest) {
     const rerankedResults = await rerankPassages(question, passages, 5);
 
     // Step 4: Generate answer with reranked context
+    console.log("[Query] Generating answer with LLM...");
     const contextChunks = rerankedResults.map((r) => r.content);
     const answer = await askWithContext(question, contextChunks);
+
+    console.log("[Query] Success.");
 
     // Format sources from reranked results
     const sources = rerankedResults.map((r) => {
@@ -89,10 +97,10 @@ export async function POST(request: NextRequest) {
       answer,
       sources,
     });
-  } catch (error) {
-    console.error("Query error:", error);
+  } catch (error: any) {
+    console.error("[Query] Unhandled error:", error);
     return NextResponse.json(
-      { error: "Internal server error during query." },
+      { error: `Query failed: ${error.message || String(error)}` },
       { status: 500 }
     );
   }

@@ -27,6 +27,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Fetch the document to verify it exists
+    console.log(`[Summarize] Fetching document meta for ${documentId}...`);
     const { data: doc, error: docError } = await supabase
       .from("documents")
       .select("id, filename")
@@ -34,6 +35,7 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (docError || !doc) {
+      console.error("[Summarize] Doc fetch error:", docError);
       return NextResponse.json(
         { error: "Document not found." },
         { status: 404 }
@@ -41,6 +43,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Fetch all chunks for this document, ordered by index
+    console.log(`[Summarize] Fetching chunks for ${doc.filename}...`);
     const { data: chunks, error: chunkError } = await supabase
       .from("chunks")
       .select("content, chunk_index")
@@ -48,6 +51,7 @@ export async function POST(request: NextRequest) {
       .order("chunk_index", { ascending: true });
 
     if (chunkError || !chunks || chunks.length === 0) {
+      console.error("[Summarize] Chunk fetch error:", chunkError);
       return NextResponse.json(
         { error: "No content found for this document." },
         { status: 404 }
@@ -67,17 +71,20 @@ export async function POST(request: NextRequest) {
     }
 
     // Generate summary
+    console.log(`[Summarize] Running LLM on ${combinedText.length} characters...`);
     const summary = await summarize(combinedText.trim());
+
+    console.log("[Summarize] Success.");
 
     return NextResponse.json({
       summary,
       documentId: doc.id,
       filename: doc.filename,
     });
-  } catch (error) {
-    console.error("Summarize error:", error);
+  } catch (error: any) {
+    console.error("[Summarize] Unhandled error:", error);
     return NextResponse.json(
-      { error: "Internal server error during summarization." },
+      { error: `Summarization failed: ${error.message || String(error)}` },
       { status: 500 }
     );
   }

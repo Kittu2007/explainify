@@ -29,35 +29,51 @@ export async function rerankPassages(
   passages: Array<{ content: string; index: number }>,
   topN: number = 5
 ): Promise<RerankResult[]> {
-  const apiKey = getApiKey();
-  const response = await fetch("https://integrate.api.nvidia.com/v1/ranking", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      model: RERANK_MODEL,
-      query: { text: query },
-      passages: passages.map((p) => ({ text: p.content })),
-      top_n: topN,
-      truncate: "END",
-    }),
-  });
+  try {
+    const apiKey = getApiKey();
+    const response = await fetch("https://integrate.api.nvidia.com/v1/ranking", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: RERANK_MODEL,
+        query: { text: query },
+        passages: passages.map((p) => ({ text: p.content })),
+        top_n: topN,
+        truncate: "END",
+      }),
+    });
 
-  if (!response.ok) {
-    const error = await response.text();
-    throw new Error(`Reranking failed: ${response.status} ${error}`);
+    if (!response.ok) {
+      const error = await response.text();
+      console.warn(`Reranking service unavailable (${response.status}): ${error}. Skipping rerank.`);
+      // Fallback: return first TopN results from original list
+      return passages.slice(0, topN).map((p) => ({
+        index: p.index,
+        content: p.content,
+        logit: 0,
+      }));
+    }
+
+    const data = await response.json();
+
+    // Map results back with original content
+    return data.rankings.map(
+      (r: { index: number; logit: number }) => ({
+        index: passages[r.index].index,
+        content: passages[r.index].content,
+        logit: r.logit,
+      })
+    );
+  } catch (err: any) {
+    console.warn("Reranking failed due to network or config error. Skipping rerank:", err.message);
+    // Fallback: return first TopN results from original list
+    return passages.slice(0, topN).map((p) => ({
+      index: p.index,
+      content: p.content,
+      logit: 0,
+    }));
   }
-
-  const data = await response.json();
-
-  // Map results back with original content
-  return data.rankings.map(
-    (r: { index: number; logit: number }) => ({
-      index: passages[r.index].index,
-      content: passages[r.index].content,
-      logit: r.logit,
-    })
-  );
 }
