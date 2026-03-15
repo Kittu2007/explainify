@@ -2,7 +2,7 @@
 
 AI-Powered Knowledge Retrieval & Learning Platform — upload documents, ask questions, generate summaries, and learn through AI-generated video explanations.
 
-🔗 **Live:** [explainify-tool.vercel.app](https://explainify-tool.vercel.app)
+🔗 **Live:** [explainify-ai.onrender.com](https://explainify-ai.onrender.com)
 
 ## Tech Stack
 
@@ -10,7 +10,7 @@ AI-Powered Knowledge Retrieval & Learning Platform — upload documents, ask que
 - **Database:** Supabase PostgreSQL + pgvector
 - **AI LLM:** NVIDIA API — Meta Llama 3.1 70B Instruct
 - **Embeddings:** NVIDIA NV-EmbedQA-E5-v5 (1024-dim)
-- **Deployment:** Vercel
+- **Deployment:** Render
 
 ## API Endpoints
 
