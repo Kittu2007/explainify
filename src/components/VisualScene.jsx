@@ -3,7 +3,7 @@ import React from 'react';
 import { 
   ArrowRight, 
   ArrowDown, 
-  BarChart, 
+  BarChart2, 
   Activity, 
   Clock, 
   Zap, 
@@ -18,7 +18,7 @@ import {
 export default function VisualScene({ scene }) {
   if (!scene) return null;
 
-  const { scene_type, title, visual_elements, animation } = scene;
+  const { scene_type, title, visual_elements = [], animation } = scene;
 
   // Render different layouts based on scene_type
   const renderGraphic = () => {
@@ -31,7 +31,7 @@ export default function VisualScene({ scene }) {
                 <div className="w-16 h-16 bg-primary/20 rounded-full flex items-center justify-center mb-4">
                   {idx === 0 ? <Zap className="text-primary" /> : <Layers className="text-secondary" />}
                 </div>
-                <p className="text-white font-bold text-center">{el}</p>
+                <p className="text-white font-bold text-center">{String(el)}</p>
               </div>
             ))}
             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
@@ -46,7 +46,7 @@ export default function VisualScene({ scene }) {
             {visual_elements.map((el, idx) => (
               <React.Fragment key={idx}>
                 <div className="bg-white/10 border border-white/20 px-6 py-3 rounded-xl text-white text-sm font-medium animate-slide-up" style={{ animationDelay: `${idx * 0.2}s` }}>
-                  {el}
+                  {String(el)}
                 </div>
                 {idx < visual_elements.length - 1 && <ArrowDown className="text-primary/50 animate-pulse" size={20} />}
               </React.Fragment>
@@ -64,7 +64,7 @@ export default function VisualScene({ scene }) {
                {visual_elements.map((el, idx) => (
                  <div key={idx} className="text-center animate-fade-in" style={{ animationDelay: `${idx * 0.3}s` }}>
                     <div className={`w-1 h-8 mx-auto mb-2 ${idx % 2 === 0 ? 'bg-primary' : 'bg-secondary'}`} />
-                    <p className="text-[10px] text-white/70 font-mono uppercase tracking-tighter">{el}</p>
+                    <p className="text-[10px] text-white/70 font-mono uppercase tracking-tighter">{String(el)}</p>
                  </div>
                ))}
             </div>
@@ -75,8 +75,8 @@ export default function VisualScene({ scene }) {
         return (
           <div className="flex items-end justify-center w-full h-full gap-6 p-12">
             {visual_elements.map((el, idx) => {
-              const label = el.split(':')[0] || el;
-              const value = parseInt(el.split(':')[1]) || (40 + idx * 15);
+              const label = String(el).split(':')[0] || String(el);
+              const value = parseInt(String(el).split(':')[1]) || (40 + idx * 15);
               return (
                 <div key={idx} className="flex flex-col items-center group">
                   <div 
@@ -100,7 +100,7 @@ export default function VisualScene({ scene }) {
                {visual_elements.slice(0, 4).map((el, idx) => (
                  <div key={idx} className="flex items-center gap-3 bg-dark/40 backdrop-blur-xl border border-white/10 p-4 rounded-2xl animate-fade-in" style={{ animationDelay: `${idx * 0.2}s` }}>
                     <div className="w-8 h-8 bg-secondary/20 rounded-lg flex items-center justify-center text-secondary font-black">{idx + 1}</div>
-                    <p className="text-white text-xs font-semibold">{el}</p>
+                    <p className="text-white text-xs font-semibold">{String(el)}</p>
                  </div>
                ))}
             </div>
@@ -120,7 +120,7 @@ export default function VisualScene({ scene }) {
             <div className="grid grid-cols-5 gap-4 w-full">
                {visual_elements.map((el, idx) => (
                  <div key={idx} className="text-center animate-fade-in" style={{ animationDelay: `${idx * 0.2}s` }}>
-                    <p className="text-white/80 text-[10px] font-bold leading-tight">{el}</p>
+                    <p className="text-white/80 text-[10px] font-bold leading-tight">{String(el)}</p>
                  </div>
                ))}
             </div>
@@ -136,7 +136,7 @@ export default function VisualScene({ scene }) {
                 <div className="w-20 h-20 bg-gradient-to-br from-primary/30 to-secondary/30 rounded-3xl flex items-center justify-center mb-3 border border-white/10 shadow-xl group hover:rotate-6 transition-transform">
                    <Zap className="text-white group-hover:scale-110 transition-transform" size={32} />
                 </div>
-                <p className="text-white/80 text-[10px] font-medium max-w-[100px] text-center uppercase tracking-widest">{el}</p>
+                <p className="text-white/80 text-[10px] font-medium max-w-[100px] text-center uppercase tracking-widest">{String(el)}</p>
               </div>
             ))}
           </div>
