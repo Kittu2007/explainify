@@ -1,14 +1,22 @@
 "use client";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { Menu, X } from 'lucide-react'
+import { usePathname, useRouter } from "next/navigation";
+import { Menu, X, LogOut, User, LogIn } from 'lucide-react'
 import { useState } from 'react'
+import { useAuth } from '@/context/AuthContext'
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false)
   const pathname = usePathname()
+  const router = useRouter()
+  const { user, signOut } = useAuth()
   
   const isActive = (path) => pathname === path
+  
+  const handleLogout = async () => {
+    await signOut()
+    router.push('/login')
+  }
   
   const navLinks = [
     { label: 'Home', path: '/' },
@@ -45,15 +53,51 @@ export default function Navbar() {
                 {link.label}
               </Link>
             ))}
+            
+            <div className="ml-4 pl-4 border-l border-gray-700 flex items-center gap-3">
+              {user ? (
+                <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-2 px-3 py-1.5 bg-gray-800 rounded-full border border-gray-700">
+                    <User size={14} className="text-primary" />
+                    <span className="text-xs font-medium text-gray-300 max-w-[120px] truncate">{user.email}</span>
+                  </div>
+                  <button 
+                    onClick={handleLogout}
+                    className="p-2 text-gray-400 hover:text-white hover:bg-red-500/10 rounded-lg transition-all group"
+                    title="Sign Out"
+                  >
+                    <LogOut size={20} className="group-hover:scale-110 transition-transform" />
+                  </button>
+                </div>
+              ) : (
+                <Link 
+                  href="/login"
+                  className="flex items-center gap-2 px-5 py-2.5 bg-primary hover:bg-secondary text-white rounded-xl text-sm font-bold transition-all shadow-lg shadow-primary/20 group"
+                >
+                  <LogIn size={16} />
+                  <span>Sign In</span>
+                </Link>
+              )}
+            </div>
           </div>
           
           {/* Mobile Menu Button */}
-          <button
-            onClick={() => setIsOpen(!isOpen)}
-            className="md:hidden p-2 rounded-lg hover:bg-gray-700"
-          >
-            {isOpen ? <X size={24} /> : <Menu size={24} />}
-          </button>
+          <div className="md:hidden flex items-center gap-4">
+            {user && (
+              <button 
+                onClick={handleLogout}
+                className="p-2 text-gray-400"
+              >
+                <LogOut size={20} />
+              </button>
+            )}
+            <button
+              onClick={() => setIsOpen(!isOpen)}
+              className="p-2 rounded-lg hover:bg-gray-700"
+            >
+              {isOpen ? <X size={24} /> : <Menu size={24} />}
+            </button>
+          </div>
         </div>
         
         {/* Mobile Navigation */}
@@ -73,6 +117,15 @@ export default function Navbar() {
                 {link.label}
               </Link>
             ))}
+            {!user && (
+              <Link
+                href="/login"
+                onClick={() => setIsOpen(false)}
+                className="block px-4 py-3 bg-primary text-white font-black uppercase tracking-widest text-[10px] rounded-xl text-center shadow-lg mx-2 mt-4"
+              >
+                Sign In
+              </Link>
+            )}
           </div>
         )}
       </div>
