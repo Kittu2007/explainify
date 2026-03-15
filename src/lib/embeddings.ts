@@ -11,11 +11,11 @@ const getClient = () => {
   });
 };
 
-const EMBEDDING_MODEL = "nvidia/llama-3.2-nv-nemoretriever-300m-embed-v1";
+const EMBEDDING_MODEL = "nvidia/llama-3.2-nemoretriever-300m-embed-v1";
 
 /**
  * Generate an embedding vector for a single text string.
- * Uses NVIDIA llama-3.2-nv-nemoretriever-300m-embed-v1 (2048 dimensions).
+ * Uses NVIDIA llama-3.2-nemoretriever-300m-embed-v1 (2048 dimensions).
  *
  * @param text - Text to embed
  * @param inputType - "query" for search queries, "passage" for document indexing
@@ -24,14 +24,13 @@ export async function generateEmbedding(
   text: string,
   inputType: "query" | "passage" = "query"
 ): Promise<number[]> {
-  // Use model name suffix for input_type (NVIDIA's OpenAI-compat approach)
-  const modelWithType = `${EMBEDDING_MODEL}-${inputType}`;
-
   const client = getClient();
   const response = await client.embeddings.create({
     input: text,
-    model: modelWithType,
+    model: EMBEDDING_MODEL,
     encoding_format: "float",
+    // Cast to any to pass the required input_type parameter for NVIDIA
+    ...({ input_type: inputType } as any)
   });
   return response.data[0].embedding;
 }
@@ -46,7 +45,6 @@ export async function generateEmbeddings(
 ): Promise<number[][]> {
   const BATCH_SIZE = 50;
   const allEmbeddings: number[][] = [];
-  const modelWithType = `${EMBEDDING_MODEL}-${inputType}`;
 
   for (let i = 0; i < texts.length; i += BATCH_SIZE) {
     const batch = texts.slice(i, i + BATCH_SIZE);
@@ -54,8 +52,9 @@ export async function generateEmbeddings(
     const client = getClient();
     const response = await client.embeddings.create({
       input: batch,
-      model: modelWithType,
+      model: EMBEDDING_MODEL,
       encoding_format: "float",
+      ...({ input_type: inputType } as any)
     });
 
     // Add a small delay to prevent rate-limiting on large documents
