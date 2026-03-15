@@ -85,7 +85,7 @@ export async function POST(request: NextRequest) {
           const audioUrl = await generateNarrationAudio(scene.narration);
           return { ...scene, audioUrl };
         } catch (audioError: any) {
-          console.error(`[Video] TTS failed for scene ${scene.sceneNumber}:`, audioError.message);
+          console.error(`[Video] TTS failed for scene ${scene.scene_type}:`, audioError.message);
           // Return null audio if generation fails, so the app doesn't crash completely
           return { ...scene, audioUrl: null };
         }

@@ -87,8 +87,7 @@ Instructions:
 }
 
 /**
- * Generate a structured video explanation script.
- * Returns a JSON-compatible object with scenes for video generation.
+ * Generate a structured visual explanation plan.
  */
 export async function generateVideoScript(
   topic: string,
@@ -97,9 +96,11 @@ export async function generateVideoScript(
   title: string;
   description: string;
   scenes: Array<{
-    sceneNumber: number;
+    scene_type: 'comparison' | 'flowchart' | 'timeline' | 'spectrum_chart' | 'bar_chart' | 'process_diagram' | 'icon_infographic';
+    title: string;
+    visual_elements: string[];
+    animation: string;
     narration: string;
-    visual: string;
     duration: number;
   }>;
 }> {
@@ -113,33 +114,39 @@ export async function generateVideoScript(
     messages: [
       {
         role: "system",
-        content: `You are Explainify Visual Learning Designer. Create a script for a high-end educational video. 
-Return ONLY a valid JSON object.
+        content: `You are Explainify Visual Learning Designer. Your task is to transform complex document content into a VISUAL learning plan.
+        
+CRITICAL RULES:
+1. FOCUS on concepts, processes, and comparisons. 
+2. AVOID text-heavy slides. Each scene MUST be primarily graphical.
+3. Use the following Scene Types:
+   - comparison: Side-by-side analysis of two concepts/items.
+   - flowchart: Sequential steps or logical branching.
+   - timeline: Chronological events or phases.
+   - spectrum_chart: Range-based data (like wavelengths, frequencies, or scales).
+   - bar_chart: Comparative numerical data.
+   - process_diagram: Circular or linear flow of a system.
+   - icon_infographic: Concept clusters using symbolic icons.
 
-CRITICAL VISUAL RULES:
-- "visual" descriptions MUST describe GRAPHICAL elements like:
-  - "Interactive Chart showing [data]"
-  - "Dynamic Flowchart of [process]"
-  - "Animated Infographic explaining [concept]"
-  - "Vector Line Animation of [mechanism]"
-- AVOID boring descriptions like "text on screen" or "man talking".
-- Ensure the visuals are sophisticated and educational.
+Return ONLY a valid JSON object.
 
 JSON Structure:
 {
-  "title": "Video title",
-  "description": "Brief description",
+  "title": "Topic Title",
+  "description": "Short explanation",
   "scenes": [
     {
-      "sceneNumber": 1,
-      "narration": "Narration text",
-      "visual": "Graphical description (Chart/Flowchart/Animation)",
+      "scene_type": "flowchart",
+      "title": "Wait for Approval Step",
+      "visual_elements": ["Box 1: User Request", "Arrow ->", "Box 2: AI Processing", "Branch (Yes/No)"],
+      "animation": "Arrows animate in sequence",
+      "narration": "The narration explains the concept being shown visually.",
       "duration": 15
     }
   ]
 }
 
-Rules: 4-8 scenes, 10-20s each. Return ONLY JSON.`,
+Rules: 5-8 scenes, 10-20s each. Return ONLY JSON.`,
       },
       {
         role: "user",
@@ -147,7 +154,7 @@ Rules: 4-8 scenes, 10-20s each. Return ONLY JSON.`,
       },
     ],
     temperature: 0.4,
-    max_tokens: 2048,
+    max_tokens: 3000,
   });
 
   const text =
@@ -155,7 +162,12 @@ Rules: 4-8 scenes, 10-20s each. Return ONLY JSON.`,
 
   // Parse the JSON from the response (handle markdown code blocks)
   const jsonStr = text.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
-  return JSON.parse(jsonStr);
+  try {
+    return JSON.parse(jsonStr);
+  } catch (e) {
+    console.error("JSON Parse failed for video script:", text);
+    throw new Error("AI generated an invalid video plan. Please try again.");
+  }
 }
 
 /**

@@ -10,6 +10,44 @@
   .delay-200 {
     animation-delay: 200ms;
   }
+
+  /* Custom Animations for Visual Engine */
+  @keyframes fade-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  @keyframes slide-up {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes slide-right {
+    from { opacity: 0; transform: translateX(-20px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+
+  @keyframes grow-height {
+    from { transform: scaleY(0); transform-origin: bottom; }
+    to { transform: scaleY(1); transform-origin: bottom; }
+  }
+
+  @keyframes scale-in {
+    from { opacity: 0; transform: scale(0.9); }
+    to { opacity: 1; transform: scale(1); }
+  }
+
+  @keyframes spin-slow {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+
+  .animate-fade-in { animation: fade-in 0.6s ease-out forwards; }
+  .animate-slide-up { animation: slide-up 0.6s ease-out forwards; }
+  .animate-slide-right { animation: slide-right 0.6s ease-out forwards; }
+  .animate-grow-height { animation: grow-height 1s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+  .animate-scale-in { animation: scale-in 0.5s ease-out forwards; }
+  .animate-spin-slow { animation: spin-slow 12s linear infinite; }
 }
 
 @layer base {
