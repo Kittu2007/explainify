@@ -19,25 +19,30 @@ export const maxDuration = 60; // Allow up to 60s for large PDFs
  */
 export async function POST(request: NextRequest) {
   try {
-    const formData = await request.formData();
-    const file = formData.get("file") as File | null;
+    const { filePath, filename, fileSize } = await request.json();
 
-    if (!file) {
+    if (!filePath) {
       return NextResponse.json(
-        { error: "No file provided. Send a PDF file in the 'file' field." },
+        { error: "No filePath provided." },
         { status: 400 }
       );
     }
 
-    if (!file.name.toLowerCase().endsWith(".pdf")) {
+    // 1. Download file from Supabase Storage
+    const { data: fileData, error: downloadError } = await supabase.storage
+      .from("explainify")
+      .download(filePath);
+
+    if (downloadError || !fileData) {
+      console.error("Storage download error:", downloadError);
       return NextResponse.json(
-        { error: "Only PDF files are supported." },
-        { status: 400 }
+        { error: `Failed to download file from storage: ${downloadError?.message}` },
+        { status: 500 }
       );
     }
 
     // Read file into buffer
-    const arrayBuffer = await file.arrayBuffer();
+    const arrayBuffer = await fileData.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
 
     // Extract text from PDF
@@ -57,11 +62,11 @@ export async function POST(request: NextRequest) {
     const { data: doc, error: docError } = await supabase
       .from("documents")
       .insert({
-        filename: file.name,
+        filename: filename || "document.pdf",
         file_size: buffer.length,
         page_count: pageCount,
         metadata: {
-          contentType: file.type,
+          contentType: "application/pdf",
           uploadedAt: new Date().toISOString(),
         },
       })
@@ -111,7 +116,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       documentId: doc.id,
-      filename: file.name,
+      filename: filename || "document.pdf",
       pageCount,
       chunkCount: chunks.length,
     });

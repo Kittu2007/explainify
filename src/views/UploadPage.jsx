@@ -84,17 +84,34 @@ export default function UploadPage() {
     setError(null)
     
     try {
-      const formData = new FormData()
-      formData.append('file', currentFile)
+      // 1. Direct Upload to Supabase Storage
+      const { supabase } = await import('../lib/supabase')
+      const fileExt = currentFile.name.split('.').pop()
+      const fileName = `${Math.random().toString(36).substring(2)}-${Date.now()}.${fileExt}`
+      const filePath = `uploads/${fileName}`
 
+      const { error: storageError } = await supabase.storage
+        .from('explainify')
+        .upload(filePath, currentFile)
+
+      if (storageError) {
+        throw new Error(`Storage upload failed: ${storageError.message}`)
+      }
+
+      // 2. Notify Backend with Metadata
       const response = await fetch('/api/upload', {
         method: 'POST',
-        body: formData
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          filePath: filePath,
+          filename: currentFile.name,
+          fileSize: currentFile.size
+        })
       })
 
       if (!response.ok) {
         const errorData = await response.json()
-        throw new Error(errorData.error || 'Upload failed')
+        throw new Error(errorData.error || 'Backend processing failed')
       }
 
       const data = await response.json()
@@ -112,12 +129,12 @@ export default function UploadPage() {
       setCurrentFile(null)
       setUploading(false)
       
-      // Show success and redirect to chat
+      // Redirect to chat
       setTimeout(() => {
         router.push('/chat')
       }, 500)
     } catch (err) {
-      console.error('Upload failed:', err)
+      console.error('Final upload error:', err)
       setError(err.message || 'Failed to upload file. Please try again.')
       setUploading(false)
     }

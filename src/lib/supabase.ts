@@ -1,19 +1,17 @@
 import { createClient } from "@supabase/supabase-js";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const supabaseServiceKey = process.env.NEXT_PUBLIC_SUPABASE_SERVICE_ROLE_KEY;
 
 if (!supabaseUrl) {
   throw new Error(
-    "Missing NEXT_PUBLIC_SUPABASE_URL environment variable. " +
-      "Copy .env.example to .env.local and fill in your Supabase project URL."
+    "Missing NEXT_PUBLIC_SUPABASE_URL environment variable."
   );
 }
 
 if (!supabaseServiceKey) {
   throw new Error(
-    "Missing SUPABASE_SERVICE_ROLE_KEY environment variable. " +
-      "Copy .env.example to .env.local and fill in your Supabase service role key."
+    "Missing NEXT_PUBLIC_SUPABASE_SERVICE_ROLE_KEY environment variable."
   );
 }
 
