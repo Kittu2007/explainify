@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect } from 'react'
 import { useRouter } from "next/navigation";
-import { Play, Pause, RotateCcw, Video, Volume2, Settings, Share2, Loader2, Sparkles } from 'lucide-react'
+import { Play, Pause, RotateCcw, Video, Volume2, Settings, Share2, Loader2, Sparkles, BarChart2, Activity } from 'lucide-react'
 import { useDocument } from '../context/DocumentContext'
 
 export default function VideoLearning() {
@@ -109,6 +109,14 @@ export default function VideoLearning() {
       )
   }
 
+  const getVisualIcon = (visual) => {
+     const v = visual.toLowerCase();
+     if (v.includes('chart') || v.includes('graph')) return <BarChart2 className="text-primary" size={48} />;
+     if (v.includes('flowchart') || v.includes('process')) return <Activity className="text-secondary" size={48} />;
+     if (v.includes('animation') || v.includes('vector')) return <Sparkles className="text-accent" size={48} />;
+     return <Video className="text-gray-400" size={48} />;
+  }
+
   const currentScene = scenes[currentSceneIndex] || { narration: "Initializing visual learning...", visual: "Abstract background" };
 
   return (
@@ -121,7 +129,7 @@ export default function VideoLearning() {
               AI Visual Teacher
             </h1>
             <p className="text-gray-600 text-sm mt-1">
-              Visualizing: <span className="font-semibold">{document.name}</span>
+              Visualizing: <span className="font-semibold text-primary">{document.name}</span>
             </p>
           </div>
           <button 
@@ -130,7 +138,7 @@ export default function VideoLearning() {
               navigator.clipboard.writeText(url);
               alert('Lesson link copied to clipboard!');
             }}
-            className="flex items-center gap-2 text-primary hover:bg-primary/5 px-4 py-2 rounded-lg transition-colors"
+            className="flex items-center gap-2 text-primary hover:bg-primary/5 px-4 py-2 rounded-lg transition-colors bg-white border border-primary/20 shadow-sm"
           >
             <Share2 size={18} />
             <span className="text-sm font-medium">Share Lesson</span>
@@ -144,56 +152,63 @@ export default function VideoLearning() {
               className="relative aspect-video bg-dark rounded-3xl overflow-hidden shadow-2xl group border-4 border-white cursor-pointer"
               onClick={() => setIsPlaying(!isPlaying)}
             >
-              {/* This would be the actual canvas/video component */}
               <div className="absolute inset-0 flex items-center justify-center">
-                <div className="text-center p-12">
-                   {/* Animated Background Placeholder */}
-                   <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-transparent to-secondary/20 animate-pulse" />
-                   
-                   <div className="relative z-10 transition-all duration-700 transform">
-                      <h2 className="text-3xl font-bold text-white mb-6 drop-shadow-lg">
-                        {currentScene.visual || currentScene.visualPrompt || 'Visual Learning'}
-                      </h2>
-                      <div className="w-32 h-1 bg-primary mx-auto rounded-full" />
-                   </div>
-                </div>
+                 {/* Dynamic Graphical Placeholder */}
+                 <div className="text-center p-12 relative z-10">
+                    <div className="mb-6 flex justify-center transform group-hover:scale-110 transition-transform duration-500">
+                       {getVisualIcon(currentScene.visual || '')}
+                    </div>
+                    <div className="relative">
+                       <h2 className="text-2xl font-bold text-white mb-4 drop-shadow-lg tracking-tight">
+                         {currentScene.visual || 'Visual Learning'}
+                       </h2>
+                       <div className="w-24 h-1.5 bg-gradient-to-r from-primary to-secondary mx-auto rounded-full shadow-[0_0_10px_rgba(99,102,241,0.5)]" />
+                    </div>
+                 </div>
+
+                 {/* Animated Background Layers */}
+                 <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-secondary/10" />
+                 <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(99,102,241,0.05)_0%,transparent_70%)]" />
               </div>
 
               {/* Narrator Overlay */}
-              <div className="absolute bottom-20 left-10 right-10 z-20">
-                 <div className="bg-black/40 backdrop-blur-md border border-white/20 p-6 rounded-2xl text-white text-lg font-medium text-center shadow-xl">
+              <div className="absolute bottom-16 left-8 right-8 z-20 pointer-events-none">
+                 <div className="bg-black/40 backdrop-blur-xl border border-white/10 p-5 rounded-2xl text-white text-lg font-medium text-center shadow-2xl transform transition-all duration-500 translate-y-0 opacity-100 italic">
                      "{currentScene.narration || currentScene.script || ''}"
                  </div>
               </div>
 
               {/* Progress Bar */}
-              <div className="absolute bottom-0 left-0 right-0 h-2 bg-white/20">
+              <div className="absolute bottom-0 left-0 right-0 h-1.5 bg-white/10 z-20">
                 <div 
-                  className="h-full bg-primary transition-all duration-100 ease-linear shadow-[0_0_15px_rgba(99,102,241,0.5)]" 
+                  className="h-full bg-gradient-to-r from-primary to-secondary transition-all duration-100 ease-linear" 
                   style={{ width: `${progress}%` }}
                 />
               </div>
 
               {/* Hover Controls */}
               <div 
-                className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-8 z-30"
+                className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-8 z-30"
                 onClick={(e) => e.stopPropagation()}
               >
                 <button 
                   onClick={handleRestart}
-                  className="p-4 bg-white/10 hover:bg-white/20 rounded-full backdrop-blur-md transition-all"
+                  className="p-4 bg-white/10 hover:bg-white/20 rounded-full backdrop-blur-md transition-all hover:rotate-180 duration-500"
                 >
                   <RotateCcw className="text-white" size={28} />
                 </button>
                 <button 
                   onClick={() => setIsPlaying(!isPlaying)}
-                  className="p-6 bg-primary hover:bg-secondary rounded-full transform hover:scale-110 active:scale-95 transition-all shadow-xl"
+                  className="p-8 bg-primary hover:bg-secondary rounded-full transform hover:scale-110 active:scale-95 transition-all shadow-[0_0_30px_rgba(99,102,241,0.5)]"
                 >
-                  {isPlaying ? <Pause className="text-white" size={40} /> : <Play className="text-white ml-2" size={40} />}
+                  {isPlaying ? <Pause className="text-white" size={44} /> : <Play className="text-white ml-2" size={44} />}
                 </button>
-                <div className="p-4 bg-white/10 rounded-full backdrop-blur-md">
+                <button 
+                  onClick={() => alert('Audio adjustment coming soon')}
+                  className="p-4 bg-white/10 hover:bg-white/20 rounded-full backdrop-blur-md transition-all"
+                >
                   <Volume2 className="text-white" size={28} />
-                </div>
+                </button>
               </div>
             </div>
 
@@ -204,16 +219,16 @@ export default function VideoLearning() {
                   <Video className="text-primary" size={24} />
                 </div>
                 <div>
-                  <h3 className="font-bold text-dark">Visual Explanation Lesson</h3>
-                  <p className="text-xs text-gray-500">Duration: 45 seconds • 1080p AI Generated</p>
+                  <h3 className="font-bold text-dark">AI Visual Explanation Lesson</h3>
+                  <p className="text-xs text-gray-500">Duration: {scenes.length * 15} seconds • Graphical Mode: ACTIVE</p>
                 </div>
               </div>
                <div className="flex gap-2">
                 <button 
-                  onClick={() => alert('Visual settings coming soon!')}
-                  className="p-2 hover:bg-gray-100 rounded-lg"
+                  onClick={() => alert('Visual quality settings available in Pro')}
+                  className="p-2.5 hover:bg-gray-100 rounded-xl border border-gray-200 transition-colors"
                 >
-                  <Settings size={20} />
+                  <Settings size={20} className="text-gray-600" />
                 </button>
               </div>
             </div>
@@ -221,45 +236,54 @@ export default function VideoLearning() {
 
           {/* Sidebar Lesson Plan */}
           <div className="lg:col-span-1 space-y-6">
-            <div className="card">
-              <h3 className="font-bold mb-4 flex items-center gap-2">
+            <div className="card h-[400px] flex flex-col">
+              <h3 className="font-bold mb-4 flex items-center gap-2 flex-shrink-0">
                 <Video size={18} className="text-primary" />
                 Lesson Scenes
               </h3>
-              <div className="space-y-3">
+              <div className="space-y-3 overflow-y-auto flex-1 pr-2 custom-scrollbar">
                 {scenes.map((scene, idx) => (
                   <div 
                     key={idx}
-                    className={`p-3 rounded-xl border text-sm transition-all cursor-pointer ${
+                    className={`p-3 rounded-xl border text-sm transition-all cursor-pointer relative overflow-hidden ${
                       currentSceneIndex === idx 
-                        ? 'border-primary bg-primary/5 font-semibold text-primary' 
-                        : 'border-gray-100 hover:bg-gray-50'
+                        ? 'border-primary bg-primary/5 font-semibold text-primary shadow-sm' 
+                        : 'border-gray-100 hover:bg-gray-50 bg-white'
                     }`}
                     onClick={() => {
                         setCurrentSceneIndex(idx);
                         setProgress((idx / scenes.length) * 100);
+                        setIsPlaying(false);
                     }}
                   >
+                    {currentSceneIndex === idx && (
+                      <div className="absolute left-0 top-0 bottom-0 w-1 bg-primary" />
+                    )}
                     <div className="flex justify-between mb-1">
-                      <span>Scene {idx + 1}</span>
-                      <span className="text-[10px] uppercase font-bold text-gray-400">0:0{idx * 4}</span>
+                      <span className="text-[10px] text-primary/70 uppercase">Scene {idx + 1}</span>
+                      <span className="text-[10px] font-bold text-gray-400">{(idx * 15 / 60).toFixed(1)}m</span>
                     </div>
-                    <p className={`line-clamp-2 ${currentSceneIndex === idx ? 'text-primary' : 'text-gray-500'}`}>
-                      {scene.visual || scene.visualPrompt || `Scene ${idx + 1}`}
+                    <p className={`line-clamp-2 leading-relaxed ${currentSceneIndex === idx ? 'text-primary' : 'text-gray-600'}`}>
+                      {scene.visual || `Scene ${idx + 1}`}
                     </p>
                   </div>
                 ))}
               </div>
             </div>
 
-             <div className="card bg-gradient-to-br from-primary to-secondary text-white border-none">
-              <h3 className="font-bold mb-2">Want a custom lesson?</h3>
-              <p className="text-xs text-white/80 mb-4 leading-relaxed">Adjust the teaching tone or focus on specific chapters of your document.</p>
+             <div className="card bg-gradient-to-br from-primary to-secondary text-white border-none shadow-xl relative overflow-hidden group">
+              <div className="absolute -right-4 -top-4 w-24 h-24 bg-white/10 rounded-full blur-2xl group-hover:bg-white/20 transition-all" />
+              <h3 className="font-bold mb-2 relative z-10">Want deeper analysis?</h3>
+              <p className="text-xs text-white/80 mb-5 leading-relaxed relative z-10">Regenerate this video with specific focus on datasets or complex mechanisms.</p>
               <button 
-                onClick={() => alert('Customization feature coming soon!')}
-                className="w-full py-2 bg-white/20 hover:bg-white/30 backdrop-blur-md rounded-lg text-xs font-bold transition-all"
+                onClick={() => {
+                  if(confirm('Do you want to regenerate the video with higher precision prompts?')) {
+                    generateVideoContent();
+                  }
+                }}
+                className="w-full py-2.5 bg-white text-primary rounded-xl text-xs font-bold transition-all hover:bg-light hover:shadow-lg active:scale-95"
               >
-                Customize AI Output
+                Regenerate Graphical Lesson
               </button>
             </div>
           </div>

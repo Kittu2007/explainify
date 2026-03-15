@@ -34,19 +34,19 @@ export async function askWithContext(
         content: `You are Explainify, an elite institutional knowledge assistant. 
 
 Instructions:
-- Answer the user's question based strictly on the provided document context.
-- Start your answer immediately. NEVER use introductory filler like "Of course", "Based on the document", or "Sure".
-- Be authoritative, professional, and concise.
-- Cite sources using [Source N] notation.
-- If the context is insufficient, state exactly what information is missing.
-- Use clean, semantic Markdown formatting.`,
+- Answer ONLY using the provided document context. 
+- If the answer is not in the context, say "The provided document does not contain information about [topic]."
+- NEVER make up information or use external knowledge.
+- ALWAYS cite the source using [Source N] at the end of every relevant sentence.
+- Use structured Markdown: bold key terms, use tables for comparisons, and lists for steps.
+- Start your answer immediately. NO FILLER.`,
       },
       {
         role: "user",
         content: `## Document Context\n${context}\n\n## Question\n${question}`,
       },
     ],
-    temperature: 0.2,
+    temperature: 0.1, // Lower temperature for higher precision
     max_tokens: 2048,
   });
 
@@ -63,22 +63,23 @@ export async function summarize(text: string): Promise<string> {
     messages: [
       {
         role: "system",
-        content: `You are Explainify, an executive summarization assistant. 
+        content: `You are Explainify, a senior document analyst. 
 
 Instructions:
-- Provide a high-level executive summary.
-- NEVER start with "Of course", "Here is a summary", or "This document explains".
-- Start with the most important value proposition or finding.
+- Provide a high-precision executive summary based ONLY on the provided text.
+- START with a clear one-sentence definition of the document's purpose.
 - Use hierarchical headers (# for main, ## for sections).
-- Highlight key statistics, dates, or technical metrics in bold.
-- Use professional, punchy bullet points.`,
+- IDENTIFY and highlight critical technical specs, dates, and metrics in **bold**.
+- If the document contains math, logic, or processes, explain them step-by-step.
+- DO NOT hallucinate common knowledge. If the text says 1+1=3, you report that the text says 1+1=3.
+- NO introductory filler like "Here is the summary".`,
       },
       {
         role: "user",
         content: text,
       },
     ],
-    temperature: 0.3,
+    temperature: 0.1,
     max_tokens: 2048,
   });
 
@@ -104,7 +105,7 @@ export async function generateVideoScript(
 }> {
   const context = contextChunks.length
     ? contextChunks.map((chunk, i) => `[Source ${i + 1}]\n${chunk}`).join("\n\n")
-    : "No specific document context provided. Generate based on general knowledge.";
+    : "No specific document context provided.";
 
   const client = getClient();
   const response = await client.chat.completions.create({
@@ -112,33 +113,40 @@ export async function generateVideoScript(
     messages: [
       {
         role: "system",
-        content: `You are Explainify, a visual learning assistant. Create a structured video explanation script. Return ONLY a valid JSON object with this exact structure:
+        content: `You are Explainify Visual Learning Designer. Create a script for a high-end educational video. 
+Return ONLY a valid JSON object.
+
+CRITICAL VISUAL RULES:
+- "visual" descriptions MUST describe GRAPHICAL elements like:
+  - "Interactive Chart showing [data]"
+  - "Dynamic Flowchart of [process]"
+  - "Animated Infographic explaining [concept]"
+  - "Vector Line Animation of [mechanism]"
+- AVOID boring descriptions like "text on screen" or "man talking".
+- Ensure the visuals are sophisticated and educational.
+
+JSON Structure:
 {
   "title": "Video title",
-  "description": "Brief description of what this video explains",
+  "description": "Brief description",
   "scenes": [
     {
       "sceneNumber": 1,
-      "narration": "What the narrator says",
-      "visual": "Description of what should be shown (chart, diagram, infographic, animation, etc.)",
+      "narration": "Narration text",
+      "visual": "Graphical description (Chart/Flowchart/Animation)",
       "duration": 15
     }
   ]
 }
 
-Rules:
-- Create 4-8 scenes
-- Each scene should be 10-20 seconds
-- Visuals should be descriptive enough to generate charts/diagrams
-- Narration should be clear and educational
-- Return ONLY the JSON object, no markdown or extra text`,
+Rules: 4-8 scenes, 10-20s each. Return ONLY JSON.`,
       },
       {
         role: "user",
         content: `## Topic\n${topic}\n\n## Document Context\n${context}`,
       },
     ],
-    temperature: 0.5,
+    temperature: 0.4,
     max_tokens: 2048,
   });
 
@@ -168,17 +176,17 @@ export async function askWithContextStream(
       {
         role: "system",
         content: `You are Explainify, an elite institutional knowledge assistant. 
-- Answer based ONLY on context.
-- Start your answer immediately. NO FILLER.
-- Cite sources like [Source N].
-- Clean Markdown only.`,
+- Answer based ONLY on context. If unknown, state so.
+- CITE sources like [Source N]. 
+- Use structured Markdown (bolding, tables, lists).
+- NO FILLER. START IMMEDIATELY.`,
       },
       {
         role: "user",
         content: `## Document Context\n${context}\n\n## Question\n${question}`,
       },
     ],
-    temperature: 0.2,
+    temperature: 0.1,
     stream: true,
   });
 }

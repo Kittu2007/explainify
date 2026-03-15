@@ -125,31 +125,31 @@ export default function ChatInterface() {
   }
   
   return (
-    <div className="h-screen flex flex-col bg-white">
+    <div className="flex-1 flex flex-col bg-white overflow-hidden h-[calc(100vh-80px)]">
       {/* Header */}
-      <div className="border-b border-gray-200 bg-white sticky top-0 z-10">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+      <div className="border-b border-gray-200 bg-white z-10 flex-shrink-0">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-2xl font-bold text-dark">Explainify AI Chat</h1>
-              <p className="text-sm text-gray-500 mt-1">
+              <h1 className="text-xl font-bold text-dark">Explainify AI Chat</h1>
+              <p className="text-xs text-gray-500">
                 Chatting about: <span className="font-semibold text-primary">{document.name}</span>
               </p>
             </div>
             <button
               onClick={() => router.push('/upload')}
-              className="flex items-center gap-2 px-4 py-2 text-primary hover:bg-primary/5 rounded-lg transition-colors"
+              className="flex items-center gap-2 px-3 py-1.5 text-primary hover:bg-primary/5 rounded-lg transition-colors border border-primary/20"
             >
-              <Plus size={18} />
-              <span className="text-sm">New Chat</span>
+              <Plus size={16} />
+              <span className="text-xs font-semibold">New Chat</span>
             </button>
           </div>
         </div>
       </div>
 
       {/* Messages Area */}
-      <div className="flex-1 overflow-y-auto bg-gray-50">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="flex-1 overflow-y-auto bg-gray-50 scroll-smooth">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           {messages.map((msg) => (
             <ChatBubble
               key={msg.id}
@@ -160,22 +160,26 @@ export default function ChatInterface() {
 
           {isLoading && (
             <div className="flex justify-start mb-4">
-              <div className="bg-gray-100 border border-gray-200 rounded-lg rounded-bl-none px-4 py-3">
-                <div className="flex space-x-2">
-                  <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
-                  <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce [animation-delay:-0.3s]"></div>
-                  <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce [animation-delay:-0.15s]"></div>
+              <div className="bg-white border border-gray-200 rounded-lg rounded-bl-none px-4 py-3 shadow-sm">
+                <div className="flex space-x-1.5">
+                  <div className="w-1.5 h-1.5 bg-primary/40 rounded-full animate-bounce"></div>
+                  <div className="w-1.5 h-1.5 bg-primary/40 rounded-full animate-bounce [animation-delay:-0.3s]"></div>
+                  <div className="w-1.5 h-1.5 bg-primary/40 rounded-full animate-bounce [animation-delay:-0.15s]"></div>
                 </div>
               </div>
             </div>
           )}
 
-          <div ref={messagesEndRef} />
+          <div ref={messagesEndRef} className="h-4" />
         </div>
       </div>
 
       {/* Input Area */}
-      <MessageInput onSendMessage={handleSendMessage} isLoading={isLoading} />
+      <div className="border-t border-gray-200 bg-white p-4 flex-shrink-0">
+        <div className="max-w-4xl mx-auto">
+          <MessageInput onSendMessage={handleSendMessage} isLoading={isLoading} />
+        </div>
+      </div>
     </div>
   )
 }
