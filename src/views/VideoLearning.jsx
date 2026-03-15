@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from "next/navigation";
-import { Play, Pause, RotateCcw, Video, Volume2, Settings, Share2, Loader2, Sparkles, BarChart2, Activity, ChevronRight, ChevronLeft, AlertCircle } from 'lucide-react'
+import { Play, Pause, RotateCcw, Video, Volume2, Settings, Share2, Loader2, Sparkles, BarChart2, Activity, ChevronRight, ChevronLeft, AlertCircle, Layers } from 'lucide-react'
 import { useDocument } from '../context/DocumentContext'
 import VisualScene from '../components/VisualScene'
 
@@ -157,7 +157,7 @@ export default function VideoLearning() {
               Visual Learning Engine
             </h1>
             <p className="text-gray-500 text-sm mt-2">
-              Deep analysis of: <span className="font-bold text-dark">{document.name}</span>
+              Deep analysis of: <span className="font-bold text-dark">{document?.name || 'Unknown Document'}</span>
             </p>
           </div>
           

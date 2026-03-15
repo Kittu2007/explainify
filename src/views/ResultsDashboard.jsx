@@ -115,7 +115,7 @@ export default function ResultsDashboard() {
         <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
           <div>
             <h1 className="text-3xl font-bold text-dark">Document Analysis Results</h1>
-            <p className="text-gray-600">Detailed insights from: <span className="font-semibold text-primary">{document.name}</span></p>
+            <p className="text-gray-600">Detailed insights from: <span className="font-semibold text-primary">{document?.name || 'Unknown Document'}</span></p>
           </div>
           <div className="flex gap-4">
             <button 
@@ -195,11 +195,11 @@ export default function ResultsDashboard() {
               <div className="space-y-4">
                 <div className="flex justify-between items-center py-2 border-b border-gray-700">
                   <span className="text-gray-400 text-sm">File Size</span>
-                  <span className="font-medium">{(document.size / 1024 / 1024).toFixed(2)} MB</span>
+                  <span className="font-medium">{(document?.size ? (document.size / 1024 / 1024).toFixed(2) : '0.00')} MB</span>
                 </div>
                 <div className="flex justify-between items-center py-2 border-b border-gray-700">
                   <span className="text-gray-400 text-sm">Upload Date</span>
-                  <span className="font-medium text-xs">{document.uploadedAt}</span>
+                  <span className="font-medium text-xs">{document?.uploadedAt || 'N/A'}</span>
                 </div>
                 <div className="flex justify-between items-center py-2 border-b border-gray-700">
                   <span className="text-gray-400 text-sm">Processing Time</span>
