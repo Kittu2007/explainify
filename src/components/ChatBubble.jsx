@@ -17,10 +17,10 @@ export default function ChatBubble({ message, isUser }) {
       >
         <div className="text-sm leading-relaxed prose prose-sm max-w-none">
           {isUser ? (
-            <p>{message}</p>
+            <p>{message || ""}</p>
           ) : (
             <ReactMarkdown remarkPlugins={[remarkGfm]}>
-              {message}
+              {message || ""}
             </ReactMarkdown>
           )}
         </div>
