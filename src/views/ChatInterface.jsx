@@ -40,6 +40,16 @@ export default function ChatInterface() {
     setMessages(prev => [...prev, userMessage])
     setIsLoading(true)
 
+    // Placeholder for AI response
+    const aiMessageId = Date.now() + 1;
+    const initialAiMessage = {
+      id: aiMessageId,
+      text: "",
+      isUser: false,
+      sources: []
+    }
+    setMessages(prev => [...prev, initialAiMessage])
+
     try {
       const response = await fetch('/api/query', {
         method: 'POST',
@@ -55,24 +65,57 @@ export default function ChatInterface() {
         throw new Error(errData.error || `Server error (${response.status})`)
       }
 
-      const data = await response.json()
-
-      const aiResponse = {
-        id: Date.now() + 1,
-        text: data.answer,
-        isUser: false,
-        sources: data.sources // Optional: if ChatBubble supports it
+      // Handle String vs Stream (some errors might return JSON)
+      const contentType = response.headers.get('content-type')
+      if (contentType && contentType.includes('application/json')) {
+        const data = await response.json()
+        setMessages(prev => prev.map(m => m.id === aiMessageId ? { ...m, text: data.answer, sources: data.sources } : m))
+        return
       }
 
-      setMessages(prev => [...prev, aiResponse])
+      // Read as Stream
+      const reader = response.body.getReader()
+      const decoder = new TextEncoder().decode("") // Just to check
+      const textDecoder = new TextDecoder()
+      
+      let fullText = ""
+      let sources = []
+
+      while (true) {
+        const { done, value } = await reader.read()
+        if (done) break
+
+        const chunk = textDecoder.decode(value, { stream: true })
+        
+        // Check for metadata
+        if (chunk.startsWith('__METADATA__:')) {
+          const parts = chunk.split('\n')
+          const metaStr = parts[0].replace('__METADATA__:', '')
+          try {
+            const meta = JSON.parse(metaStr)
+            sources = meta.sources || []
+          } catch (e) { console.error("Failed to parse metadata", e) }
+          
+          // Append the rest of the chunk if there's more after the newline
+          if (parts.length > 1) {
+            const extra = parts.slice(1).join('\n')
+            fullText += extra
+          }
+        } else {
+          fullText += chunk
+        }
+
+        // Update the message in state
+        setMessages(prev => prev.map(m => 
+          m.id === aiMessageId ? { ...m, text: fullText, sources: sources } : m
+        ))
+      }
     } catch (error) {
       console.error('Failed to send message:', error)
-      const errorMessage = {
-        id: Date.now() + 2,
-        text: `Sorry, I couldn't process your request: ${error.message || 'Unknown error'}. Please try again.`,
-        isUser: false
-      }
-      setMessages(prev => [...prev, errorMessage])
+      const errorText = `Sorry, I couldn't process your request: ${error.message || 'Unknown error'}. Please try again.`
+      setMessages(prev => prev.map(m => 
+        m.id === aiMessageId ? { ...m, text: errorText } : m
+      ))
     } finally {
       setIsLoading(false)
     }

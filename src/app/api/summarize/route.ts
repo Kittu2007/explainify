@@ -86,8 +86,14 @@ export async function POST(request: NextRequest) {
     // Extract key takeaways from the summary (parse bullet points)
     const keyTakeaways = extractKeyTakeaways(summaryText);
     
-    // Extract themes from the summary
+    // Extract themes from the summary and text more intelligently
     const themes = extractThemes(summaryText, combinedText);
+
+    // Dynamic Sentiment Score (Heuristic: analytical vs conversational)
+    const analyticalKeywords = ['analysis', 'data', 'technical', 'research', 'scientific', 'system', 'process', 'result', 'finding'];
+    const lowerSummary = summaryText.toLowerCase();
+    const analyticalCount = analyticalKeywords.filter(w => lowerSummary.includes(w)).length;
+    const sentimentScore = Math.min(65 + (analyticalCount * 5), 98); // Higher = more analytical/formal
 
     // Calculate metrics from the original text
     const wordCount = combinedText.split(/\s+/).filter(w => w.length > 0).length;
@@ -96,7 +102,7 @@ export async function POST(request: NextRequest) {
       summary: summaryText,
       keyTakeaways,
       themes,
-      sentimentScore: 78, // Analytical default for academic content
+      sentimentScore,
       metrics: {
         processingTime: processingTimeStr,
         wordCount: wordCount.toLocaleString(),

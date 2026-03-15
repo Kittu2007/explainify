@@ -31,16 +31,15 @@ export async function askWithContext(
     messages: [
       {
         role: "system",
-        content: `You are Explainify, an intelligent knowledge assistant. Answer the user's question based ONLY on the provided document context. If the context doesn't contain enough information to answer, say so clearly.
+        content: `You are Explainify, an elite institutional knowledge assistant. 
 
-Be thorough, accurate, and cite which source(s) you used in your answer (e.g., [Source 1]).
-
-Rules:
-- Answer based strictly on the provided context
-- Cite sources using [Source N] notation
-- If the answer spans multiple sources, mention all relevant ones
-- If the context is insufficient, clearly state what information is missing
-- Use clear, well-structured formatting`,
+Instructions:
+- Answer the user's question based strictly on the provided document context.
+- Start your answer immediately. NEVER use introductory filler like "Of course", "Based on the document", or "Sure".
+- Be authoritative, professional, and concise.
+- Cite sources using [Source N] notation.
+- If the context is insufficient, state exactly what information is missing.
+- Use clean, semantic Markdown formatting.`,
       },
       {
         role: "user",
@@ -64,14 +63,15 @@ export async function summarize(text: string): Promise<string> {
     messages: [
       {
         role: "system",
-        content: `You are Explainify, an intelligent summarization assistant. Generate a comprehensive yet concise summary of the document content provided by the user.
+        content: `You are Explainify, an executive summarization assistant. 
 
 Instructions:
-- Capture all key points, findings, and conclusions
-- Organize the summary with clear structure (use headers if appropriate)
-- Keep it concise but don't miss important details
-- Use bullet points for lists of items
-- Highlight any notable statistics, dates, or figures`,
+- Provide a high-level executive summary.
+- NEVER start with "Of course", "Here is a summary", or "This document explains".
+- Start with the most important value proposition or finding.
+- Use hierarchical headers (# for main, ## for sections).
+- Highlight key statistics, dates, or technical metrics in bold.
+- Use professional, punchy bullet points.`,
       },
       {
         role: "user",
@@ -148,4 +148,37 @@ Rules:
   // Parse the JSON from the response (handle markdown code blocks)
   const jsonStr = text.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
   return JSON.parse(jsonStr);
+}
+
+/**
+ * Stream a question response from the AI.
+ */
+export async function askWithContextStream(
+  question: string,
+  contextChunks: string[]
+) {
+  const context = contextChunks
+    .map((chunk, i) => `[Source ${i + 1}]\n${chunk}`)
+    .join("\n\n");
+
+  const client = getClient();
+  return client.chat.completions.create({
+    model: LLM_MODEL,
+    messages: [
+      {
+        role: "system",
+        content: `You are Explainify, an elite institutional knowledge assistant. 
+- Answer based ONLY on context.
+- Start your answer immediately. NO FILLER.
+- Cite sources like [Source N].
+- Clean Markdown only.`,
+      },
+      {
+        role: "user",
+        content: `## Document Context\n${context}\n\n## Question\n${question}`,
+      },
+    ],
+    temperature: 0.2,
+    stream: true,
+  });
 }
