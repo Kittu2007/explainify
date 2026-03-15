@@ -18,12 +18,12 @@ export default function ResultsDashboard() {
   
   useEffect(() => {
     if (!document) {
-      router.push('/upload')
+      router.push('/dashboard/upload')
     } else if (!results && documentId) {
       generateSummary()
     }
   }, [document, documentId, results, router])
-  
+
   const generateSummary = async () => {
     setLoading(true)
     setError(null)
@@ -80,7 +80,7 @@ export default function ResultsDashboard() {
   
   if (!document || loading || (!results && !error)) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="flex items-center justify-center p-20">
         <div className="text-center">
           <Loader2 className="mx-auto h-12 w-12 text-primary animate-spin" />
           <p className="mt-4 text-xl text-gray-600">Generating your comprehensive analysis...</p>
@@ -91,7 +91,7 @@ export default function ResultsDashboard() {
 
   if (error) {
     return (
-      <div className="min-h-screen flex items-center justify-center p-4">
+      <div className="flex items-center justify-center p-20">
         <div className="card max-w-md text-center">
           <FileText className="mx-auto h-12 w-12 text-red-400 mb-4" />
           <h2 className="text-xl font-bold mb-2">Analysis Failed</h2>
@@ -108,9 +108,9 @@ export default function ResultsDashboard() {
   const themes = results?.themes || []
   const sentimentScore = results?.sentimentScore || 50
   const metrics = results?.metrics || { processingTime: 'N/A', wordCount: 'N/A' }
-  
+
   return (
-    <div className="min-h-screen bg-gray-50 py-12">
+    <div className="py-6">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
           <div>
@@ -127,7 +127,7 @@ export default function ResultsDashboard() {
               {exporting ? 'Exporting...' : 'Export PDF'}
             </button>
             <button 
-              onClick={() => router.push('/video')}
+              onClick={() => router.push('/dashboard/video')}
               className="btn-primary"
             >
               Generate Video Learning

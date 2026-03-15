@@ -52,7 +52,7 @@ export default function LandingPage() {
               Upload any document, ask intelligent questions, and learn through AI-powered explanations and videos.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center pt-8">
-              <Link href="/upload" className="btn-primary">
+              <Link href="/dashboard/upload" className="btn-primary">
                 Get Started
               </Link>
               <a href="#features" className="btn-outline">
@@ -114,7 +114,7 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-white">
           <h2 className="text-4xl font-bold mb-6">Ready to Transform Your Learning?</h2>
           <p className="text-xl mb-8 opacity-90">Start uploading documents and discovering insights in seconds.</p>
-          <Link href="/upload" className="inline-block px-8 py-4 bg-white text-primary rounded-lg font-bold hover:scale-105 transition-transform">
+          <Link href="/dashboard/upload" className="inline-block px-8 py-4 bg-white text-primary rounded-lg font-bold hover:scale-105 transition-transform">
             Start Now
           </Link>
         </div>

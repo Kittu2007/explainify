@@ -11,6 +11,8 @@ export default function Navbar() {
   const router = useRouter()
   const { user, signOut } = useAuth()
   
+  if (pathname.startsWith('/dashboard')) return null;
+  
   const isActive = (path) => pathname === path
   
   const handleLogout = async () => {
@@ -20,10 +22,7 @@ export default function Navbar() {
   
   const navLinks = [
     { label: 'Home', path: '/' },
-    { label: 'Upload', path: '/upload' },
-    { label: 'Chat', path: '/chat' },
-    { label: 'Results', path: '/results' },
-    { label: 'Video', path: '/video' }
+    { label: 'Dashboard', path: '/dashboard/upload' },
   ]
   
   return (
