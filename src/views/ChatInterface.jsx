@@ -51,7 +51,8 @@ export default function ChatInterface() {
       })
 
       if (!response.ok) {
-        throw new Error('Failed to get response')
+        const errData = await response.json().catch(() => ({}))
+        throw new Error(errData.error || `Server error (${response.status})`)
       }
 
       const data = await response.json()
@@ -68,7 +69,7 @@ export default function ChatInterface() {
       console.error('Failed to send message:', error)
       const errorMessage = {
         id: Date.now() + 2,
-        text: 'Sorry, I encountered an error. Please ensure your API keys are set correctly and try again.',
+        text: `Sorry, I couldn't process your request: ${error.message || 'Unknown error'}. Please try again.`,
         isUser: false
       }
       setMessages(prev => [...prev, errorMessage])

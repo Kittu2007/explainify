@@ -29,16 +29,24 @@ export default function VideoLearning() {
       const response = await fetch('/api/video-explain', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ documentId })
+        body: JSON.stringify({ 
+          documentId,
+          topic: document?.name || 'Explain this document'
+        })
       })
       
-      if (!response.ok) throw new Error('Failed to generate video script')
+      if (!response.ok) {
+        const errData = await response.json().catch(() => ({}))
+        throw new Error(errData.error || 'Failed to generate video script')
+      }
       
       const data = await response.json()
-      setScenes(data.scenes)
+      // API returns { script: { scenes: [...] } }
+      const scriptScenes = data.script?.scenes || data.scenes || []
+      setScenes(scriptScenes)
     } catch (err) {
       console.error('Video generation failed:', err)
-      setError('Failed to generate AI visual explanation. Please try again.')
+      setError(err.message || 'Failed to generate AI visual explanation. Please try again.')
     } finally {
       setLoading(false)
     }
@@ -101,7 +109,7 @@ export default function VideoLearning() {
       )
   }
 
-  const currentScene = scenes[currentSceneIndex] || { script: "Initializing visual learning...", visualPrompt: "Abstract background" };
+  const currentScene = scenes[currentSceneIndex] || { narration: "Initializing visual learning...", visual: "Abstract background" };
 
   return (
     <div className="min-h-screen bg-gray-50 py-12">
@@ -134,7 +142,7 @@ export default function VideoLearning() {
                    
                    <div className="relative z-10 transition-all duration-700 transform">
                       <h2 className="text-3xl font-bold text-white mb-6 drop-shadow-lg">
-                        {currentScene.visualPrompt}
+                        {currentScene.visual || currentScene.visualPrompt || 'Visual Learning'}
                       </h2>
                       <div className="w-32 h-1 bg-primary mx-auto rounded-full" />
                    </div>
@@ -144,7 +152,7 @@ export default function VideoLearning() {
               {/* Narrator Overlay */}
               <div className="absolute bottom-20 left-10 right-10 z-20">
                  <div className="bg-black/40 backdrop-blur-md border border-white/20 p-6 rounded-2xl text-white text-lg font-medium text-center shadow-xl">
-                    "{currentScene.script}"
+                     "{currentScene.narration || currentScene.script || ''}"
                  </div>
               </div>
 
@@ -219,7 +227,7 @@ export default function VideoLearning() {
                       <span className="text-[10px] uppercase font-bold text-gray-400">0:0{idx * 4}</span>
                     </div>
                     <p className={`line-clamp-2 ${currentSceneIndex === idx ? 'text-primary' : 'text-gray-500'}`}>
-                      {scene.visualPrompt}
+                      {scene.visual || scene.visualPrompt || `Scene ${idx + 1}`}
                     </p>
                   </div>
                 ))}
