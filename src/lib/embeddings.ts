@@ -58,6 +58,11 @@ export async function generateEmbeddings(
       encoding_format: "float",
     });
 
+    // Add a small delay to prevent rate-limiting on large documents
+    if (i + BATCH_SIZE < texts.length) {
+      await new Promise((resolve) => setTimeout(resolve, 500));
+    }
+
     // Sort by index to maintain order
     const sorted = response.data.sort((a, b) => a.index - b.index);
     allEmbeddings.push(...sorted.map((d) => d.embedding));

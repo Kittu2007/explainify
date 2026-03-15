@@ -72,7 +72,7 @@ export async function POST(request: NextRequest) {
     } catch (extractErr: any) {
       console.error("Text extraction failed:", extractErr);
       return NextResponse.json(
-        { error: extractErr.message || "Failed to read the document. It may contain complex images or be encrypted." },
+        { error: `Extraction error: ${extractErr.message || "Failed to parse document format."}` },
         { status: 422 }
       );
     }
@@ -80,7 +80,7 @@ export async function POST(request: NextRequest) {
     if (!text || text.trim().length === 0) {
       return NextResponse.json(
         {
-          error: "Could not extract text from this document. It may be a scanned image-only file without OCR.",
+          error: "Unable to scan document. This file appears to be a scanned image without a text layer. OCR is required.",
         },
         { status: 422 }
       );
@@ -94,7 +94,7 @@ export async function POST(request: NextRequest) {
         file_size: buffer.length,
         page_count: pageCount,
         metadata: {
-          contentType: "application/pdf",
+          contentType: fileExt === "pdf" ? "application/pdf" : "application/msword",
           uploadedAt: new Date().toISOString(),
         },
       })
@@ -104,7 +104,7 @@ export async function POST(request: NextRequest) {
     if (docError || !doc) {
       console.error("Failed to insert document:", docError);
       return NextResponse.json(
-        { error: "Failed to store document in database." },
+        { error: `Database Error (Documents): ${docError?.message}` },
         { status: 500 }
       );
     }
@@ -113,46 +113,72 @@ export async function POST(request: NextRequest) {
     const chunks = chunkText(text);
 
     // Generate embeddings for all chunks
-    const embeddings = await generateEmbeddings(chunks);
+    let embeddings: number[][] = [];
+    try {
+      embeddings = await generateEmbeddings(chunks);
+    } catch (embedError: any) {
+      console.error("Embedding generation failed:", embedError);
+      await supabase.from("documents").delete().eq("id", doc.id);
+      return NextResponse.json(
+        { error: `NVIDIA API Error: ${embedError.message || "Failed to generate embeddings."}` },
+        { status: 502 }
+      );
+    }
 
     // Insert chunks with embeddings
-    const chunkRows = chunks.map((content, index) => ({
-      document_id: doc.id,
-      content,
-      chunk_index: index,
-      embedding: JSON.stringify(embeddings[index]),
-    }));
-
-    // Insert in batches of 50 to avoid payload limits
-    const BATCH_SIZE = 50;
-    for (let i = 0; i < chunkRows.length; i += BATCH_SIZE) {
-      const batch = chunkRows.slice(i, i + BATCH_SIZE);
-      const { error: chunkError } = await supabase
-        .from("chunks")
-        .insert(batch);
-
-      if (chunkError) {
-        console.error("Failed to insert chunks:", chunkError);
-        // Clean up the document if chunk insertion fails
-        await supabase.from("documents").delete().eq("id", doc.id);
-        return NextResponse.json(
-          { error: "Failed to store document chunks." },
-          { status: 500 }
-        );
+    // Use Direct Postgres if DATABASE_URL is available for speed, fallback to REST if not
+    if (process.env.DATABASE_URL) {
+      console.log("Using direct Postgres for batch insertion...");
+      try {
+        const { insertEmbeddings } = await import("@/lib/db");
+        await insertEmbeddings(doc.id, chunks, embeddings);
+      } catch (dbError: any) {
+        console.error("Direct Postgres insert failed, falling back to REST:", dbError.message);
+        // Fallback to REST if direct connection fails
+        await insertChunksREST(doc.id, chunks, embeddings, supabase);
       }
+    } else {
+      console.log("DATABASE_URL not found. Using Supabase REST API for insertion...");
+      await insertChunksREST(doc.id, chunks, embeddings, supabase);
     }
 
     return NextResponse.json({
       documentId: doc.id,
-      filename: filename || "document.pdf",
+      filename: filename || "document.txt",
       pageCount,
       chunkCount: chunks.length,
     });
-  } catch (error) {
-    console.error("Upload error:", error);
+  } catch (error: any) {
+    console.error("Upload unhandled error:", error);
     return NextResponse.json(
-      { error: "Internal server error during file upload." },
+      { error: `Internal Server Error: ${error.message || String(error)}` },
       { status: 500 }
     );
+  }
+}
+
+/**
+ * Fallback chunk insertion using Supabase REST client
+ */
+async function insertChunksREST(documentId: string, chunks: string[], embeddings: number[][], supabase: any) {
+  const chunkRows = chunks.map((content, index) => ({
+    document_id: documentId,
+    content,
+    chunk_index: index,
+    embedding: JSON.stringify(embeddings[index]),
+  }));
+
+  const BATCH_SIZE = 50;
+  for (let i = 0; i < chunkRows.length; i += BATCH_SIZE) {
+    const batch = chunkRows.slice(i, i + BATCH_SIZE);
+    const { error: chunkError } = await supabase
+      .from("chunks")
+      .insert(batch);
+
+    if (chunkError) {
+      console.error(`REST insert failed for batch ${i}:`, chunkError);
+      await supabase.from("documents").delete().eq("id", documentId);
+      throw new Error(`Database Error (Chunks): ${chunkError?.message}`);
+    }
   }
 }
