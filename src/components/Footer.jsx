@@ -1,7 +1,12 @@
+"use client";
+import { usePathname } from 'next/navigation'
 import { Github, Linkedin, Twitter } from 'lucide-react'
 
 export default function Footer() {
+  const pathname = usePathname()
   const currentYear = new Date().getFullYear()
+  
+  if (pathname.startsWith('/dashboard')) return null;
   
   return (
     <footer className="bg-dark text-white mt-20">

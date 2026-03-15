@@ -18,12 +18,12 @@ export default function VideoLearning() {
   
   useEffect(() => {
     if (!document) {
-      router.push('/upload')
+      router.push('/dashboard/upload')
     } else if (documentId && scenes.length === 0) {
       generateVideoContent()
     }
   }, [document, documentId, router])
-  
+
   const generateVideoContent = async () => {
     setLoading(true)
     setError(null)
@@ -109,14 +109,13 @@ export default function VideoLearning() {
 
   if (!document || loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="flex items-center justify-center p-20">
         <div className="text-center">
           <div className="relative inline-block">
              <div className="absolute inset-0 bg-primary/20 blur-xl animate-pulse rounded-full" />
              <Loader2 className="relative mx-auto h-16 w-16 text-primary animate-spin" />
           </div>
           <p className="mt-6 text-xl font-bold text-dark">Building Your Visual Learning Plan...</p>
-          <p className="text-gray-500 text-sm mt-2">Extracting concepts and rendering graphical scenes</p>
         </div>
       </div>
     )
@@ -124,21 +123,21 @@ export default function VideoLearning() {
 
   if (error) {
     return (
-        <div className="min-h-screen flex items-center justify-center p-4 bg-gray-50">
-          <div className="card max-w-md text-center border-t-4 border-red-500">
-            <AlertCircle className="mx-auto h-12 w-12 text-red-500 mb-4" />
-            <h2 className="text-xl font-bold mb-2">Generation Failed</h2>
-            <p className="text-gray-600 mb-6">{error}</p>
-            <button onClick={generateVideoContent} className="btn-primary w-full shadow-lg shadow-primary/20">Retry Generation</button>
-          </div>
+      <div className="flex items-center justify-center p-20">
+        <div className="card max-w-md text-center border-t-4 border-red-500">
+          <AlertCircle className="mx-auto h-12 w-12 text-red-500 mb-4" />
+          <h2 className="text-xl font-bold mb-2">Generation Failed</h2>
+          <p className="text-gray-600 mb-6">{error}</p>
+          <button onClick={generateVideoContent} className="btn-primary w-full shadow-lg shadow-primary/20">Retry Generation</button>
         </div>
-      )
+      </div>
+    )
   }
 
   const currentScene = scenes[currentSceneIndex] || { narration: "Initializing visual learning...", scene_type: 'icon_infographic' };
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12">
+    <div className="py-6">
       <audio ref={audioRef} onEnded={() => {
         // Optional: advance scene slightly faster if audio ends? 
         // For now, let the progress interval handle it.

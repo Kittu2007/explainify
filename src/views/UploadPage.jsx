@@ -131,7 +131,7 @@ export default function UploadPage() {
       
       // Redirect to chat
       setTimeout(() => {
-        router.push('/chat')
+        router.push('/dashboard/chat')
       }, 500)
     } catch (err) {
       console.error('Final upload error:', err)
@@ -145,7 +145,7 @@ export default function UploadPage() {
   }
   
   return (
-    <div className="min-h-[80vh] bg-gradient-to-br from-gray-50 to-light py-12">
+    <div className="py-6">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="mb-12">
           <h1 className="text-4xl font-bold mb-4">Upload Your Document</h1>

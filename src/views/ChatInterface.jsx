@@ -18,7 +18,7 @@ export default function ChatInterface() {
   // Redirect to upload if no document
   useEffect(() => {
     if (!document) {
-      router.push('/upload')
+      router.push('/dashboard/upload')
     }
   }, [document, router])
   
@@ -125,23 +125,23 @@ export default function ChatInterface() {
   }
   
   return (
-    <div className="flex-1 flex flex-col bg-white overflow-hidden h-[calc(100vh - 80px)]">
+    <div className="flex flex-col h-[calc(100vh-12rem)] bg-white rounded-2xl shadow-xl shadow-gray-200/50 border border-gray-100 overflow-hidden">
       {/* Header */}
-      <div className="border-b border-gray-200 bg-white z-10 flex-shrink-0">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
+      <div className="border-b border-gray-100 bg-white/50 backdrop-blur-md z-10 flex-shrink-0">
+        <div className="px-6 py-4">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-xl font-bold text-dark">Explainify AI Chat</h1>
+              <h1 className="text-lg font-black text-dark tracking-tight">AI Knowledge Assistant</h1>
               <p className="text-xs text-gray-500">
-                Chatting about: <span className="font-semibold text-primary">{document.name}</span>
+                Context: <span className="font-bold text-primary">{document.name}</span>
               </p>
             </div>
             <button
-              onClick={() => router.push('/upload')}
-              className="flex items-center gap-2 px-3 py-1.5 text-primary hover:bg-primary/5 rounded-lg transition-colors border border-primary/20"
+              onClick={() => router.push('/dashboard/upload')}
+              className="flex items-center gap-2 px-4 py-2 bg-primary/5 text-primary hover:bg-primary/10 rounded-xl transition-all border border-primary/10"
             >
               <Plus size={16} />
-              <span className="text-xs font-semibold">New Chat</span>
+              <span className="text-xs font-black uppercase tracking-wider">New</span>
             </button>
           </div>
         </div>
