@@ -1,175 +1,170 @@
 "use client";
 import { useState, useEffect } from 'react'
 import { useRouter } from "next/navigation";
-import { BarChart, Download, Share2, Play, Lightbulb } from 'lucide-react'
+import { FileText, Download, BarChart2, PieChart, Activity, Loader2 } from 'lucide-react'
 import { useDocument } from '../context/DocumentContext'
 
 export default function ResultsDashboard() {
-  const { document, messages, setResultsData } = useDocument()
+  const { document, documentId, results, setResultsData } = useDocument()
   const router = useRouter()
-  const [results, setResults] = useState(null)
-  const [loadingResults, setLoadingResults] = useState(true)
+  const [loading, setLoading] = useState(false)
   
   useEffect(() => {
-    if (!document || messages.length === 0) {
+    if (!document) {
       router.push('/upload')
-      return
+    } else if (!results && documentId) {
+      generateSummary()
     }
-    
-    // Simulate generating results
-    const timer = setTimeout(() => {
-      const generatedResults = {
-        summary: 'This document provides a comprehensive overview of the subject matter. The key sections cover fundamental concepts, implementation details, and practical applications. The content demonstrates thorough research and clear explanation of complex topics.',
-        keyTakeaways: [
-          'Understanding the core concepts is essential for practical application',
-          'The document progressively builds from basics to advanced topics',
-          'Real-world examples are provided throughout for clarity',
-          'Multiple perspectives are considered for a holistic view'
-        ],
-        concepts: [
-          { name: 'Concept 1', frequency: 15, importance: 'High' },
-          { name: 'Concept 2', frequency: 12, importance: 'High' },
-          { name: 'Concept 3', frequency: 10, importance: 'Medium' },
-          { name: 'Concept 4', frequency: 8, importance: 'Medium' },
-          { name: 'Concept 5', frequency: 6, importance: 'Low' }
-        ],
-        readingTime: '8 minutes',
-        complexity: 'Intermediate',
-        engagement: 85
-      }
-      setResults(generatedResults)
-      setResultsData(generatedResults)
-      setLoadingResults(false)
-    }, 1500)
-    
-    return () => clearTimeout(timer)
-  }, [document, messages, navigate, setResultsData])
+  }, [document, documentId, results, router])
   
-  if (!document || loadingResults || !results) {
+  const generateSummary = async () => {
+    setLoading(true)
+    try {
+      const response = await fetch('/api/summarize', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ documentId })
+      })
+      
+      if (!response.ok) throw new Error('Failed to generate summary')
+      
+      const data = await response.json()
+      setResultsData(data)
+    } catch (error) {
+      console.error('Summary generation failed:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+  
+  if (!document || !results) {
     return (
-      <div className="min-h-[80vh] flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin mb-4">
-            <BarChart className="mx-auto text-primary" size={48} />
-          </div>
-          <p className="text-lg font-semibold">Generating your results...</p>
+          <Loader2 className="mx-auto h-12 w-12 text-primary animate-spin" />
+          <p className="mt-4 text-xl text-gray-600">Generating your comprehensive analysis...</p>
         </div>
       </div>
     )
   }
   
   return (
-    <div className="min-h-[80vh] bg-light py-12">
+    <div className="min-h-screen bg-gray-50 py-12">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header */}
-        <div className="mb-12">
-          <h1 className="text-4xl font-bold mb-4">Learning Results Dashboard</h1>
-          <p className="text-xl text-gray-600">AI-generated insights from your document</p>
-        </div>
-        
-        {/* Stats Grid */}
-        <div className="grid md:grid-cols-4 gap-6 mb-12">
-          {[
-            { label: 'Reading Time', value: results.readingTime, icon: '⏱️' },
-            { label: 'Complexity', value: results.complexity, icon: '📊' },
-            { label: 'Engagement', value: `${results.engagement}%`, icon: '⚡' },
-            { label: 'Questions Asked', value: messages.length, icon: '❓' }
-          ].map((stat, idx) => (
-            <div key={idx} className="card text-center">
-              <div className="text-3xl mb-2">{stat.icon}</div>
-              <p className="text-gray-600 text-sm mb-1">{stat.label}</p>
-              <p className="text-2xl font-bold text-primary">{stat.value}</p>
-            </div>
-          ))}
-        </div>
-        
-        {/* Summary Card */}
-        <div className="card mb-12 bg-gradient-to-br from-primary/5 to-secondary/5">
-          <h2 className="text-2xl font-bold mb-4 flex items-center space-x-2">
-            <Lightbulb size={24} className="text-primary" />
-            <span>Document Summary</span>
-          </h2>
-          <p className="text-gray-700 leading-relaxed text-lg">{results.summary}</p>
-        </div>
-        
-        {/* Key Takeaways */}
-        <div className="mb-12">
-          <h2 className="text-2xl font-bold mb-6">Key Takeaways</h2>
-          <div className="grid md:grid-cols-2 gap-6">
-            {results.keyTakeaways.map((takeaway, idx) => (
-              <div key={idx} className="card flex space-x-4">
-                <div className="flex-shrink-0 w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center font-bold flex-none">
-                  {idx + 1}
-                </div>
-                <p className="text-gray-700">{takeaway}</p>
-              </div>
-            ))}
+        <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
+          <div>
+            <h1 className="text-3xl font-bold text-dark">Document Analysis Results</h1>
+            <p className="text-gray-600">Detailed insights from: <span className="font-semibold text-primary">{document.name}</span></p>
+          </div>
+          <div className="flex gap-4">
+            <button className="btn-outline flex items-center gap-2">
+              <Download size={20} />
+              Export PDF
+            </button>
+            <button 
+              onClick={() => router.push('/video')}
+              className="btn-primary"
+            >
+              Generate Video Learning
+            </button>
           </div>
         </div>
         
-        {/* Key Concepts */}
-        <div className="mb-12">
-          <h2 className="text-2xl font-bold mb-6">Key Concepts Identified</h2>
-          <div className="card">
-            <div className="space-y-4">
-              {results.concepts.map((concept, idx) => (
-                <div key={idx}>
-                  <div className="flex items-center justify-between mb-2">
-                    <div>
-                      <p className="font-semibold">{concept.name}</p>
-                      <p className="text-sm text-gray-600">Mentioned {concept.frequency} times</p>
-                    </div>
-                    <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                      concept.importance === 'High' ? 'bg-red-100 text-red-700' :
-                      concept.importance === 'Medium' ? 'bg-yellow-100 text-yellow-700' :
-                      'bg-green-100 text-green-700'
-                    }`}>
-                      {concept.importance}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Main Summary Section */}
+          <div className="lg:col-span-2 space-y-8">
+            <div className="card">
+              <div className="flex items-center gap-2 mb-6">
+                <FileText className="text-primary" size={24} />
+                <h2 className="text-xl font-bold">Comprehensive Summary</h2>
+              </div>
+              <div className="prose max-w-none text-gray-700 leading-relaxed">
+                {results.summary.split('\n\n').map((para, i) => (
+                  <p key={i} className="mb-4">{para}</p>
+                ))}
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="card">
+                <h3 className="font-bold mb-4 flex items-center gap-2">
+                  <Activity className="text-accent" size={20} />
+                  Key Takeaways
+                </h3>
+                <ul className="space-y-3">
+                  {results.keyTakeaways.map((item, i) => (
+                    <li key={i} className="flex items-start gap-2">
+                      <div className="w-1.5 h-1.5 rounded-full bg-accent mt-2 flex-shrink-0" />
+                      <span className="text-gray-600 text-sm">{item}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              <div className="card">
+                <h3 className="font-bold mb-4 flex items-center gap-2">
+                  <PieChart className="text-secondary" size={20} />
+                  Main Themes
+                </h3>
+                <div className="flex flex-wrap gap-2">
+                  {results.themes.map((theme, i) => (
+                    <span key={i} className="px-3 py-1 bg-secondary/10 text-secondary rounded-full text-xs font-semibold">
+                      {theme}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          {/* Sidebar Stats/Metrics */}
+          <div className="space-y-8">
+            <div className="card bg-dark text-white">
+              <h3 className="font-bold mb-6 flex items-center gap-2">
+                <BarChart2 className="text-primary" size={20} />
+                Document Metadata
+              </h3>
+              <div className="space-y-4">
+                <div className="flex justify-between items-center py-2 border-b border-gray-700">
+                  <span className="text-gray-400 text-sm">File Size</span>
+                  <span className="font-medium">{(document.size / 1024 / 1024).toFixed(2)} MB</span>
+                </div>
+                <div className="flex justify-between items-center py-2 border-b border-gray-700">
+                  <span className="text-gray-400 text-sm">Upload Date</span>
+                  <span className="font-medium text-xs">{document.uploadedAt}</span>
+                </div>
+                <div className="flex justify-between items-center py-2 border-b border-gray-700">
+                  <span className="text-gray-400 text-sm">Processing Time</span>
+                  <span className="font-medium">{results.metrics.processingTime}</span>
+                </div>
+                <div className="flex justify-between items-center py-2">
+                  <span className="text-gray-400 text-sm">Word Count</span>
+                  <span className="font-medium">{results.metrics.wordCount}</span>
+                </div>
+              </div>
+            </div>
+            
+            <div className="card">
+              <h3 className="font-bold mb-4">Content Sentiment</h3>
+              <div className="relative pt-1">
+                <div className="flex mb-2 items-center justify-between">
+                  <div>
+                    <span className="text-xs font-semibold inline-block py-1 px-2 uppercase rounded-full text-primary bg-primary/10">
+                      Analytical
                     </span>
                   </div>
-                  <div className="w-full bg-gray-200 rounded-full h-2">
-                    <div
-                      className="bg-primary h-2 rounded-full"
-                      style={{ width: `${(concept.frequency / 15) * 100}%` }}
-                    ></div>
+                  <div className="text-right">
+                    <span className="text-xs font-semibold inline-block text-primary">
+                      {results.sentimentScore}%
+                    </span>
                   </div>
                 </div>
-              ))}
+                <div className="overflow-hidden h-2 mb-4 text-xs flex rounded bg-gray-200">
+                  <div style={{ width: `${results.sentimentScore}%` }} className="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-primary"></div>
+                </div>
+              </div>
+              <p className="text-xs text-gray-500 italic">The AI detected a highly {results.sentimentScore > 70 ? 'informative and formal' : 'conversational'} tone in this document.</p>
             </div>
           </div>
-        </div>
-        
-        {/* Action Buttons */}
-        <div className="grid md:grid-cols-3 gap-6 mb-12">
-          <button className="card hover:shadow-xl cursor-pointer transform hover:scale-105 transition-all">
-            <Download className="text-primary mb-4" size={32} />
-            <h3 className="font-bold mb-2">Download Report</h3>
-            <p className="text-gray-600 text-sm">Export your results as PDF</p>
-          </button>
-          <button className="card hover:shadow-xl cursor-pointer transform hover:scale-105 transition-all">
-            <Share2 className="text-primary mb-4" size={32} />
-            <h3 className="font-bold mb-2">Share Results</h3>
-            <p className="text-gray-600 text-sm">Share insights with others</p>
-          </button>
-          <button
-            onClick={() => router.push('/video')}
-            className="card hover:shadow-xl cursor-pointer transform hover:scale-105 transition-all bg-gradient-to-br from-primary/10 to-secondary/10 border-2 border-primary"
-          >
-            <Play className="text-primary mb-4" size={32} />
-            <h3 className="font-bold mb-2 text-primary">Video Learning</h3>
-            <p className="text-gray-600 text-sm">Watch AI-generated videos</p>
-          </button>
-        </div>
-        
-        {/* Additional Resources */}
-        <div className="card bg-white border-l-4 border-primary">
-          <h3 className="text-lg font-bold mb-3">Next Steps</h3>
-          <ul className="space-y-2 text-gray-700">
-            <li>✓ Review your key takeaways above</li>
-            <li>✓ Watch video explanations for deeper learning</li>
-            <li>✓ Download the full report for reference</li>
-            <li>✓ Share insights with your learning group</li>
-          </ul>
         </div>
       </div>
     </div>

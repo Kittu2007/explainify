@@ -1,248 +1,239 @@
 "use client";
 import { useState, useEffect } from 'react'
 import { useRouter } from "next/navigation";
-import { Play, Pause, Volume2, Maximize, ChevronDown } from 'lucide-react'
+import { Play, Pause, RotateCcw, Video, Volume2, Settings, Share2, Loader2, Sparkles } from 'lucide-react'
 import { useDocument } from '../context/DocumentContext'
 
 export default function VideoLearning() {
-  const { document } = useDocument()
+  const { document, documentId } = useDocument()
   const router = useRouter()
   const [isPlaying, setIsPlaying] = useState(false)
-  const [videos, setVideos] = useState([])
-  const [selectedVideo, setSelectedVideo] = useState(0)
   const [progress, setProgress] = useState(0)
+  const [loading, setLoading] = useState(false)
+  const [scenes, setScenes] = useState([])
+  const [currentSceneIndex, setCurrentSceneIndex] = useState(0)
+  const [error, setError] = useState(null)
   
   useEffect(() => {
     if (!document) {
       router.push('/upload')
-      return
+    } else if (documentId && scenes.length === 0) {
+      generateVideoContent()
     }
-    
-    // Simulate generating videos
-    const generatedVideos = [
-      {
-        id: 1,
-        title: 'Introduction to Core Concepts',
-        duration: '5:23',
-        description: 'Learn the fundamental concepts and foundational knowledge needed to understand the document.',
-        thumbnail: '🎓',
-        topics: ['Concept 1', 'Concept 2', 'Concept 3']
-      },
-      {
-        id: 2,
-        title: 'Understanding Key Principles',
-        duration: '7:45',
-        description: 'Deep dive into the key principles that form the basis of the document content.',
-        thumbnail: '💡',
-        topics: ['Principles', 'Application', 'Benefits']
-      },
-      {
-        id: 3,
-        title: 'Practical Implementation Guide',
-        duration: '6:30',
-        description: 'Step-by-step guide on how to apply the concepts in real-world scenarios.',
-        thumbnail: '🛠️',
-        topics: ['Step 1', 'Step 2', 'Step 3']
-      },
-      {
-        id: 4,
-        title: 'Advanced Topics & Analysis',
-        duration: '8:15',
-        description: 'Explore advanced topics and detailed analysis for deeper understanding.',
-        thumbnail: '🚀',
-        topics: ['Advanced Concept', 'Analysis', 'Best Practices']
-      },
-      {
-        id: 5,
-        title: 'Summary & Key Takeaways',
-        duration: '4:32',
-        description: 'Quick summary of all important points and key takeaways from the document.',
-        thumbnail: '✨',
-        topics: ['Summary', 'Checklist', 'Resources']
-      }
-    ]
-    
-    setVideos(generatedVideos)
-  }, [document, navigate])
+  }, [document, documentId, router])
   
-  if (!document || videos.length === 0) {
+  const generateVideoContent = async () => {
+    setLoading(true)
+    setError(null)
+    try {
+      const response = await fetch('/api/video-explain', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ documentId })
+      })
+      
+      if (!response.ok) throw new Error('Failed to generate video script')
+      
+      const data = await response.json()
+      setScenes(data.scenes)
+    } catch (err) {
+      console.error('Video generation failed:', err)
+      setError('Failed to generate AI visual explanation. Please try again.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  // Linear progression simulation
+  useEffect(() => {
+    let interval;
+    if (isPlaying && progress < 100) {
+      interval = setInterval(() => {
+        setProgress(prev => {
+          const next = prev + 0.5;
+          if (next >= 100) {
+            setIsPlaying(false);
+            return 100;
+          }
+          
+          // Update scene index based on progress
+          if (scenes.length > 0) {
+            const calculatedScene = Math.floor((next / 100) * scenes.length);
+            if (calculatedScene < scenes.length) {
+                setCurrentSceneIndex(calculatedScene);
+            }
+          }
+          
+          return next;
+        });
+      }, 100);
+    }
+    return () => clearInterval(interval);
+  }, [isPlaying, progress, scenes.length]);
+
+  const handleRestart = () => {
+    setProgress(0)
+    setIsPlaying(false)
+    setCurrentSceneIndex(0)
+  }
+
+  if (!document || loading) {
     return (
-      <div className="min-h-[80vh] flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin mb-4">
-            <Play className="mx-auto text-primary" size={48} />
-          </div>
-          <p className="text-lg font-semibold">Generating your learning videos...</p>
+          <Loader2 className="mx-auto h-12 w-12 text-primary animate-spin" />
+          <p className="mt-4 text-xl text-gray-600">Creating your visual learning experience...</p>
         </div>
       </div>
     )
   }
-  
-  const currentVideo = videos[selectedVideo]
-  
-  return (
-    <div className="min-h-[80vh] bg-light py-12">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold mb-4">Video Learning Paths</h1>
-          <p className="text-xl text-gray-600">
-            AI-generated video explanations of your document
-          </p>
+
+  if (error) {
+    return (
+        <div className="min-h-screen flex items-center justify-center p-4">
+          <div className="card max-w-md text-center">
+            <Video className="mx-auto h-12 w-12 text-red-400 mb-4" />
+            <h2 className="text-xl font-bold mb-2">Generation Failed</h2>
+            <p className="text-gray-600 mb-6">{error}</p>
+            <button onClick={generateVideoContent} className="btn-primary w-full">Retry</button>
+          </div>
         </div>
-        
-        <div className="grid lg:grid-cols-3 gap-8">
-          {/* Video Player */}
-          <div className="lg:col-span-2">
-            <div className="card p-0 overflow-hidden shadow-2xl">
-              {/* Video Preview */}
-              <div className="relative bg-dark aspect-video flex items-center justify-center group cursor-pointer">
-                <div className="text-9xl opacity-20">{currentVideo.thumbnail}</div>
-                <button
-                  onClick={() => setIsPlaying(!isPlaying)}
-                  className="absolute w-20 h-20 bg-primary rounded-full flex items-center justify-center hover:scale-110 transition-transform group-hover:bg-secondary"
-                >
-                  {isPlaying ? (
-                    <Pause size={40} className="text-white" />
-                  ) : (
-                    <Play size={40} className="text-white ml-1" />
-                  )}
-                </button>
+      )
+  }
+
+  const currentScene = scenes[currentSceneIndex] || { script: "Initializing visual learning...", visualPrompt: "Abstract background" };
+
+  return (
+    <div className="min-h-screen bg-gray-50 py-12">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="mb-8 flex justify-between items-center">
+          <div>
+            <h1 className="text-3xl font-bold text-dark flex items-center gap-2">
+              <Sparkles className="text-primary" />
+              AI Visual Teacher
+            </h1>
+            <p className="text-gray-600 text-sm mt-1">
+              Visualizing: <span className="font-semibold">{document.name}</span>
+            </p>
+          </div>
+          <button className="flex items-center gap-2 text-primary hover:bg-primary/5 px-4 py-2 rounded-lg transition-colors">
+            <Share2 size={18} />
+            <span className="text-sm font-medium">Share Lesson</span>
+          </button>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+          {/* Main Video Section */}
+          <div className="lg:col-span-3">
+            <div className="relative aspect-video bg-dark rounded-3xl overflow-hidden shadow-2xl group border-4 border-white">
+              {/* This would be the actual canvas/video component */}
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="text-center p-12">
+                   {/* Animated Background Placeholder */}
+                   <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-transparent to-secondary/20 animate-pulse" />
+                   
+                   <div className="relative z-10 transition-all duration-700 transform">
+                      <h2 className="text-3xl font-bold text-white mb-6 drop-shadow-lg">
+                        {currentScene.visualPrompt}
+                      </h2>
+                      <div className="w-32 h-1 bg-primary mx-auto rounded-full" />
+                   </div>
+                </div>
               </div>
-              
-              {/* Video Info */}
-              <div className="p-6">
-                <h2 className="text-2xl font-bold mb-2">{currentVideo.title}</h2>
-                <p className="text-gray-600 mb-4">{currentVideo.description}</p>
-                
-                {/* Progress Bar */}
-                <div className="mb-4">
-                  <div className="w-full bg-gray-200 rounded-full h-2 mb-2">
-                    <div
-                      className="bg-primary h-2 rounded-full transition-all"
-                      style={{ width: `${progress}%` }}
-                    ></div>
-                  </div>
-                  <p className="text-xs text-gray-500">
-                    {Math.floor((progress / 100) * parseInt(currentVideo.duration))} / {currentVideo.duration}
-                  </p>
-                </div>
-                
-                {/* Controls */}
-                <div className="flex items-center justify-between bg-gray-50 rounded-lg p-4">
-                  <div className="flex items-center space-x-4">
-                    <button className="p-2 hover:bg-white rounded-lg transition">
-                      <Volume2 size={20} className="text-primary" />
-                    </button>
-                    <span className="text-sm font-semibold">{currentVideo.duration}</span>
-                  </div>
-                  <button className="p-2 hover:bg-white rounded-lg transition">
-                    <Maximize size={20} className="text-primary" />
-                  </button>
-                </div>
-                
-                {/* Topics Covered */}
-                <div className="mt-6">
-                  <h4 className="font-bold mb-3">Topics Covered:</h4>
-                  <div className="flex flex-wrap gap-2">
-                    {currentVideo.topics.map((topic, idx) => (
-                      <span
-                        key={idx}
-                        className="px-3 py-1 bg-primary/10 text-primary rounded-full text-sm font-semibold"
-                      >
-                        {topic}
-                      </span>
-                    ))}
-                  </div>
+
+              {/* Narrator Overlay */}
+              <div className="absolute bottom-20 left-10 right-10 z-20">
+                 <div className="bg-black/40 backdrop-blur-md border border-white/20 p-6 rounded-2xl text-white text-lg font-medium text-center shadow-xl">
+                    "{currentScene.script}"
+                 </div>
+              </div>
+
+              {/* Progress Bar */}
+              <div className="absolute bottom-0 left-0 right-0 h-2 bg-white/20">
+                <div 
+                  className="h-full bg-primary transition-all duration-100 ease-linear shadow-[0_0_15px_rgba(99,102,241,0.5)]" 
+                  style={{ width: `${progress}%` }}
+                />
+              </div>
+
+              {/* Hover Controls */}
+              <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-8">
+                <button 
+                  onClick={handleRestart}
+                  className="p-4 bg-white/10 hover:bg-white/20 rounded-full backdrop-blur-md transition-all"
+                >
+                  <RotateCcw className="text-white" size={28} />
+                </button>
+                <button 
+                  onClick={() => setIsPlaying(!isPlaying)}
+                  className="p-6 bg-primary hover:bg-secondary rounded-full transform hover:scale-110 active:scale-95 transition-all shadow-xl"
+                >
+                  {isPlaying ? <Pause className="text-white" size={40} /> : <Play className="text-white ml-2" size={40} />}
+                </button>
+                <div className="p-4 bg-white/10 rounded-full backdrop-blur-md">
+                  <Volume2 className="text-white" size={28} />
                 </div>
               </div>
             </div>
-            
-            {/* Interactive Progress Slider */}
-            <div className="mt-6 space-y-4">
-              <div>
-                <label className="font-semibold text-sm mb-2 block">Simulate Progress</label>
-                <input
-                  type="range"
-                  min="0"
-                  max="100"
-                  value={progress}
-                  onChange={(e) => setProgress(parseInt(e.target.value))}
-                  className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
-                />
+
+            {/* Video Meta */}
+            <div className="mt-8 flex items-center justify-between p-6 bg-white rounded-2xl shadow-sm border border-gray-100">
+              <div className="flex items-center gap-4">
+                <div className="p-3 bg-primary/10 rounded-xl">
+                  <Video className="text-primary" size={24} />
+                </div>
+                <div>
+                  <h3 className="font-bold text-dark">Visual Explanation Lesson</h3>
+                  <p className="text-xs text-gray-500">Duration: 45 seconds • 1080p AI Generated</p>
+                </div>
+              </div>
+              <div className="flex gap-2">
+                <button className="p-2 hover:bg-gray-100 rounded-lg"><Settings size={20} /></button>
               </div>
             </div>
           </div>
-          
-          {/* Video Playlist */}
-          <div className="lg:col-span-1">
+
+          {/* Sidebar Lesson Plan */}
+          <div className="lg:col-span-1 space-y-6">
             <div className="card">
-              <h3 className="text-xl font-bold mb-4">Learning Playlist</h3>
-              <div className="space-y-3 max-h-[600px] overflow-y-auto">
-                {videos.map((video, idx) => (
-                  <button
-                    key={video.id}
-                    onClick={() => {
-                      setSelectedVideo(idx)
-                      setProgress(0)
-                      setIsPlaying(false)
-                    }}
-                    className={`w-full p-4 rounded-lg transition-all text-left group ${
-                      selectedVideo === idx
-                        ? 'bg-primary text-white shadow-lg'
-                        : 'bg-gray-50 hover:bg-gray-100'
+              <h3 className="font-bold mb-4 flex items-center gap-2">
+                <Video size={18} className="text-primary" />
+                Lesson Scenes
+              </h3>
+              <div className="space-y-3">
+                {scenes.map((scene, idx) => (
+                  <div 
+                    key={idx}
+                    className={`p-3 rounded-xl border text-sm transition-all cursor-pointer ${
+                      currentSceneIndex === idx 
+                        ? 'border-primary bg-primary/5 font-semibold text-primary' 
+                        : 'border-gray-100 hover:bg-gray-50'
                     }`}
+                    onClick={() => {
+                        setCurrentSceneIndex(idx);
+                        setProgress((idx / scenes.length) * 100);
+                    }}
                   >
-                    <div className="flex items-start space-x-3">
-                      <span className={`text-2xl flex-shrink-0 ${selectedVideo === idx ? '' : 'opacity-70'}`}>
-                        {video.thumbnail}
-                      </span>
-                      <div className="flex-grow min-w-0">
-                        <p className="font-semibold text-sm truncate first-letter:uppercase">
-                          {video.title}
-                        </p>
-                        <p className={`text-xs mt-1 ${selectedVideo === idx ? 'opacity-90' : 'text-gray-600'}`}>
-                          {video.duration}
-                        </p>
-                      </div>
-                      {selectedVideo === idx && (
-                        <Play size={16} className="flex-shrink-0 mt-1" />
-                      )}
+                    <div className="flex justify-between mb-1">
+                      <span>Scene {idx + 1}</span>
+                      <span className="text-[10px] uppercase font-bold text-gray-400">0:0{idx * 4}</span>
                     </div>
-                  </button>
+                    <p className={`line-clamp-2 ${currentSceneIndex === idx ? 'text-primary' : 'text-gray-500'}`}>
+                      {scene.visualPrompt}
+                    </p>
+                  </div>
                 ))}
               </div>
             </div>
-            
-            {/* Completion Status */}
-            <div className="card mt-6 bg-gradient-to-br from-green-50 to-emerald-50 border-2 border-green-200">
-              <h4 className="font-bold mb-3 text-green-900">Your Progress</h4>
-              <div className="space-y-2 text-sm text-green-800">
-                <p>✓ {selectedVideo + 1} of {videos.length} videos</p>
-                <div className="w-full bg-green-200 rounded-full h-2">
-                  <div
-                    className="bg-green-600 h-2 rounded-full transition-all"
-                    style={{ width: `${((selectedVideo + 1) / videos.length) * 100}%` }}
-                  ></div>
-                </div>
-                <p className="text-xs pt-2">
-                  {Math.round(((selectedVideo + 1) / videos.length) * 100)}% Complete
-                </p>
-              </div>
+
+            <div className="card bg-gradient-to-br from-primary to-secondary text-white border-none">
+              <h3 className="font-bold mb-2">Want a custom lesson?</h3>
+              <p className="text-xs text-white/80 mb-4 leading-relaxed">Adjust the teaching tone or focus on specific chapters of your document.</p>
+              <button className="w-full py-2 bg-white/20 hover:bg-white/30 backdrop-blur-md rounded-lg text-xs font-bold transition-all">
+                Customize AI Output
+              </button>
             </div>
           </div>
-        </div>
-        
-        {/* Recommendations */}
-        <div className="mt-12 card bg-gradient-to-r from-primary/5 to-secondary/5">
-          <h3 className="text-xl font-bold mb-4">📚 Learning Tips</h3>
-          <ul className="space-y-2 text-gray-700">
-            <li>• Watch videos in sequence for best understanding</li>
-            <li>• Take notes while watching for better retention</li>
-            <li>• Pause and replay complex sections</li>
-            <li>• Review the key takeaways after each video</li>
-            <li>• Use these videos as a supplement to reading the document</li>
-          </ul>
         </div>
       </div>
     </div>

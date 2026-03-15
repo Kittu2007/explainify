@@ -84,40 +84,41 @@ export default function UploadPage() {
     setError(null)
     
     try {
-      // Simulate file reading
-      const fileReader = new FileReader()
-      fileReader.onload = async (e) => {
-        // Simulate API call with delay
-        await new Promise(resolve => setTimeout(resolve, 1500))
-        
-        const fileData = {
-          name: currentFile.name,
-          size: currentFile.size,
-          content: e.target.result,
-          uploadedAt: new Date().toISOString(),
-          type: currentFile.type
-        }
-        
-        setFiles(prev => [...prev, fileData])
-        uploadDocument(currentFile, e.target.result)
-        setCurrentFile(null)
-        setUploading(false)
-        
-        // Show success and redirect to chat
-        setTimeout(() => {
-          router.push('/chat')
-        }, 500)
+      const formData = new FormData()
+      formData.append('file', currentFile)
+
+      const response = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Upload failed')
+      }
+
+      const data = await response.json()
+      
+      const fileData = {
+        name: currentFile.name,
+        size: currentFile.size,
+        uploadedAt: new Date().toISOString(),
+        type: currentFile.type,
+        documentId: data.documentId
       }
       
-      fileReader.onerror = () => {
-        setError('Failed to read file. Please try again.')
-        setUploading(false)
-      }
+      setFiles(prev => [...prev, fileData])
+      uploadDocument(currentFile, data.documentId)
+      setCurrentFile(null)
+      setUploading(false)
       
-      fileReader.readAsText(currentFile)
-    } catch (error) {
-      console.error('Upload failed:', error)
-      setError('Failed to upload file. Please try again.')
+      // Show success and redirect to chat
+      setTimeout(() => {
+        router.push('/chat')
+      }, 500)
+    } catch (err) {
+      console.error('Upload failed:', err)
+      setError(err.message || 'Failed to upload file. Please try again.')
       setUploading(false)
     }
   }

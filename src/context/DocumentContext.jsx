@@ -5,17 +5,18 @@ const DocumentContext = createContext()
 
 export function DocumentProvider({ children }) {
   const [document, setDocument] = useState(null)
+  const [documentId, setDocumentId] = useState(null)
   const [messages, setMessages] = useState([])
   const [results, setResults] = useState(null)
   const [loading, setLoading] = useState(false)
   
-  const uploadDocument = (file, content) => {
+  const uploadDocument = (file, id) => {
     setDocument({
       name: file.name,
       size: file.size,
-      content: content,
       uploadedAt: new Date().toLocaleString()
     })
+    setDocumentId(id)
     setMessages([])
     setResults(null)
   }
@@ -37,6 +38,7 @@ export function DocumentProvider({ children }) {
   return (
     <DocumentContext.Provider value={{
       document,
+      documentId,
       messages,
       results,
       loading,

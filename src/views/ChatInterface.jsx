@@ -1,13 +1,13 @@
 "use client";
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Plus } from 'lucide-react'
+import { ArrowLeft, Plus, Loader2 } from 'lucide-react'
 import { useDocument } from '../context/DocumentContext'
 import ChatBubble from '../components/ChatBubble'
 import MessageInput from '../components/MessageInput'
 
 export default function ChatInterface() {
-  const { document } = useDocument()
+  const { document, documentId } = useDocument()
   const router = useRouter()
   const [messages, setMessages] = useState([
     { id: 1, text: "Hello! I'm your AI assistant. Ask me anything about your uploaded document.", isUser: false }
@@ -20,7 +20,7 @@ export default function ChatInterface() {
     if (!document) {
       router.push('/upload')
     }
-  }, [document, navigate])
+  }, [document, router])
   
   // Auto-scroll to latest message
   useEffect(() => {
@@ -29,9 +29,11 @@ export default function ChatInterface() {
   
   // Handle send message
   const handleSendMessage = async (userInput) => {
+    if (!userInput.trim() || !documentId) return
+
     // Add user message
     const userMessage = {
-      id: messages.length + 1,
+      id: Date.now(),
       text: userInput,
       isUser: true
     }
@@ -39,29 +41,34 @@ export default function ChatInterface() {
     setIsLoading(true)
 
     try {
-      // Simulate API call with delay
-      await new Promise(resolve => setTimeout(resolve, 1500))
+      const response = await fetch('/api/query', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          documentId: documentId,
+          question: userInput
+        })
+      })
 
-      // Simulate AI response
-      const aiResponses = [
-        `That's a great question about your document! Based on the content, I can provide you with a comprehensive analysis. Let me break this down into key points that directly relate to your question.`,
-        `Excellent inquiry! I found several relevant sections in your document that address this. The main insights suggest that this is a crucial aspect covered throughout the material with supporting evidence and detailed explanations.`,
-        `Good question! After analyzing your document, I can see this topic appears in multiple sections. The document provides strong context and detailed explanations that will help you understand this concept better.`,
-        `I appreciate you asking about this! Your document contains valuable information on this subject. Let me provide you with the most relevant insights and key takeaways from what I've analyzed.`
-      ]
+      if (!response.ok) {
+        throw new Error('Failed to get response')
+      }
+
+      const data = await response.json()
 
       const aiResponse = {
-        id: messages.length + 2,
-        text: aiResponses[Math.floor(Math.random() * aiResponses.length)],
-        isUser: false
+        id: Date.now() + 1,
+        text: data.answer,
+        isUser: false,
+        sources: data.sources // Optional: if ChatBubble supports it
       }
 
       setMessages(prev => [...prev, aiResponse])
     } catch (error) {
       console.error('Failed to send message:', error)
       const errorMessage = {
-        id: messages.length + 2,
-        text: 'Sorry, I encountered an error. Please try again.',
+        id: Date.now() + 2,
+        text: 'Sorry, I encountered an error. Please ensure your API keys are set correctly and try again.',
         isUser: false
       }
       setMessages(prev => [...prev, errorMessage])
@@ -113,8 +120,8 @@ export default function ChatInterface() {
               <div className="bg-gray-100 border border-gray-200 rounded-lg rounded-bl-none px-4 py-3">
                 <div className="flex space-x-2">
                   <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
-                  <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce delay-100"></div>
-                  <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce delay-200"></div>
+                  <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce [animation-delay:-0.3s]"></div>
+                  <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce [animation-delay:-0.15s]"></div>
                 </div>
               </div>
             </div>
