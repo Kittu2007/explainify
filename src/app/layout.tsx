@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { DocumentProvider } from "@/context/DocumentContext";
+import { AuthProvider } from "@/context/AuthContext";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import "./globals.css";
@@ -18,13 +19,15 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <DocumentProvider>
-          <div className="flex flex-col min-h-screen bg-light">
-            <Navbar />
-            <main className="flex-grow">{children}</main>
-            <Footer />
-          </div>
-        </DocumentProvider>
+        <AuthProvider>
+          <DocumentProvider>
+            <div className="flex flex-col min-h-screen bg-light">
+              <Navbar />
+              <main className="flex-grow">{children}</main>
+              <Footer />
+            </div>
+          </DocumentProvider>
+        </AuthProvider>
       </body>
     </html>
   );
