@@ -10,14 +10,11 @@ export default function Navbar() {
   
   const navLinks = [
     { label: 'Home', path: '/' },
-    { label: 'Upload', path: '/upload' },
-    { label: 'Chat', path: '/chat' },
-    { label: 'Results', path: '/results' },
-    { label: 'Video', path: '/video' }
+    { label: 'Upload', path: '/upload' }
   ]
   
   return (
-    <nav className="bg-dark text-white shadow-lg sticky top-0 z-50">
+    <nav className="bg-gray-950 text-white shadow-lg sticky top-0 z-50 border-b border-gray-800">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-20">
           {/* Logo */}

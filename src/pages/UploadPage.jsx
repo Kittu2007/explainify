@@ -11,6 +11,7 @@ export default function UploadPage() {
   const [currentFile, setCurrentFile] = useState(null)
   const [uploading, setUploading] = useState(false)
   const [error, setError] = useState(null)
+  const [uploadSuccess, setUploadSuccess] = useState(false)
   const navigate = useNavigate()
   const { uploadDocument } = useDocument()
   
@@ -101,11 +102,7 @@ export default function UploadPage() {
         uploadDocument(currentFile, e.target.result)
         setCurrentFile(null)
         setUploading(false)
-        
-        // Show success and redirect to chat
-        setTimeout(() => {
-          navigate('/chat')
-        }, 500)
+        setUploadSuccess(true)
       }
       
       fileReader.onerror = () => {
@@ -123,6 +120,81 @@ export default function UploadPage() {
   
   const removeFile = (index) => {
     setFiles(prev => prev.filter((_, i) => i !== index))
+  }
+  
+  // If upload is successful, show Choose Action section
+  if (uploadSuccess) {
+    return (
+      <div className="min-h-[80vh] bg-gradient-to-br from-gray-50 to-light py-12">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="mb-12 text-center">
+            <div className="flex justify-center mb-6">
+              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
+                <Check className="text-green-600" size={40} />
+              </div>
+            </div>
+            <h1 className="text-4xl font-bold mb-4">Document Uploaded Successfully!</h1>
+            <p className="text-xl text-gray-600">
+              Your document is ready. Choose what you'd like to do next.
+            </p>
+          </div>
+          
+          {/* Choose Action Section */}
+          <div className="grid md:grid-cols-3 gap-8 my-12">
+            {[
+              {
+                title: 'Chat with Document',
+                desc: 'Ask questions about your document and get instant AI-powered answers.',
+                icon: '💬',
+                path: '/chat',
+                color: 'bg-blue-50 border-blue-200'
+              },
+              {
+                title: 'View Results / Summary',
+                desc: 'Get a comprehensive summary and key insights from your document.',
+                icon: '📊',
+                path: '/results',
+                color: 'bg-purple-50 border-purple-200'
+              },
+              {
+                title: 'Generate Learning Video',
+                desc: 'Create a personalized video explanation of your document content.',
+                icon: '🎥',
+                path: '/video',
+                color: 'bg-orange-50 border-orange-200'
+              }
+            ].map((action, idx) => (
+              <div
+                key={idx}
+                className={`${action.color} border rounded-xl p-8 text-center hover:shadow-lg transition-all`}
+              >
+                <div className="text-5xl mb-4">{action.icon}</div>
+                <h3 className="text-2xl font-bold mb-3 text-gray-900">{action.title}</h3>
+                <p className="text-gray-700 mb-6">{action.desc}</p>
+                <button
+                  onClick={() => navigate(action.path)}
+                  className="px-6 py-3 bg-primary text-white font-semibold rounded-lg hover:bg-primary/90 transition-colors"
+                >
+                  {action.title.split('/')[0].includes('Chat') ? 'Start Chat' : action.title.includes('Results') ? 'View Summary' : 'Generate Video'}
+                </button>
+              </div>
+            ))}
+          </div>
+          
+          <div className="text-center mt-12">
+            <button
+              onClick={() => {
+                setUploadSuccess(false)
+                setFiles([])
+              }}
+              className="px-6 py-2 text-primary font-semibold hover:underline"
+            >
+              ← Upload Another Document
+            </button>
+          </div>
+        </div>
+      </div>
+    )
   }
   
   return (
