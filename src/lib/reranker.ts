@@ -1,18 +1,12 @@
 import OpenAI from "openai";
 
-const apiKey = process.env.NVIDIA_RERANK_API_KEY;
-
-if (!apiKey) {
-  throw new Error(
-    "Missing NVIDIA_RERANK_API_KEY environment variable. " +
-      "Copy .env.example to .env.local and fill in your NVIDIA reranker API key."
-  );
-}
-
-const client = new OpenAI({
-  baseURL: "https://integrate.api.nvidia.com/v1",
-  apiKey,
-});
+const getApiKey = () => {
+  const apiKey = process.env.NVIDIA_RERANK_API_KEY;
+  if (!apiKey) {
+    throw new Error("Missing NVIDIA_RERANK_API_KEY environment variable.");
+  }
+  return apiKey;
+};
 
 const RERANK_MODEL = "nvidia/rerank-qa-mistral-4b";
 
@@ -35,6 +29,7 @@ export async function rerankPassages(
   passages: Array<{ content: string; index: number }>,
   topN: number = 5
 ): Promise<RerankResult[]> {
+  const apiKey = getApiKey();
   const response = await fetch("https://integrate.api.nvidia.com/v1/ranking", {
     method: "POST",
     headers: {

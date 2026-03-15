@@ -1,18 +1,15 @@
 import OpenAI from "openai";
 
-const apiKey = process.env.NVIDIA_LLM_API_KEY;
-
-if (!apiKey) {
-  throw new Error(
-    "Missing NVIDIA_LLM_API_KEY environment variable. " +
-      "Copy .env.example to .env.local and fill in your NVIDIA LLM API key."
-  );
-}
-
-const client = new OpenAI({
-  baseURL: "https://integrate.api.nvidia.com/v1",
-  apiKey,
-});
+const getClient = () => {
+  const apiKey = process.env.NVIDIA_LLM_API_KEY;
+  if (!apiKey) {
+    throw new Error("Missing NVIDIA_LLM_API_KEY environment variable.");
+  }
+  return new OpenAI({
+    baseURL: "https://integrate.api.nvidia.com/v1",
+    apiKey,
+  });
+};
 
 const LLM_MODEL = "deepseek-ai/deepseek-v3.1";
 
@@ -28,6 +25,7 @@ export async function askWithContext(
     .map((chunk, i) => `[Source ${i + 1}]\n${chunk}`)
     .join("\n\n");
 
+  const client = getClient();
   const response = await client.chat.completions.create({
     model: LLM_MODEL,
     messages: [
@@ -60,6 +58,7 @@ Rules:
  * Generate a concise summary of document content.
  */
 export async function summarize(text: string): Promise<string> {
+  const client = getClient();
   const response = await client.chat.completions.create({
     model: LLM_MODEL,
     messages: [
@@ -107,6 +106,7 @@ export async function generateVideoScript(
     ? contextChunks.map((chunk, i) => `[Source ${i + 1}]\n${chunk}`).join("\n\n")
     : "No specific document context provided. Generate based on general knowledge.";
 
+  const client = getClient();
   const response = await client.chat.completions.create({
     model: LLM_MODEL,
     messages: [

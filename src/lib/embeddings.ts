@@ -1,18 +1,15 @@
 import OpenAI from "openai";
 
-const apiKey = process.env.NVIDIA_EMBED_API_KEY;
-
-if (!apiKey) {
-  throw new Error(
-    "Missing NVIDIA_EMBED_API_KEY environment variable. " +
-      "Copy .env.example to .env.local and fill in your NVIDIA embedding API key."
-  );
-}
-
-const client = new OpenAI({
-  baseURL: "https://integrate.api.nvidia.com/v1",
-  apiKey,
-});
+const getClient = () => {
+  const apiKey = process.env.NVIDIA_EMBED_API_KEY;
+  if (!apiKey) {
+    throw new Error("Missing NVIDIA_EMBED_API_KEY environment variable.");
+  }
+  return new OpenAI({
+    baseURL: "https://integrate.api.nvidia.com/v1",
+    apiKey,
+  });
+};
 
 const EMBEDDING_MODEL = "nvidia/llama-3.2-nv-nemoretriever-300m-embed-v1";
 
@@ -30,6 +27,7 @@ export async function generateEmbedding(
   // Use model name suffix for input_type (NVIDIA's OpenAI-compat approach)
   const modelWithType = `${EMBEDDING_MODEL}-${inputType}`;
 
+  const client = getClient();
   const response = await client.embeddings.create({
     input: text,
     model: modelWithType,
@@ -53,6 +51,7 @@ export async function generateEmbeddings(
   for (let i = 0; i < texts.length; i += BATCH_SIZE) {
     const batch = texts.slice(i, i + BATCH_SIZE);
 
+    const client = getClient();
     const response = await client.embeddings.create({
       input: batch,
       model: modelWithType,

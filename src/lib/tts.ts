@@ -2,18 +2,16 @@ import OpenAI from "openai";
 
 // NVIDIA's AI endpoints often share keys, but we use a dedicated one for TTS if provided,
 // falling back to the LLM key.
-const apiKey = process.env.NVIDIA_TTS_API_KEY || process.env.NVIDIA_LLM_API_KEY;
-
-if (!apiKey) {
-  throw new Error(
-    "Missing NVIDIA_TTS_API_KEY or NVIDIA_LLM_API_KEY environment variable."
-  );
-}
-
-const client = new OpenAI({
-  baseURL: "https://integrate.api.nvidia.com/v1",
-  apiKey,
-});
+const getClient = () => {
+  const apiKey = process.env.NVIDIA_TTS_API_KEY || process.env.NVIDIA_LLM_API_KEY;
+  if (!apiKey) {
+    throw new Error("Missing NVIDIA_TTS_API_KEY or NVIDIA_LLM_API_KEY environment variable.");
+  }
+  return new OpenAI({
+    baseURL: "https://integrate.api.nvidia.com/v1",
+    apiKey,
+  });
+};
 
 const TTS_MODEL = "nvidia/magpie-tts-zeroshot";
 
@@ -25,6 +23,7 @@ const TTS_MODEL = "nvidia/magpie-tts-zeroshot";
  * @param text - The script text to narrate
  */
 export async function generateNarrationAudio(text: string): Promise<string> {
+  const client = getClient();
   const response = await client.audio.speech.create({
     model: TTS_MODEL,
     input: text,
