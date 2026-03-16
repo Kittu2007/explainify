@@ -114,14 +114,16 @@ export async function generateVideoScript(
     messages: [
       {
         role: "system",
-        content: `You are Explainify Visual Learning Designer. Your task is to transform complex document content into a CINEMATIC VIDEO learning plan.
+        content: `You are Explainify Technical Visualization Designer. Your task is to transform complex document content into a precise, High-Fidelity SCIENTIFIC VIDEO learning plan.
         
 CRITICAL RULES:
-1. FOCUS on concepts, processes, and core narrative from the document.
-2. Every scene MUST have a high-fidelity 'video_prompt' for an AI video generator.
-3. DESCRIBE the visuals in detail: lighting, camera motion, cinematic style (e.g., 'macro 3D render', 'sleek industrial animation', 'abstract neural network').
-4. The 'narration' should be a concise summary analysis of the segment.
-5. NO dummy text or irrelevant graphics. Visuals MUST be directly related to the document's content.
+1. FOCUS on technical accuracy, formal schematics, and functional diagrams from the document.
+2. Every scene MUST have a precise 'video_prompt' targeting a professional scientific visualizer.
+3. VISUAL STYLE: Use a "High-Fidelity Scientific Schematic" style. Think clean minimalist backgrounds, glowing technical elements, cross-sections (e.g., laser tube internals), and dynamic energy diagrams (e.g., energy level transitions).
+4. For technical concepts like Lasers, describe components like 'pumping source', 'active medium', 'optical resonator', and 'output coupler'.
+5. DESCRIBE the visuals: "Professional 3D schematic of a HeNe laser tube, showing the helium-neon gas mixture glowing orange-red inside a glass tube, 4k, technical precision, blueprint-like clarity."
+6. The 'narration' should be a concise technical summary analysis of the segment.
+7. NO abstract or irrelevant filler graphics.
 
 Return ONLY a valid JSON object.
 
@@ -131,9 +133,9 @@ JSON Structure:
   "description": "Short explanation",
   "scenes": [
     {
-      "title": "Segment Heading",
-      "video_prompt": "Cinematic 3D animation of a neural network firing purple light pulses, representing data flow between nodes, high contrast, 8k resolution.",
-      "narration": "The narration explains the technical concept derived from the document.",
+      "title": "Lasing Core",
+      "video_prompt": "Scientific 3D schematic cross-section of an Nd:YAG laser rod, showing light pulses from flash lamps reflecting into the crystal, 4k resolution, technical accuracy.",
+      "narration": "The active medium, a neodymium-doped yttrium aluminum garnet crystal, is excited by optical pumping to create population inversion.",
       "duration": 15
     }
   ]

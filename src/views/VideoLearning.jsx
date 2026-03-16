@@ -30,31 +30,49 @@ export default function VideoLearning() {
     if (scenes.length > 0) {
       const synthesizeVideos = async () => {
         for (let i = 0; i < scenes.length; i++) {
-          if (!scenes[i].videoUrl) {
-            try {
-              const res = await fetch('/api/video-synthesize', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ prompt: scenes[i].video_prompt })
-              });
-              if (res.ok) {
-                const { videoUrl } = await res.json();
-                setScenes(prev => {
-                  const newScenes = [...prev];
-                  newScenes[i] = { ...newScenes[i], videoUrl };
-                  return newScenes;
+          if (!scenes[i].videoUrl && !scenes[i].error) {
+            let retryCount = 0;
+            let success = false;
+            
+            while (retryCount < 2 && !success) {
+              try {
+                const res = await fetch('/api/video-synthesize', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ prompt: scenes[i].video_prompt })
                 });
-                setSynthesizedCount(prev => prev + 1);
+                if (res.ok) {
+                  const { videoUrl } = await res.json();
+                  setScenes(prev => {
+                    const newScenes = [...prev];
+                    newScenes[i] = { ...newScenes[i], videoUrl, error: false };
+                    return newScenes;
+                  });
+                  setSynthesizedCount(prev => prev + 1);
+                  success = true;
+                } else {
+                  throw new Error(`Status: ${res.status}`);
+                }
+              } catch (err) {
+                console.error(`Failed to synthesize scene ${i} (attempt ${retryCount + 1}):`, err);
+                retryCount++;
+                if (retryCount === 2) {
+                  setScenes(prev => {
+                    const newScenes = [...prev];
+                    newScenes[i] = { ...newScenes[i], error: true };
+                    return newScenes;
+                  });
+                }
+                // Wait before retry
+                await new Promise(r => setTimeout(r, 2000));
               }
-            } catch (err) {
-              console.error(`Failed to synthesize scene ${i}`, err);
             }
           }
         }
       };
       synthesizeVideos();
     }
-  }, [scenes.length]); // Only run once script is loaded
+  }, [scenes.length]);
 
   const generateVideoContent = async () => {
     setLoading(true)
@@ -364,8 +382,14 @@ export default function VideoLearning() {
                           <span className={`text-[9px] font-black tracking-widest uppercase px-2 py-0.5 rounded-md ${currentSceneIndex === idx ? 'bg-primary text-white' : 'bg-white/5 text-gray-600'}`}>0{idx + 1}</span>
                           {!scene.videoUrl && (
                              <div className="flex items-center gap-1.5 px-2 py-0.5 bg-white/5 rounded-md">
-                                <Loader2 size={8} className="text-gray-600 animate-spin" />
-                                <span className="text-[8px] font-black text-gray-600 uppercase tracking-widest text-[7px]">Buffering</span>
+                                {scene.error ? (
+                                   <AlertCircle size={8} className="text-red-500" />
+                                ) : (
+                                   <Loader2 size={8} className="text-gray-600 animate-spin" />
+                                )}
+                                <span className={`text-[8px] font-black uppercase tracking-widest text-[7px] ${scene.error ? 'text-red-500' : 'text-gray-600'}`}>
+                                   {scene.error ? 'Synthesis Halted' : 'Buffering'}
+                                </span>
                              </div>
                           )}
                        </div>
