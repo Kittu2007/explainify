@@ -23,6 +23,11 @@ const MODELS = [
  */
 export async function generateVideoClip(prompt: string): Promise<string> {
   let lastError = "";
+  const apiKey = process.env.OPENROUTER_API_KEY;
+
+  if (!apiKey) {
+    console.error("[VisualGen] CRITICAL: OPENROUTER_API_KEY is missing from environment variables.");
+  }
   
   for (const modelId of MODELS) {
     try {
@@ -30,12 +35,12 @@ export async function generateVideoClip(prompt: string): Promise<string> {
       
       // Special handling for OpenRouter models
       if (modelId.includes("/")) {
-        const isRiverflow = modelId === "sourceful/riverflow-v2-pro";
-        
+        if (!apiKey) throw new Error("OpenRouter API key missing");
+
         const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
           method: "POST",
           headers: {
-            "Authorization": `Bearer ${OPENROUTER_API_KEY}`,
+            "Authorization": `Bearer ${apiKey}`,
             "Content-Type": "application/json",
             "HTTP-Referer": "https://explainify-ai.onrender.com",
             "X-Title": "Explainify"
@@ -53,28 +58,38 @@ export async function generateVideoClip(prompt: string): Promise<string> {
                 ]
               }
             ],
-            ...(isRiverflow ? { modalities: ["image"] } : {})
+            modalities: ["image"]
           })
         });
 
         if (!response.ok) {
-          const errData = await response.json();
-          throw new Error(`OpenRouter error: ${JSON.stringify(errData)}`);
+          const errText = await response.text();
+          console.error(`[VisualGen] OpenRouter API Error (${response.status}):`, errText);
+          
+          if (response.status === 402) {
+             throw new Error("OPENROUTER_CREDIT_SHORTFALL");
+          }
+          
+          throw new Error(`OpenRouter error ${response.status}: ${errText.substring(0, 100)}`);
         }
 
         const data = await response.json();
         const images = data.choices?.[0]?.message?.images;
         
         if (images && images.length > 0) {
-          // Riverflow returns base64 data URLs in images array
+          console.log(`[VisualGen] Successfully generated image via ${modelId}`);
           return images[0];
         }
-        
-        // If it's not Riverflow, it might return a standard message
+
+        // Check content if images array is missing
         const content = data.choices?.[0]?.message?.content;
-        if (content && (content.startsWith("http") || content.startsWith("data:"))) {
+        if (content && (content.startsWith("http") || content.startsWith("data:image"))) {
+          console.log(`[VisualGen] Successfully found image URL in content via ${modelId}`);
           return content;
         }
+
+        console.warn(`[VisualGen] Model ${modelId} returned no images/valid content:`, JSON.stringify(data).substring(0, 200));
+        throw new Error("No visual output from OpenRouter");
       }
 
       // Existing ByteZ/Native logic fallback
