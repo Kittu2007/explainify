@@ -330,8 +330,8 @@ export default function VideoLearning() {
 
               <div className="space-y-4 mb-8">
                  <div className="flex justify-between text-[10px] font-black uppercase tracking-widest">
-                    <span className="text-gray-500">Visual Buffering</span>
-                    <span className="text-white">{synthesizedCount} / {scenes.length} Clips</span>
+                    <span className="text-[9px] font-black uppercase tracking-widest opacity-80">Figure Buffering</span>
+                    <span className="text-[9px] font-black text-primary ml-auto">{synthesizedCount} / {scenes.length} Figures</span>
                  </div>
                  <div className="h-2 bg-white/5 rounded-full overflow-hidden">
                     <div 
@@ -345,9 +345,22 @@ export default function VideoLearning() {
                  <div className="flex gap-4 items-start">
                     <AlertCircle className="text-primary flex-shrink-0 mt-1" size={16} />
                     <p className="text-[10px] font-medium text-white/50 leading-relaxed italic">
-                       <span className="text-primary font-black uppercase not-italic">Note:</span> Cinematic visuals take significant computation. Video segments will appear sequentially as they are synthesized. You can start listening to the narration now.
+                       <span className="text-primary font-black uppercase not-italic">Note:</span> Neural Figures take significant computation. Figure segments will appear sequentially as they are synthesized. You can start listening to the narration now.
                     </p>
                  </div>
+              </div>
+
+              <p className="text-[10px] text-primary font-black uppercase tracking-[0.2em] mb-2 animate-pulse">Neural Figure Synthesis</p>
+              <h2 className="text-3xl font-black text-white tracking-tighter mb-4 leading-none italic uppercase">Textbook Architecture</h2>
+              <div className="flex items-center gap-2 mb-6 p-2 bg-white/5 rounded-2xl border border-white/5 w-fit mx-auto">
+                <div className="flex -space-x-2">
+                  {[1, 2, 3].map(i => (
+                    <div key={i} className="w-6 h-6 rounded-full border-2 border-[#020202] bg-primary/20 flex items-center justify-center">
+                      <Zap size={10} className="text-primary" />
+                    </div>
+                  ))}
+                </div>
+                <span className="text-[9px] font-bold text-gray-400 uppercase tracking-widest px-2">Scientific Core Active</span>
               </div>
            </div>
 
