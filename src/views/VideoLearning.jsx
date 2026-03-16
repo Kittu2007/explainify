@@ -14,6 +14,7 @@ export default function VideoLearning() {
   const [scenes, setScenes] = useState([])
   const [currentSceneIndex, setCurrentSceneIndex] = useState(0)
   const [error, setError] = useState(null)
+  const [synthesizedCount, setSynthesizedCount] = useState(0)
   const audioRef = useRef(null)
   
   useEffect(() => {
@@ -24,9 +25,41 @@ export default function VideoLearning() {
     }
   }, [document, documentId, router])
 
+  // EFFECT: Lazy-load video clips for each scene
+  useEffect(() => {
+    if (scenes.length > 0) {
+      const synthesizeVideos = async () => {
+        for (let i = 0; i < scenes.length; i++) {
+          if (!scenes[i].videoUrl) {
+            try {
+              const res = await fetch('/api/video-synthesize', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ prompt: scenes[i].video_prompt })
+              });
+              if (res.ok) {
+                const { videoUrl } = await res.json();
+                setScenes(prev => {
+                  const newScenes = [...prev];
+                  newScenes[i] = { ...newScenes[i], videoUrl };
+                  return newScenes;
+                });
+                setSynthesizedCount(prev => prev + 1);
+              }
+            } catch (err) {
+              console.error(`Failed to synthesize scene ${i}`, err);
+            }
+          }
+        }
+      };
+      synthesizeVideos();
+    }
+  }, [scenes.length]); // Only run once script is loaded
+
   const generateVideoContent = async () => {
     setLoading(true)
     setError(null)
+    setSynthesizedCount(0)
     try {
       const response = await fetch('/api/video-explain', {
         method: 'POST',
@@ -118,7 +151,7 @@ export default function VideoLearning() {
         <div className="text-center space-y-4">
           <h2 className="text-3xl font-black text-white tracking-widest uppercase italic">Neural Synthesis</h2>
           <p className="text-white/40 font-black text-[10px] uppercase tracking-[0.4em] animate-pulse">
-             Generating cinematic learning visuals via Veo 2.0
+             Generating script & narration via OpenAI...
           </p>
         </div>
       </div>
@@ -159,11 +192,12 @@ export default function VideoLearning() {
             onClick={() => {
               const url = window.location.href;
               navigator.clipboard.writeText(url);
+              alert("Share link copied to clipboard!");
             }}
-            className="px-6 py-3 rounded-full border border-white/10 text-gray-400 font-bold text-sm hover:bg-white/5 transition-all flex items-center gap-2"
+            className="px-6 py-3 rounded-full border-2 border-primary/40 bg-primary/5 text-primary-foreground font-black text-xs uppercase tracking-widest hover:bg-primary/10 transition-all flex items-center gap-2 shadow-[0_0_20px_rgba(230,41,255,0.2)]"
           >
-            <Share2 size={18} />
-            <span>Secure Link</span>
+            <Share2 size={16} />
+            <span>Share Link</span>
           </button>
           <button 
             onClick={() => generateVideoContent()}
@@ -178,37 +212,40 @@ export default function VideoLearning() {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
         {/* Main Stage Area */}
         <div className="lg:col-span-8 space-y-6">
-          <div className="relative aspect-video rounded-[3rem] overflow-hidden group shadow-2xl border border-white/5 bg-[#050505]">
+          <div className="relative aspect-video rounded-[3rem] overflow-hidden group shadow-2xl border border-white/5 bg-black">
              {/* Visual Scene Content */}
              <div className="absolute inset-0 z-0">
                 <VisualScene scene={currentScene} />
              </div>
 
-             {/* Subtitles Overlay */}
-             <div className="absolute bottom-10 left-10 right-10 z-20 pointer-events-none">
-                <div className="px-8 py-5 rounded-[2rem] bg-black/4 backdrop-blur-3xl border border-white/5 text-white text-lg font-bold text-center animate-fade-in shadow-2xl">
-                   <div className="text-primary/50 text-[10px] uppercase font-black tracking-widest mb-1">Narration Process: {currentSceneIndex + 1}</div>
-                   <p className="leading-tight opacity-90 drop-shadow-md">"{currentScene.narration || ''}"</p>
-                </div>
-             </div>
-
              {/* Play/Pause Overlay */}
              <div 
-               className="absolute inset-0 z-30 opacity-0 group-hover:opacity-100 transition-all duration-700 flex items-center justify-center bg-black/20 backdrop-blur-[1px] cursor-pointer"
+               className="absolute inset-0 z-30 opacity-0 group-hover:opacity-100 transition-all duration-700 flex items-center justify-center bg-black/40 backdrop-blur-[2px] cursor-pointer"
                onClick={() => setIsPlaying(!isPlaying)}
              >
-               <div className="w-24 h-24 bg-white/5 hover:bg-white/10 rounded-full backdrop-blur-3xl flex items-center justify-center border border-white/10 shadow-2xl transform hover:scale-110 active:scale-95 transition-all">
+               <div className="w-24 h-24 bg-white/10 hover:bg-white/20 rounded-full backdrop-blur-3xl flex items-center justify-center border border-white/10 shadow-2xl transform hover:scale-110 active:scale-95 transition-all">
                  {isPlaying ? <Pause className="text-white" size={40} fill="white" /> : <Play className="text-white ml-2" size={40} fill="white" />}
                </div>
              </div>
           </div>
 
+          {/* New Narration Section */}
+          <div className="bento-card p-10 bg-[#050505]/60 backdrop-blur-3xl border-white/5 animate-fade-in min-h-[140px] flex flex-col justify-center">
+             <div className="flex items-center gap-2 mb-4">
+                <Layers size={14} className="text-primary" />
+                <span className="text-[10px] font-black text-primary uppercase tracking-[0.3em]">Segment {currentSceneIndex + 1} Synthesis</span>
+             </div>
+             <p className="text-2xl font-bold text-white leading-tight opacity-90 italic">
+                "{currentScene.narration || ''}"
+             </p>
+          </div>
+
           {/* Controller Hub */}
           <div className="bento-card p-10 border-white/5 space-y-8">
              <div className="space-y-4">
-                <div className="flex justify-between items-center px-2">
+                <div className="flex justify-between items-center px-1">
                    <div className="flex items-center gap-3">
-                      <div className="px-3 py-1 bg-primary/10 rounded-full text-[10px] font-black text-primary uppercase tracking-widest">Live Process</div>
+                      <div className="px-3 py-1 bg-white/5 rounded-full text-[10px] font-black text-gray-400 uppercase tracking-widest">Timeline</div>
                       <span className="text-[10px] font-black text-gray-600 uppercase tracking-widest">
                          {((progress / 100) * (scenes.length * 15)).toFixed(1)}s / {(scenes.length * 15)}s
                       </span>
@@ -249,7 +286,7 @@ export default function VideoLearning() {
                 <div className="flex items-center gap-6">
                    <div className="px-6 py-3 glass rounded-2xl border-white/10 flex items-center gap-3">
                       <div className="w-2 h-2 bg-primary rounded-full animate-pulse" />
-                      <span className="text-[10px] font-black text-white uppercase tracking-widest">{currentScene.scene_type} engine active</span>
+                      <span className="text-[10px] font-black text-white uppercase tracking-widest">{currentScene.scene_type || 'neural'} mode</span>
                    </div>
                    <button onClick={handleRestart} className="p-4 bg-white/5 hover:bg-white/10 rounded-2xl border border-white/10 text-gray-400 hover:text-white transition-all">
                       <RotateCcw size={20} />
@@ -259,9 +296,44 @@ export default function VideoLearning() {
           </div>
         </div>
 
-        {/* Sidebar Scene Navigator */}
+        {/* Sidebar Scene Navigator & Progress Center */}
         <div className="lg:col-span-4 space-y-6">
-           <div className="bento-card p-8 border-white/5 h-[650px] flex flex-col">
+           {/* Synthesis Hub */}
+           <div className="bento-card p-10 bg-gradient-to-br from-primary/10 to-transparent border-primary/20">
+              <div className="flex items-center gap-3 mb-6">
+                 <div className="p-3 bg-primary/20 rounded-2xl border border-primary/30">
+                    <Activity className="text-primary" size={24} />
+                 </div>
+                 <div>
+                    <h3 className="font-black text-lg text-white leading-tight">Neural Synthesis Center</h3>
+                    <p className="text-[10px] text-primary font-black uppercase tracking-widest">Google Veo 2.0 Active</p>
+                 </div>
+              </div>
+
+              <div className="space-y-4 mb-8">
+                 <div className="flex justify-between text-[10px] font-black uppercase tracking-widest">
+                    <span className="text-gray-500">Visual Buffering</span>
+                    <span className="text-white">{synthesizedCount} / {scenes.length} Clips</span>
+                 </div>
+                 <div className="h-2 bg-white/5 rounded-full overflow-hidden">
+                    <div 
+                      className="h-full bg-primary transition-all duration-1000 shadow-[0_0_15px_rgba(230,41,255,0.5)]"
+                      style={{ width: `${(synthesizedCount / scenes.length) * 100}%` }}
+                    />
+                 </div>
+              </div>
+
+              <div className="p-6 bg-black/40 rounded-3xl border border-white/5">
+                 <div className="flex gap-4 items-start">
+                    <AlertCircle className="text-primary flex-shrink-0 mt-1" size={16} />
+                    <p className="text-[10px] font-medium text-white/50 leading-relaxed italic">
+                       <span className="text-primary font-black uppercase not-italic">Note:</span> Cinematic visuals take significant computation. Video segments will appear sequentially as they are synthesized. You can start listening to the narration now.
+                    </p>
+                 </div>
+              </div>
+           </div>
+
+           <div className="bento-card p-8 border-white/5 h-[450px] flex flex-col">
               <div className="flex items-center justify-between mb-8">
                  <div className="flex items-center gap-3">
                     <div className="p-2.5 bg-white/5 rounded-xl border border-white/10">
@@ -288,7 +360,15 @@ export default function VideoLearning() {
                     }`}
                   >
                     <div className="flex justify-between items-start mb-2 relative z-10">
-                       <span className={`text-[9px] font-black tracking-widest uppercase px-2 py-0.5 rounded-md ${currentSceneIndex === idx ? 'bg-primary text-white' : 'bg-white/5 text-gray-600'}`}>0{idx + 1}</span>
+                       <div className="flex items-center gap-2">
+                          <span className={`text-[9px] font-black tracking-widest uppercase px-2 py-0.5 rounded-md ${currentSceneIndex === idx ? 'bg-primary text-white' : 'bg-white/5 text-gray-600'}`}>0{idx + 1}</span>
+                          {!scene.videoUrl && (
+                             <div className="flex items-center gap-1.5 px-2 py-0.5 bg-white/5 rounded-md">
+                                <Loader2 size={8} className="text-gray-600 animate-spin" />
+                                <span className="text-[8px] font-black text-gray-600 uppercase tracking-widest text-[7px]">Buffering</span>
+                             </div>
+                          )}
+                       </div>
                        {currentSceneIndex === idx && <Zap size={12} className="text-primary fill-primary animate-pulse" />}
                     </div>
                     <h4 className={`text-sm font-black mb-1 tracking-tight ${currentSceneIndex === idx ? 'text-white' : 'text-gray-400'}`}>{scene.title || `Segment 0${idx + 1}`}</h4>
@@ -300,20 +380,6 @@ export default function VideoLearning() {
                   </button>
                 ))}
               </div>
-           </div>
-
-           <div className="bento-card p-10 bg-gradient-to-br from-primary/20 via-transparent to-transparent border-primary/20 flex flex-col items-center justify-center text-center">
-              <div className="relative mb-8">
-                 <div className="absolute inset-0 bg-primary blur-3xl opacity-20" />
-                 <Sparkles className="relative text-primary" size={48} />
-              </div>
-              <h4 className="text-xl font-black text-white mb-2">Immersive Learning</h4>
-              <p className="text-xs text-gray-500 font-medium leading-relaxed mb-8">
-                 AI-driven visuals significantly increase comprehension and recall of complex document structures.
-              </p>
-              <button className="w-full py-4 glass rounded-3xl text-[10px] font-black uppercase tracking-widest text-white border-white/10 hover:bg-white/5 transition-all">
-                 Generate Briefing PDF
-              </button>
            </div>
         </div>
       </div>
