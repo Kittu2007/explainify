@@ -1,5 +1,5 @@
 "use client";
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import StaggeredMenu from './ui/StaggeredMenu';
 import { useAuth } from '@/context/AuthContext';
@@ -8,33 +8,77 @@ import { useDocument } from '@/context/DocumentContext';
 export default function DashboardSidebar() {
   const router = useRouter();
   const { signOut, user } = useAuth();
-  const { document, clearContext } = useDocument();
+  const { document, clearContext, loadChat } = useDocument();
+  
+  const [chats, setChats] = useState([]);
+  const [profile, setProfile] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  // Derived history from current session if exists
-  const historyItems = document ? [
-    { label: document.name, link: '/dashboard/chat', date: 'Active Session' },
-    { label: 'Quantum Physics Analysis', link: '/dashboard/chat', date: '2 hours ago' },
-    { label: 'Marketing Strategy Doc', link: '/dashboard/chat', date: '5 hours ago' },
-  ] : [
-    { label: 'Quantum Physics Analysis', link: '/dashboard/chat', date: '2 hours ago' },
-    { label: 'Marketing Strategy Doc', link: '/dashboard/chat', date: '5 hours ago' },
-    { label: 'User Research Synthesis', link: '/dashboard/chat', date: 'Yesterday' },
-  ];
+  // Fetch chats and profile
+  const fetchData = async () => {
+    if (!user?.uid) return;
+    
+    try {
+      // Fetch Profile
+      const profileRes = await fetch(`/api/profile?userId=${user.uid}`);
+      const profileData = await profileRes.json();
+      setProfile(profileData);
+
+      // Fetch Chats
+      const chatsRes = await fetch(`/api/chats?userId=${user.uid}`);
+      const chatsData = await chatsRes.json();
+      setChats(chatsData);
+    } catch (err) {
+      console.error("Failed to fetch sidebar data:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
+    // Simple polling for "real-time" sync if needed, 
+    // or we could use a more sophisticated approach.
+    const interval = setInterval(fetchData, 10000); 
+    return () => clearInterval(interval);
+  }, [user]);
 
   const handleNewChat = () => {
     clearContext();
     router.push('/dashboard/upload');
   };
 
+  const handleChatSelect = (chat) => {
+    loadChat(chat);
+    router.push('/dashboard/chat');
+  };
+
+  const handleProfileUpdate = async (newName) => {
+    if (!user?.uid) return;
+    try {
+      const res = await fetch('/api/profile', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: user.uid, displayName: newName })
+      });
+      const updatedProfile = await res.json();
+      setProfile(updatedProfile);
+    } catch (err) {
+      console.error("Profile update failed:", err);
+    }
+  };
+
   return (
     <div className="fixed left-0 top-0 bottom-0 z-50 pointer-events-none">
       <StaggeredMenu 
         position="left"
-        items={historyItems}
+        items={chats}
         onNewChat={handleNewChat}
         onSignOut={signOut}
+        onChatSelect={handleChatSelect}
+        onProfileUpdate={handleProfileUpdate}
         user={user}
-        colors={['#2E073F', '#7A1CAC']}
+        profile={profile}
       />
     </div>
   );

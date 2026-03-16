@@ -77,22 +77,25 @@ export async function POST(request: NextRequest) {
     console.log("[Video] Generating script with LLM...");
     const script = await generateVideoScript(topic, contextChunks);
 
-    // Generate TTS Audio for each scene in parallel
-    console.log(`[Video] Generating TTS audio for ${script.scenes.length} scenes...`);
-    const scenesWithAudio = await Promise.all(
+    // Generate Video and Audio for each scene in parallel
+    console.log(`[Video] Generating Video and Audio for ${script.scenes.length} scenes...`);
+    const scenesWithMedia = await Promise.all(
       script.scenes.map(async (scene) => {
         try {
-          const audioUrl = await generateNarrationAudio(scene.narration);
-          return { ...scene, audioUrl };
-        } catch (audioError: any) {
-          console.error(`[Video] TTS failed for scene ${scene.scene_type}:`, audioError.message);
-          // Return null audio if generation fails, so the app doesn't crash completely
-          return { ...scene, audioUrl: null };
+          // Generate both in parallel for efficiency
+          const [audioUrl, videoUrl] = await Promise.all([
+             generateNarrationAudio(scene.narration),
+             import("@/lib/video-gen").then(m => m.generateVideoClip(scene.video_prompt))
+          ]);
+          return { ...scene, audioUrl, videoUrl };
+        } catch (mediaError: any) {
+          console.error(`[Video] Media generation failed for scene:`, mediaError.message);
+          return { ...scene, audioUrl: null, videoUrl: null };
         }
       })
     );
 
-    const finalScript = { ...script, scenes: scenesWithAudio };
+    const finalScript = { ...script, scenes: scenesWithMedia };
     console.log("[Video] Success.");
 
     return NextResponse.json({

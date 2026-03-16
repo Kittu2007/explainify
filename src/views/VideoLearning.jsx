@@ -107,15 +107,19 @@ export default function VideoLearning() {
     return (
       <div className="flex flex-col items-center justify-center h-[70vh] space-y-8">
         <div className="relative">
-          <div className="absolute inset-0 bg-primary/20 blur-[80px] rounded-full animate-pulse" />
-          <div className="relative w-24 h-24 border-2 border-primary/20 rounded-full flex items-center justify-center">
-             <div className="w-16 h-16 border-4 border-primary/30 border-t-primary rounded-full animate-spin" />
-             <Video className="absolute text-primary" size={24} />
+          <div className="absolute inset-0 bg-primary/20 blur-[100px] rounded-full animate-pulse" />
+          <div className="relative w-32 h-32 border-2 border-primary/20 rounded-full flex items-center justify-center">
+             <div className="w-24 h-24 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
+             <div className="absolute inset-0 flex items-center justify-center">
+                <div className="w-2 h-2 bg-primary rounded-full animate-ping" />
+             </div>
           </div>
         </div>
-        <div className="text-center space-y-3">
-          <h2 className="text-3xl font-black text-white tracking-tighter">Conceptualizing Space</h2>
-          <p className="text-gray-500 font-medium">Synthesizing visual representations from document semantics...</p>
+        <div className="text-center space-y-4">
+          <h2 className="text-3xl font-black text-white tracking-widest uppercase italic">Neural Synthesis</h2>
+          <p className="text-white/40 font-black text-[10px] uppercase tracking-[0.4em] animate-pulse">
+             Generating cinematic learning visuals via Veo 2.0
+          </p>
         </div>
       </div>
     )
@@ -124,20 +128,20 @@ export default function VideoLearning() {
   if (error) {
     return (
       <div className="flex items-center justify-center h-[70vh]">
-        <div className="bento-card max-w-md text-center border-red-500/20">
-          <AlertCircle className="mx-auto h-12 w-12 text-red-500 mb-6" />
-          <h2 className="text-2xl font-black text-white mb-2 tracking-tighter">Render Failed</h2>
-          <p className="text-gray-500 mb-8 text-sm">{error}</p>
-          <button onClick={generateVideoContent} className="gooey-button w-full">Re-Initialize Session</button>
+        <div className="bento-card max-w-md text-center border-red-500/20 bg-black/40 backdrop-blur-3xl">
+          <AlertCircle className="mx-auto h-16 w-16 text-red-500/50 mb-8" />
+          <h2 className="text-3xl font-black text-white mb-4 tracking-tighter uppercase italic">Synthesis Interrupted</h2>
+          <p className="text-white/40 mb-10 text-xs font-medium uppercase tracking-widest">{error}</p>
+          <button onClick={generateVideoContent} className="gooey-button w-full py-4 tracking-widest">Retry Synthesis</button>
         </div>
       </div>
     )
   }
 
-  const currentScene = scenes[currentSceneIndex] || { narration: "Initializing visual learning...", scene_type: 'icon_infographic' };
+  const currentScene = scenes[currentSceneIndex] || { narration: "Initializing neural stream...", title: "System Ready" };
 
   return (
-    <div className="space-y-8 animate-fade-in p-2">
+    <div className="space-y-12 animate-fade-in p-4 max-w-7xl mx-auto">
       <audio ref={audioRef} />
       
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">

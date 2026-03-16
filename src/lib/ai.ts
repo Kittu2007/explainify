@@ -98,10 +98,8 @@ export async function generateVideoScript(
   title: string;
   description: string;
   scenes: Array<{
-    scene_type: 'comparison' | 'flowchart' | 'timeline' | 'spectrum_chart' | 'bar_chart' | 'process_diagram' | 'icon_infographic';
     title: string;
-    visual_elements: string[];
-    animation: string;
+    video_prompt: string;
     narration: string;
     duration: number;
   }>;
@@ -116,19 +114,14 @@ export async function generateVideoScript(
     messages: [
       {
         role: "system",
-        content: `You are Explainify Visual Learning Designer. Your task is to transform complex document content into a VISUAL learning plan.
+        content: `You are Explainify Visual Learning Designer. Your task is to transform complex document content into a CINEMATIC VIDEO learning plan.
         
 CRITICAL RULES:
-1. FOCUS on concepts, processes, and comparisons. 
-2. AVOID text-heavy slides. Each scene MUST be primarily graphical.
-3. Use the following Scene Types:
-   - comparison: Side-by-side analysis of two concepts/items.
-   - flowchart: Sequential steps or logical branching.
-   - timeline: Chronological events or phases.
-   - spectrum_chart: Range-based data (like wavelengths, frequencies, or scales).
-   - bar_chart: Comparative numerical data.
-   - process_diagram: Circular or linear flow of a system.
-   - icon_infographic: Concept clusters using symbolic icons.
+1. FOCUS on concepts, processes, and core narrative from the document.
+2. Every scene MUST have a high-fidelity 'video_prompt' for an AI video generator.
+3. DESCRIBE the visuals in detail: lighting, camera motion, cinematic style (e.g., 'macro 3D render', 'sleek industrial animation', 'abstract neural network').
+4. The 'narration' should be a concise summary analysis of the segment.
+5. NO dummy text or irrelevant graphics. Visuals MUST be directly related to the document's content.
 
 Return ONLY a valid JSON object.
 
@@ -138,11 +131,9 @@ JSON Structure:
   "description": "Short explanation",
   "scenes": [
     {
-      "scene_type": "flowchart",
-      "title": "Wait for Approval Step",
-      "visual_elements": ["Box 1: User Request", "Arrow ->", "Box 2: AI Processing", "Branch (Yes/No)"],
-      "animation": "Arrows animate in sequence",
-      "narration": "The narration explains the concept being shown visually.",
+      "title": "Segment Heading",
+      "video_prompt": "Cinematic 3D animation of a neural network firing purple light pulses, representing data flow between nodes, high contrast, 8k resolution.",
+      "narration": "The narration explains the technical concept derived from the document.",
       "duration": 15
     }
   ]
