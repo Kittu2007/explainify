@@ -109,7 +109,7 @@ const Silk = ({ speed = 5, scale = 1, color = '#7B7481', noiseIntensity = 1.5, r
   );
 
   return (
-    <div style={{ width: '100%', height: '100%', position: 'absolute', top: 0, left: 0, zIndex: -1 }}>
+    <div style={{ width: '100vw', height: '100vh', position: 'fixed', top: 0, left: 0, zIndex: 0, pointerEvents: 'none' }}>
       <Canvas dpr={[1, 2]} frameloop="always" camera={{ position: [0, 0, 1] }}>
         <SilkPlane ref={meshRef} uniforms={uniforms} />
       </Canvas>

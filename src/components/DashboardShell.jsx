@@ -8,7 +8,7 @@ export default function DashboardShell({ children }) {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
 
   return (
-    <div className="flex min-h-screen bg-dark overflow-hidden relative">
+    <div className="flex min-h-screen overflow-hidden relative">
       {/* Dynamic Silk Background */}
       <Silk 
         speed={5} 
