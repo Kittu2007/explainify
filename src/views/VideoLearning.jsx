@@ -414,7 +414,7 @@ export default function VideoLearning() {
                   <div>
                     <p className="text-xs font-black uppercase tracking-widest mb-1">Rate Limit Active</p>
                     <p className="text-[10px] font-bold opacity-80 leading-relaxed uppercase">
-                      Gemini API is currently busy. The system will automatically resume synthesis in 60 seconds once the quota resets.
+                      The AI Engine is currently busy. The system will automatically resume synthesis in 60 seconds once the quota resets.
                     </p>
                   </div>
                 </div>
