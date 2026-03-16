@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from "next/navigation";
-import { FileText, Download, BarChart2, PieChart, Activity, Loader2 } from 'lucide-react'
+import { FileText, Download, BarChart2, PieChart, Activity, Loader2, Sparkles, Wand2, ArrowRight } from 'lucide-react'
 import { useDocument } from '../context/DocumentContext'
 import { jsPDF } from "jspdf"
 import html2canvas from "html2canvas"
@@ -58,7 +58,7 @@ export default function ResultsDashboard() {
         scale: 2,
         useCORS: true,
         logging: false,
-        backgroundColor: '#f9fafb'
+        backgroundColor: '#050505'
       })
       
       const imgData = canvas.toDataURL('image/png')
@@ -80,10 +80,14 @@ export default function ResultsDashboard() {
   
   if (!document || loading || (!results && !error)) {
     return (
-      <div className="flex items-center justify-center p-20">
-        <div className="text-center">
-          <Loader2 className="mx-auto h-12 w-12 text-primary animate-spin" />
-          <p className="mt-4 text-xl text-gray-600">Generating your comprehensive analysis...</p>
+      <div className="flex flex-col items-center justify-center h-[70vh] space-y-6">
+        <div className="relative">
+          <div className="absolute inset-0 bg-primary/20 blur-[60px] rounded-full animate-pulse" />
+          <Loader2 className="relative h-16 w-16 text-primary animate-spin" strokeWidth={3} />
+        </div>
+        <div className="text-center space-y-2">
+          <h2 className="text-2xl font-black text-white tracking-tighter">Deconstructing Reality</h2>
+          <p className="text-gray-500 font-medium">Neural engine is processing your document structures...</p>
         </div>
       </div>
     )
@@ -91,18 +95,17 @@ export default function ResultsDashboard() {
 
   if (error) {
     return (
-      <div className="flex items-center justify-center p-20">
-        <div className="card max-w-md text-center">
-          <FileText className="mx-auto h-12 w-12 text-red-400 mb-4" />
-          <h2 className="text-xl font-bold mb-2">Analysis Failed</h2>
-          <p className="text-gray-600 mb-6">{error}</p>
-          <button onClick={generateSummary} className="btn-primary w-full">Retry</button>
+      <div className="flex items-center justify-center h-[70vh]">
+        <div className="bento-card max-w-md text-center border-red-500/20">
+          <Activity className="mx-auto h-12 w-12 text-red-500 mb-6" />
+          <h2 className="text-2xl font-black text-white mb-2 tracking-tighter">Analysis Interrupted</h2>
+          <p className="text-gray-500 mb-8 text-sm">{error}</p>
+          <button onClick={generateSummary} className="gooey-button w-full">Re-Initialize Process</button>
         </div>
       </div>
     )
   }
 
-  // Safe defaults for all data
   const summary = results?.summary || 'No summary available.'
   const keyTakeaways = results?.keyTakeaways || []
   const themes = results?.themes || []
@@ -110,129 +113,147 @@ export default function ResultsDashboard() {
   const metrics = results?.metrics || { processingTime: 'N/A', wordCount: 'N/A' }
 
   return (
-    <div className="py-6">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
-          <div>
-            <h1 className="text-3xl font-bold text-dark">Document Analysis Results</h1>
-            <p className="text-gray-600">Detailed insights from: <span className="font-semibold text-primary">{document?.name || 'Unknown Document'}</span></p>
+    <div className="space-y-8 animate-fade-in p-2">
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+        <div className="space-y-2">
+          <div className="flex items-center gap-2 px-3 py-1 bg-primary/10 rounded-full w-fit border border-primary/20">
+             <Sparkles size={12} className="text-primary" />
+             <span className="text-[10px] font-black uppercase tracking-widest text-primary">Intelligence Report</span>
           </div>
-          <div className="flex gap-4">
-            <button 
-              onClick={handleExportPDF}
-              disabled={exporting}
-              className="btn-outline flex items-center gap-2 disabled:opacity-50"
-            >
-              {exporting ? <Loader2 size={18} className="animate-spin" /> : <Download size={20} />}
-              {exporting ? 'Exporting...' : 'Export PDF'}
-            </button>
-            <button 
-              onClick={() => router.push('/dashboard/video')}
-              className="btn-primary"
-            >
-              Generate Video Learning
-            </button>
-          </div>
+          <h1 className="text-5xl font-black text-white tracking-tighter truncate max-w-2xl">
+            {document?.name || 'Knowledge Entity'}
+          </h1>
         </div>
-        
-        <div ref={reportRef} className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Main Summary Section */}
-          <div className="lg:col-span-2 space-y-8">
-            <div className="card">
-              <div className="flex items-center gap-2 mb-6">
+        <div className="flex gap-4">
+          <button 
+            onClick={handleExportPDF}
+            disabled={exporting}
+            className="px-6 py-3 rounded-full border border-white/10 text-gray-400 font-bold text-sm hover:bg-white/5 transition-all flex items-center gap-2"
+          >
+            {exporting ? <Loader2 size={16} className="animate-spin" /> : <Download size={18} />}
+            {exporting ? 'Exporting' : 'Download Brief'}
+          </button>
+          <button 
+            onClick={() => router.push('/dashboard/video')}
+            className="gooey-button flex items-center gap-2"
+          >
+            <span>Visualize Insights</span>
+            <ArrowRight size={18} />
+          </button>
+        </div>
+      </div>
+      
+      <div ref={reportRef} className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+        {/* Main Brief Area */}
+        <div className="lg:col-span-3 space-y-6">
+          <div className="bento-card min-h-[500px] border-white/5">
+            <div className="flex items-center gap-3 mb-8">
+              <div className="p-3 bg-primary/10 rounded-2xl">
                 <FileText className="text-primary" size={24} />
-                <h2 className="text-xl font-bold">Comprehensive Summary</h2>
               </div>
-              <div className="prose prose-indigo max-w-none text-gray-700 leading-relaxed">
-                <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                  {summary}
-                </ReactMarkdown>
-              </div>
+              <h2 className="text-2xl font-black text-white tracking-tight">Executive Summary</h2>
             </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="card">
-                <h3 className="font-bold mb-4 flex items-center gap-2">
-                  <Activity className="text-accent" size={20} />
-                  Key Takeaways
-                </h3>
-                <ul className="space-y-3">
-                  {keyTakeaways.map((item, i) => (
-                    <li key={i} className="flex items-start gap-2">
-                      <div className="w-1.5 h-1.5 rounded-full bg-accent mt-2 flex-shrink-0" />
-                      <div className="text-gray-600 text-sm prose prose-sm max-w-none">
-                        <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                          {item}
-                        </ReactMarkdown>
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-              <div className="card">
-                <h3 className="font-bold mb-4 flex items-center gap-2">
-                  <PieChart className="text-secondary" size={20} />
-                  Main Themes
-                </h3>
-                <div className="flex flex-wrap gap-2">
-                  {themes.map((theme, i) => (
-                    <span key={i} className="px-3 py-1 bg-secondary/10 text-secondary rounded-full text-xs font-semibold">
-                      {theme}
-                    </span>
-                  ))}
-                </div>
-              </div>
+            <div className="prose prose-invert max-w-none text-gray-400 leading-relaxed font-medium">
+              <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                {summary}
+              </ReactMarkdown>
             </div>
           </div>
           
-          {/* Sidebar Stats/Metrics */}
-          <div className="space-y-8">
-            <div className="card bg-dark text-white">
-              <h3 className="font-bold mb-6 flex items-center gap-2">
-                <BarChart2 className="text-primary" size={20} />
-                Document Metadata
-              </h3>
-              <div className="space-y-4">
-                <div className="flex justify-between items-center py-2 border-b border-gray-700">
-                  <span className="text-gray-400 text-sm">File Size</span>
-                  <span className="font-medium">{(document?.size ? (document.size / 1024 / 1024).toFixed(2) : '0.00')} MB</span>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="bento-card border-white/5">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="p-2.5 bg-accent/20 rounded-xl">
+                  <Activity className="text-accent" size={20} />
                 </div>
-                <div className="flex justify-between items-center py-2 border-b border-gray-700">
-                  <span className="text-gray-400 text-sm">Upload Date</span>
-                  <span className="font-medium text-xs">{document?.uploadedAt || 'N/A'}</span>
+                <h3 className="font-black text-lg text-white tracking-tight">Key Inferences</h3>
+              </div>
+              <ul className="space-y-4">
+                {keyTakeaways.map((item, i) => (
+                  <li key={i} className="flex gap-4 p-4 rounded-2xl bg-white/[0.03] border border-white/5 group hover:bg-white/[0.05] transition-all">
+                    <span className="text-accent font-black text-xs opacity-50">{String(i+1).padStart(2, '0')}</span>
+                    <div className="text-gray-400 text-sm font-bold leading-snug">
+                      <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                        {item}
+                      </ReactMarkdown>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <div className="bento-card border-white/5 flex flex-col">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="p-2.5 bg-secondary/20 rounded-xl">
+                  <PieChart className="text-secondary" size={20} />
                 </div>
-                <div className="flex justify-between items-center py-2 border-b border-gray-700">
-                  <span className="text-gray-400 text-sm">Processing Time</span>
-                  <span className="font-medium">{metrics.processingTime}</span>
-                </div>
-                <div className="flex justify-between items-center py-2">
-                  <span className="text-gray-400 text-sm">Word Count</span>
-                  <span className="font-medium">{metrics.wordCount}</span>
-                </div>
+                <h3 className="font-black text-lg text-white tracking-tight">Core Ontology</h3>
+              </div>
+              <div className="flex flex-wrap gap-3">
+                {themes.map((theme, i) => (
+                  <span key={i} className="px-5 py-2.5 bg-secondary/5 text-secondary border border-secondary/20 rounded-2xl text-[11px] font-black uppercase tracking-widest hover:bg-secondary/10 transition-colors cursor-default">
+                    {theme}
+                  </span>
+                ))}
+              </div>
+              <div className="mt-auto pt-8 border-t border-white/5">
+                 <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-600 mb-4">Content Sentiment</h4>
+                 <div className="space-y-3">
+                    <div className="flex justify-between items-end">
+                       <span className="text-xs font-black text-white">Analytical Index</span>
+                       <span className="text-xl font-black text-primary">{sentimentScore}%</span>
+                    </div>
+                    <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
+                       <div 
+                         className="h-full bg-gradient-to-r from-primary to-secondary transition-all duration-1000 ease-out"
+                         style={{ width: `${sentimentScore}%` }}
+                       />
+                    </div>
+                    <p className="text-[10px] text-gray-500 font-medium italic">
+                       Highly {sentimentScore > 70 ? 'structured and formal' : 'dynamic and contextual'} dataset.
+                    </p>
+                 </div>
               </div>
             </div>
-            
-            <div className="card">
-              <h3 className="font-bold mb-4">Content Sentiment</h3>
-              <div className="relative pt-1">
-                <div className="flex mb-2 items-center justify-between">
-                  <div>
-                    <span className="text-xs font-semibold inline-block py-1 px-2 uppercase rounded-full text-primary bg-primary/10">
-                      Analytical
-                    </span>
-                  </div>
-                  <div className="text-right">
-                    <span className="text-xs font-semibold inline-block text-primary">
-                      {sentimentScore}%
-                    </span>
-                  </div>
-                </div>
-                <div className="overflow-hidden h-2 mb-4 text-xs flex rounded bg-gray-200">
-                  <div style={{ width: `${sentimentScore}%` }} className="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-primary"></div>
-                </div>
+          </div>
+        </div>
+        
+        {/* Metadata Sidebar */}
+        <div className="space-y-6">
+          <div className="bento-card border-white/5 bg-gradient-to-b from-primary/10 to-transparent">
+            <div className="flex items-center gap-3 mb-8">
+              <div className="p-2.5 bg-white/5 rounded-xl">
+                 <BarChart2 className="text-primary" size={20} />
               </div>
-              <p className="text-xs text-gray-500 italic">The AI detected a highly {sentimentScore > 70 ? 'informative and formal' : 'conversational'} tone in this document.</p>
+              <h3 className="font-black text-lg text-white tracking-tight">Artifact Data</h3>
             </div>
+            <div className="space-y-6">
+              {[
+                { label: 'File Size', value: `${(document?.size ? (document.size / 1024 / 1024).toFixed(2) : '0.00')} MB` },
+                { label: 'Entity Type', value: document?.type?.split('/')[1]?.toUpperCase() || 'DATA' },
+                { label: 'Latency', value: metrics.processingTime || '0.8s' },
+                { label: 'Node Count', value: metrics.wordCount || '1,240' }
+              ].map((stat, i) => (
+                <div key={i} className="flex flex-col border-b border-white/5 pb-4 last:border-0 last:pb-0">
+                  <span className="text-[10px] font-black uppercase tracking-widest text-gray-600 mb-1">{stat.label}</span>
+                  <span className="text-white font-black">{stat.value}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="bento-card border-white/5 bg-[#0a0a0a] flex flex-col items-center justify-center text-center p-8">
+             <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-6">
+                <Wand2 className="text-primary" size={28} />
+             </div>
+             <h4 className="text-sm font-black text-white mb-2">Need a Visualization?</h4>
+             <p className="text-[11px] text-gray-500 mb-6 leading-relaxed">Let AI transform this analysis into an interactive graphical scene.</p>
+             <button 
+               onClick={() => router.push('/dashboard/video')}
+               className="w-full py-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl text-[10px] font-black uppercase tracking-widest text-white transition-all"
+             >
+               Start Learning
+             </button>
           </div>
         </div>
       </div>

@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from "next/navigation";
-import { Play, Pause, RotateCcw, Video, Volume2, Settings, Share2, Loader2, Sparkles, BarChart2, Activity, ChevronRight, ChevronLeft, AlertCircle, Layers } from 'lucide-react'
+import { Play, Pause, RotateCcw, Video, Volume2, Settings, Share2, Loader2, Sparkles, BarChart2, Activity, ChevronRight, ChevronLeft, AlertCircle, Layers, Zap } from 'lucide-react'
 import { useDocument } from '../context/DocumentContext'
 import VisualScene from '../components/VisualScene'
 
@@ -43,7 +43,6 @@ export default function VideoLearning() {
       }
       
       const data = await response.json()
-      // API returns { script: { scenes: [...] } }
       const scriptScenes = data.script?.scenes || data.scenes || []
       setScenes(scriptScenes)
     } catch (err) {
@@ -54,7 +53,6 @@ export default function VideoLearning() {
     }
   }
 
-  // Audio Sync & Scene Auto-play
   useEffect(() => {
     if (isPlaying && scenes[currentSceneIndex]?.audioUrl) {
       if (audioRef.current) {
@@ -66,19 +64,17 @@ export default function VideoLearning() {
     }
   }, [currentSceneIndex, isPlaying, scenes]);
 
-  // Linear progression simulation
   useEffect(() => {
     let interval;
     if (isPlaying && progress < 100) {
       interval = setInterval(() => {
         setProgress(prev => {
-          const next = prev + 0.2; // Slower, precision progress
+          const next = prev + 0.2; 
           if (next >= 100) {
             setIsPlaying(false);
             return 100;
           }
           
-          // Update scene index based on progress
           if (scenes.length > 0) {
             const sceneIndex = Math.floor((next / 100) * scenes.length);
             if (sceneIndex !== currentSceneIndex && sceneIndex < scenes.length) {
@@ -109,13 +105,17 @@ export default function VideoLearning() {
 
   if (!document || loading) {
     return (
-      <div className="flex items-center justify-center p-20">
-        <div className="text-center">
-          <div className="relative inline-block">
-             <div className="absolute inset-0 bg-primary/20 blur-xl animate-pulse rounded-full" />
-             <Loader2 className="relative mx-auto h-16 w-16 text-primary animate-spin" />
+      <div className="flex flex-col items-center justify-center h-[70vh] space-y-8">
+        <div className="relative">
+          <div className="absolute inset-0 bg-primary/20 blur-[80px] rounded-full animate-pulse" />
+          <div className="relative w-24 h-24 border-2 border-primary/20 rounded-full flex items-center justify-center">
+             <div className="w-16 h-16 border-4 border-primary/30 border-t-primary rounded-full animate-spin" />
+             <Video className="absolute text-primary" size={24} />
           </div>
-          <p className="mt-6 text-xl font-bold text-dark">Building Your Visual Learning Plan...</p>
+        </div>
+        <div className="text-center space-y-3">
+          <h2 className="text-3xl font-black text-white tracking-tighter">Conceptualizing Space</h2>
+          <p className="text-gray-500 font-medium">Synthesizing visual representations from document semantics...</p>
         </div>
       </div>
     )
@@ -123,12 +123,12 @@ export default function VideoLearning() {
 
   if (error) {
     return (
-      <div className="flex items-center justify-center p-20">
-        <div className="card max-w-md text-center border-t-4 border-red-500">
-          <AlertCircle className="mx-auto h-12 w-12 text-red-500 mb-4" />
-          <h2 className="text-xl font-bold mb-2">Generation Failed</h2>
-          <p className="text-gray-600 mb-6">{error}</p>
-          <button onClick={generateVideoContent} className="btn-primary w-full shadow-lg shadow-primary/20">Retry Generation</button>
+      <div className="flex items-center justify-center h-[70vh]">
+        <div className="bento-card max-w-md text-center border-red-500/20">
+          <AlertCircle className="mx-auto h-12 w-12 text-red-500 mb-6" />
+          <h2 className="text-2xl font-black text-white mb-2 tracking-tighter">Render Failed</h2>
+          <p className="text-gray-500 mb-8 text-sm">{error}</p>
+          <button onClick={generateVideoContent} className="gooey-button w-full">Re-Initialize Session</button>
         </div>
       </div>
     )
@@ -137,197 +137,180 @@ export default function VideoLearning() {
   const currentScene = scenes[currentSceneIndex] || { narration: "Initializing visual learning...", scene_type: 'icon_infographic' };
 
   return (
-    <div className="py-6">
-      <audio ref={audioRef} onEnded={() => {
-        // Optional: advance scene slightly faster if audio ends? 
-        // For now, let the progress interval handle it.
-      }} />
+    <div className="space-y-8 animate-fade-in p-2">
+      <audio ref={audioRef} />
       
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="mb-10 flex justify-between items-end">
-          <div>
-            <div className="flex items-center gap-3 mb-2">
-               <div className="bg-primary/10 p-2 rounded-lg">
-                  <Sparkles className="text-primary" size={20} />
-               </div>
-               <span className="text-xs font-black uppercase tracking-widest text-primary/60">AI Concept Visualizer</span>
-            </div>
-            <h1 className="text-4xl font-black text-dark tracking-tight">
-              Visual Learning Engine
-            </h1>
-            <p className="text-gray-500 text-sm mt-2">
-              Deep analysis of: <span className="font-bold text-dark">{document?.name || 'Unknown Document'}</span>
-            </p>
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+        <div className="space-y-2">
+          <div className="flex items-center gap-2 px-3 py-1 bg-primary/10 rounded-full w-fit border border-primary/20">
+             <Sparkles size={12} className="text-primary" />
+             <span className="text-[10px] font-black uppercase tracking-widest text-primary">Visual Synthesis Mode</span>
           </div>
-          
-          <div className="flex gap-4">
-             <button 
-                onClick={() => {
-                  const url = window.location.href;
-                  navigator.clipboard.writeText(url);
-                  alert('Lesson link copied to clipboard!');
-                }}
-                className="btn-outline border-primary/20 bg-white shadow-sm flex items-center gap-2 px-6 py-2.5"
+          <h1 className="text-5xl font-black text-white tracking-tighter truncate max-w-2xl">
+            {document?.name || 'Simulation Unit'}
+          </h1>
+        </div>
+        <div className="flex gap-4">
+          <button 
+            onClick={() => {
+              const url = window.location.href;
+              navigator.clipboard.writeText(url);
+            }}
+            className="px-6 py-3 rounded-full border border-white/10 text-gray-400 font-bold text-sm hover:bg-white/5 transition-all flex items-center gap-2"
+          >
+            <Share2 size={18} />
+            <span>Secure Link</span>
+          </button>
+          <button 
+            onClick={() => generateVideoContent()}
+            className="gooey-button flex items-center gap-2"
+          >
+            <RotateCcw size={18} />
+            <span>Re-Synthesize</span>
+          </button>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        {/* Main Stage Area */}
+        <div className="lg:col-span-8 space-y-6">
+          <div className="relative aspect-video rounded-[3rem] overflow-hidden group shadow-2xl border border-white/5 bg-[#050505]">
+             {/* Visual Scene Content */}
+             <div className="absolute inset-0 z-0">
+                <VisualScene scene={currentScene} />
+             </div>
+
+             {/* Subtitles Overlay */}
+             <div className="absolute bottom-10 left-10 right-10 z-20 pointer-events-none">
+                <div className="px-8 py-5 rounded-[2rem] bg-black/4 backdrop-blur-3xl border border-white/5 text-white text-lg font-bold text-center animate-fade-in shadow-2xl">
+                   <div className="text-primary/50 text-[10px] uppercase font-black tracking-widest mb-1">Narration Process: {currentSceneIndex + 1}</div>
+                   <p className="leading-tight opacity-90 drop-shadow-md">"{currentScene.narration || ''}"</p>
+                </div>
+             </div>
+
+             {/* Play/Pause Overlay */}
+             <div 
+               className="absolute inset-0 z-30 opacity-0 group-hover:opacity-100 transition-all duration-700 flex items-center justify-center bg-black/20 backdrop-blur-[1px] cursor-pointer"
+               onClick={() => setIsPlaying(!isPlaying)}
              >
-                <Share2 size={18} />
-                <span>Share Lesson</span>
-             </button>
-             <button 
-                onClick={() => generateVideoContent()}
-                className="btn-primary flex items-center gap-2 px-6 py-2.5 shadow-xl shadow-primary/20"
-             >
-                <RotateCcw size={18} />
-                <span>Regenerate</span>
-             </button>
+               <div className="w-24 h-24 bg-white/5 hover:bg-white/10 rounded-full backdrop-blur-3xl flex items-center justify-center border border-white/10 shadow-2xl transform hover:scale-110 active:scale-95 transition-all">
+                 {isPlaying ? <Pause className="text-white" size={40} fill="white" /> : <Play className="text-white ml-2" size={40} fill="white" />}
+               </div>
+             </div>
+          </div>
+
+          {/* Controller Hub */}
+          <div className="bento-card p-10 border-white/5 space-y-8">
+             <div className="space-y-4">
+                <div className="flex justify-between items-center px-2">
+                   <div className="flex items-center gap-3">
+                      <div className="px-3 py-1 bg-primary/10 rounded-full text-[10px] font-black text-primary uppercase tracking-widest">Live Process</div>
+                      <span className="text-[10px] font-black text-gray-600 uppercase tracking-widest">
+                         {((progress / 100) * (scenes.length * 15)).toFixed(1)}s / {(scenes.length * 15)}s
+                      </span>
+                   </div>
+                   <span className="text-[10px] font-black text-primary uppercase tracking-[0.2em]">{progress.toFixed(0)}%</span>
+                </div>
+                
+                <div className="relative h-2 flex items-center">
+                   <input 
+                    type="range"
+                    min="0"
+                    max="100"
+                    step="0.1"
+                    value={progress}
+                    onChange={handleSeek}
+                    className="w-full h-full bg-white/5 rounded-full appearance-none cursor-pointer accent-primary z-10"
+                  />
+                  <div 
+                    className="absolute inset-y-0 left-0 bg-gradient-to-r from-primary via-secondary to-primary rounded-full pointer-events-none shadow-[0_0_20px_rgba(230,41,255,0.4)]"
+                    style={{ width: `${progress}%` }}
+                  />
+                </div>
+             </div>
+
+             <div className="flex items-center justify-between">
+                <div className="flex items-center gap-8">
+                   <button onClick={() => setCurrentSceneIndex(Math.max(0, currentSceneIndex - 1))} className="p-3 text-gray-500 hover:text-white transition-colors">
+                      <ChevronLeft size={28} strokeWidth={3} />
+                   </button>
+                   <button onClick={() => setIsPlaying(!isPlaying)} className="w-16 h-16 bg-white text-black rounded-full flex items-center justify-center hover:scale-110 active:scale-95 transition-all shadow-[0_0_30px_rgba(255,255,255,0.2)]">
+                      {isPlaying ? <Pause size={28} fill="black" /> : <Play size={28} fill="black" className="ml-1" />}
+                   </button>
+                   <button onClick={() => setCurrentSceneIndex(Math.min(scenes.length - 1, currentSceneIndex + 1))} className="p-3 text-gray-500 hover:text-white transition-colors">
+                      <ChevronRight size={28} strokeWidth={3} />
+                   </button>
+                </div>
+
+                <div className="flex items-center gap-6">
+                   <div className="px-6 py-3 glass rounded-2xl border-white/10 flex items-center gap-3">
+                      <div className="w-2 h-2 bg-primary rounded-full animate-pulse" />
+                      <span className="text-[10px] font-black text-white uppercase tracking-widest">{currentScene.scene_type} engine active</span>
+                   </div>
+                   <button onClick={handleRestart} className="p-4 bg-white/5 hover:bg-white/10 rounded-2xl border border-white/10 text-gray-400 hover:text-white transition-all">
+                      <RotateCcw size={20} />
+                   </button>
+                </div>
+             </div>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
-          {/* Main Stage */}
-          <div className="lg:col-span-8 flex flex-col gap-6">
-            <div 
-              className="relative aspect-video bg-[#0f172a] rounded-[2.5rem] overflow-hidden shadow-[0_32px_64px_-16px_rgba(0,0,0,0.3)] group border-[12px] border-white ring-1 ring-gray-200"
-            >
-              {/* Visual Scene Content */}
-              <div className="absolute inset-0">
-                 <VisualScene scene={currentScene} />
-              </div>
-
-              {/* Narrator Subtitles Overlay */}
-              <div className="absolute bottom-12 left-12 right-12 z-20 pointer-events-none">
-                 <div className="bg-dark/60 backdrop-blur-2xl border border-white/10 p-6 rounded-[2rem] text-white text-xl font-medium text-center shadow-2xl animate-fade-in ring-1 ring-white/20">
-                    <span className="opacity-80 leading-relaxed italic">
-                      "{currentScene.narration || ''}"
-                    </span>
+        {/* Sidebar Scene Navigator */}
+        <div className="lg:col-span-4 space-y-6">
+           <div className="bento-card p-8 border-white/5 h-[650px] flex flex-col">
+              <div className="flex items-center justify-between mb-8">
+                 <div className="flex items-center gap-3">
+                    <div className="p-2.5 bg-white/5 rounded-xl border border-white/10">
+                       <Layers className="text-primary" size={20} />
+                    </div>
+                    <h3 className="font-black text-xl text-white tracking-tight">Timeline</h3>
                  </div>
+                 <span className="text-[10px] font-black text-gray-600 uppercase tracking-widest">{scenes.length} Nodes</span>
               </div>
 
-              {/* Interaction Layer */}
-              <div 
-                className="absolute inset-0 z-30 opacity-0 group-hover:opacity-100 transition-all duration-500 flex items-center justify-center bg-dark/20 backdrop-blur-[2px]"
-                onClick={() => setIsPlaying(!isPlaying)}
-              >
-                <button 
-                  className="p-10 bg-white/10 hover:bg-white/20 rounded-full backdrop-blur-3xl transform hover:scale-110 active:scale-95 transition-all border border-white/30 shadow-2xl"
-                >
-                  {isPlaying ? <Pause className="text-white" size={64} fill="white" /> : <Play className="text-white ml-2" size={64} fill="white" />}
-                </button>
+              <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar space-y-3">
+                {scenes.map((scene, idx) => (
+                  <button 
+                    key={idx}
+                    onClick={() => {
+                       setCurrentSceneIndex(idx);
+                       setProgress((idx / scenes.length) * 100);
+                       setIsPlaying(true);
+                    }}
+                    className={`w-full p-5 rounded-3xl border-2 text-left transition-all relative group/item overflow-hidden ${
+                      currentSceneIndex === idx 
+                        ? 'border-primary bg-primary/5 shadow-[inset_0_0_20px_rgba(230,41,255,0.1)]' 
+                        : 'border-transparent bg-white/[0.02] hover:bg-white/[0.05] hover:border-white/10'
+                    }`}
+                  >
+                    <div className="flex justify-between items-start mb-2 relative z-10">
+                       <span className={`text-[9px] font-black tracking-widest uppercase px-2 py-0.5 rounded-md ${currentSceneIndex === idx ? 'bg-primary text-white' : 'bg-white/5 text-gray-600'}`}>0{idx + 1}</span>
+                       {currentSceneIndex === idx && <Zap size={12} className="text-primary fill-primary animate-pulse" />}
+                    </div>
+                    <h4 className={`text-sm font-black mb-1 tracking-tight ${currentSceneIndex === idx ? 'text-white' : 'text-gray-400'}`}>{scene.title || `Segment 0${idx + 1}`}</h4>
+                    <p className={`text-[10px] font-medium leading-relaxed line-clamp-2 ${currentSceneIndex === idx ? 'text-primary/70' : 'text-gray-600'}`}>{scene.narration}</p>
+                    
+                    {currentSceneIndex === idx && (
+                       <div className="absolute left-0 top-0 bottom-0 w-1 bg-primary" />
+                    )}
+                  </button>
+                ))}
               </div>
-            </div>
+           </div>
 
-            {/* Premium Controls */}
-            <div className="bg-white p-8 rounded-[2rem] shadow-sm border border-gray-100 flex flex-col gap-6">
-               {/* Scrubber */}
-               <div className="flex flex-col gap-2">
-                  <div className="flex justify-between text-[10px] font-black uppercase text-gray-400 tracking-widest px-1">
-                     <span>{(progress * (scenes.length * 15) / 100).toFixed(0)}s</span>
-                     <span>{(scenes.length * 15)}s</span>
-                  </div>
-                  <div className="relative group h-6 flex items-center">
-                    <input 
-                      type="range"
-                      min="0"
-                      max="100"
-                      step="0.1"
-                      value={progress}
-                      onChange={handleSeek}
-                      className="w-full h-1.5 bg-gray-100 rounded-full appearance-none cursor-pointer accent-primary group-hover:h-2 transition-all"
-                    />
-                    <div 
-                      className="absolute top-1/2 left-0 -translate-y-1/2 h-1.5 bg-gradient-to-r from-primary to-secondary rounded-full pointer-events-none transition-all group-hover:h-2"
-                      style={{ width: `${progress}%` }}
-                    />
-                  </div>
-               </div>
-
-               <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-6">
-                     <button onClick={() => setCurrentSceneIndex(Math.max(0, currentSceneIndex - 1))} className="p-2 hover:bg-gray-50 rounded-xl transition-colors">
-                        <ChevronLeft size={24} className="text-gray-400" />
-                     </button>
-                     <button onClick={() => setIsPlaying(!isPlaying)} className="w-14 h-14 bg-primary rounded-full flex items-center justify-center shadow-lg shadow-primary/30 hover:shadow-primary/50 transition-all hover:-translate-y-1">
-                        {isPlaying ? <Pause className="text-white" size={24} fill="white" /> : <Play className="text-white ml-1" size={24} fill="white" />}
-                     </button>
-                     <button onClick={() => setCurrentSceneIndex(Math.min(scenes.length - 1, currentSceneIndex + 1))} className="p-2 hover:bg-gray-50 rounded-xl transition-colors">
-                        <ChevronRight size={24} className="text-gray-400" />
-                     </button>
-                  </div>
-
-                  <div className="flex gap-4">
-                     <div className="flex items-center gap-2 px-4 py-2 bg-gray-50 rounded-xl border border-gray-100">
-                        <Activity size={16} className="text-secondary" />
-                        <span className="text-xs font-bold text-gray-600 uppercase tracking-tighter">{currentScene.scene_type}</span>
-                     </div>
-                     <button className="p-3 hover:bg-gray-50 rounded-xl border border-gray-200">
-                        <Settings size={20} className="text-gray-400" />
-                     </button>
-                  </div>
-               </div>
-            </div>
-          </div>
-
-          {/* Sidebar Navigation */}
-          <div className="lg:col-span-4 flex flex-col gap-6">
-            <div className="bg-white rounded-[2rem] p-8 shadow-sm border border-gray-100 flex flex-col h-[600px]">
-               <div className="flex items-center justify-between mb-8">
-                  <h3 className="text-xl font-bold flex items-center gap-3">
-                    <Layers size={20} className="text-primary" />
-                    Scene Map
-                  </h3>
-                  <span className="px-3 py-1 bg-primary/5 text-primary text-[10px] font-black rounded-full border border-primary/10 tracking-widest">{scenes.length} SCENES</span>
-               </div>
-
-               <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar flex flex-col gap-3">
-                 {scenes.map((scene, idx) => (
-                   <button 
-                     key={idx}
-                     onClick={() => {
-                        setCurrentSceneIndex(idx);
-                        setProgress((idx / scenes.length) * 100);
-                        setIsPlaying(true);
-                     }}
-                     className={`group p-5 rounded-2xl border-2 text-left transition-all relative overflow-hidden ${
-                       currentSceneIndex === idx 
-                         ? 'border-primary bg-primary/5 shadow-inner' 
-                         : 'border-transparent bg-gray-50/50 hover:bg-white hover:border-gray-200 hover:shadow-xl'
-                     }`}
-                   >
-                     {currentSceneIndex === idx && (
-                        <div className="absolute top-0 bottom-0 left-0 w-1.5 bg-primary rounded-full animate-grow-height" />
-                     )}
-                     <div className="flex justify-between items-start mb-2">
-                        <span className={`text-[10px] font-black tracking-widest uppercase ${currentSceneIndex === idx ? 'text-primary' : 'text-gray-400'}`}>SCENE {idx + 1}</span>
-                        <div className={`p-1 rounded-md ${currentSceneIndex === idx ? 'bg-primary/20' : 'bg-gray-200'}`}>
-                           <Activity size={10} className={currentSceneIndex === idx ? 'text-primary' : 'text-gray-400'} />
-                        </div>
-                     </div>
-                     <h4 className={`text-sm font-bold mb-1 leading-tight ${currentSceneIndex === idx ? 'text-dark' : 'text-gray-600'}`}>{scene.title || `Concept ${idx + 1}`}</h4>
-                     <p className={`text-[10px] leading-relaxed line-clamp-2 ${currentSceneIndex === idx ? 'text-primary/70' : 'text-gray-400 font-medium'}`}>{scene.narration}</p>
-                     
-                     <div className={`mt-3 flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity ${currentSceneIndex === idx ? 'opacity-100' : ''}`}>
-                        <div className="w-full h-1 bg-gray-200 rounded-full overflow-hidden">
-                           <div className={`h-full bg-primary transition-all duration-300 ${currentSceneIndex === idx ? 'w-full' : 'w-0'}`} />
-                        </div>
-                     </div>
-                   </button>
-                 ))}
-               </div>
-            </div>
-
-            {/* Motivation Card */}
-            <div className="bg-dark rounded-[2rem] p-8 text-white relative overflow-hidden shadow-2xl group">
-               <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:scale-125 transition-transform duration-700">
-                  <Sparkles size={80} />
-               </div>
-               <h4 className="text-xl font-bold mb-4 relative z-10">Graphical Learning</h4>
-               <p className="text-sm text-gray-400 leading-relaxed mb-6 relative z-10 opacity-80">
-                  Visual concepts are 3x more likely to be retained than text slides. Focus on the diagrams and narration.
-               </p>
-               <button className="w-full py-4 bg-white/10 hover:bg-white/20 border border-white/20 rounded-2xl text-xs font-black uppercase tracking-widest transition-all backdrop-blur-md">
-                  Download Script PDF
-               </button>
-            </div>
-          </div>
+           <div className="bento-card p-10 bg-gradient-to-br from-primary/20 via-transparent to-transparent border-primary/20 flex flex-col items-center justify-center text-center">
+              <div className="relative mb-8">
+                 <div className="absolute inset-0 bg-primary blur-3xl opacity-20" />
+                 <Sparkles className="relative text-primary" size={48} />
+              </div>
+              <h4 className="text-xl font-black text-white mb-2">Immersive Learning</h4>
+              <p className="text-xs text-gray-500 font-medium leading-relaxed mb-8">
+                 AI-driven visuals significantly increase comprehension and recall of complex document structures.
+              </p>
+              <button className="w-full py-4 glass rounded-3xl text-[10px] font-black uppercase tracking-widest text-white border-white/10 hover:bg-white/5 transition-all">
+                 Generate Briefing PDF
+              </button>
+           </div>
         </div>
       </div>
     </div>

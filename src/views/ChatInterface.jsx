@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Plus, Loader2 } from 'lucide-react'
+import { ArrowLeft, Plus, Loader2, Cpu, Sparkles, Send, Zap } from 'lucide-react'
 import { useDocument } from '../context/DocumentContext'
 import ChatBubble from '../components/ChatBubble'
 import MessageInput from '../components/MessageInput'
@@ -10,28 +10,24 @@ export default function ChatInterface() {
   const { document, documentId } = useDocument()
   const router = useRouter()
   const [messages, setMessages] = useState([
-    { id: 1, text: "Hello! I'm your AI assistant. Ask me anything about your uploaded document.", isUser: false }
+    { id: 1, text: "System Online. Neural pathways established. How may I assist with your document analysis today?", isUser: false }
   ])
   const [isLoading, setIsLoading] = useState(false)
   const messagesEndRef = useRef(null)
   
-  // Redirect to upload if no document
   useEffect(() => {
     if (!document) {
       router.push('/dashboard/upload')
     }
   }, [document, router])
   
-  // Auto-scroll to latest message
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages])
   
-  // Handle send message
   const handleSendMessage = async (userInput) => {
     if (!userInput.trim() || !documentId) return
 
-    // Add user message
     const userMessage = {
       id: Date.now(),
       text: userInput,
@@ -40,7 +36,6 @@ export default function ChatInterface() {
     setMessages(prev => [...prev, userMessage])
     setIsLoading(true)
 
-    // Placeholder for AI response
     const aiMessageId = Date.now() + 1;
     const initialAiMessage = {
       id: aiMessageId,
@@ -65,7 +60,6 @@ export default function ChatInterface() {
         throw new Error(errData.error || `Server error (${response.status})`)
       }
 
-      // Handle String vs Stream (some errors might return JSON)
       const contentType = response.headers.get('content-type')
       if (contentType && contentType.includes('application/json')) {
         const data = await response.json()
@@ -73,7 +67,6 @@ export default function ChatInterface() {
         return
       }
 
-      // Read as Stream
       const reader = response.body.getReader()
       const textDecoder = new TextDecoder()
       
@@ -85,8 +78,6 @@ export default function ChatInterface() {
         if (done) break
 
         const chunk = textDecoder.decode(value, { stream: true })
-        
-        // Check for metadata
         if (chunk.startsWith('__METADATA__:')) {
           const parts = chunk.split('\n')
           const metaStr = parts[0].replace('__METADATA__:', '')
@@ -95,7 +86,6 @@ export default function ChatInterface() {
             sources = meta.sources || []
           } catch (e) { console.error("Failed to parse metadata", e) }
           
-          // Append the rest of the chunk if there's more after the newline
           if (parts.length > 1) {
             const extra = parts.slice(1).join('\n')
             fullText += extra
@@ -104,14 +94,13 @@ export default function ChatInterface() {
           fullText += chunk
         }
 
-        // Update the message in state
         setMessages(prev => prev.map(m => 
           m.id === aiMessageId ? { ...m, text: fullText, sources: sources } : m
         ))
       }
     } catch (error) {
       console.error('Failed to send message:', error)
-      const errorText = `Sorry, I couldn't process your request: ${error.message || 'Unknown error'}. Please try again.`
+      const errorText = `Encryption Error: Unable to verify neural bridge. Details: ${error.message || 'Unknown'}.`
       setMessages(prev => prev.map(m => 
         m.id === aiMessageId ? { ...m, text: errorText } : m
       ))
@@ -120,36 +109,42 @@ export default function ChatInterface() {
     }
   }
 
-  if (!document) {
-    return null
-  }
+  if (!document) return null
   
   return (
-    <div className="flex flex-col h-[calc(100vh-12rem)] bg-white rounded-2xl shadow-xl shadow-gray-200/50 border border-gray-100 overflow-hidden">
-      {/* Header */}
-      <div className="border-b border-gray-100 bg-white/50 backdrop-blur-md z-10 flex-shrink-0">
-        <div className="px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-lg font-black text-dark tracking-tight">AI Knowledge Assistant</h1>
-              <p className="text-xs text-gray-500">
-                Context: <span className="font-bold text-primary">{document.name}</span>
-              </p>
+    <div className="flex flex-col h-[calc(100vh-12rem)] relative animate-fade-in group">
+      {/* Background Subtle Glow */}
+      <div className="absolute inset-x-20 top-0 bottom-0 bg-primary/5 blur-[100px] rounded-full opacity-50 pointer-events-none" />
+
+      {/* Floating Header */}
+      <div className="glass mx-auto px-8 py-4 rounded-[2rem] border border-white/10 w-full mb-6 flex items-center justify-between shadow-2xl z-20">
+        <div className="flex items-center gap-4">
+          <div className="p-2.5 bg-primary/10 rounded-2xl border border-primary/20">
+            <Cpu className="text-primary" size={20} />
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+               <h1 className="text-lg font-black text-white leading-none">Neural Link</h1>
+               <div className="px-1.5 py-0.5 bg-green-500/10 rounded-md border border-green-500/20 text-[8px] font-black text-green-500 uppercase tracking-widest leading-none">Encrypted</div>
             </div>
-            <button
-              onClick={() => router.push('/dashboard/upload')}
-              className="flex items-center gap-2 px-4 py-2 bg-primary/5 text-primary hover:bg-primary/10 rounded-xl transition-all border border-primary/10"
-            >
-              <Plus size={16} />
-              <span className="text-xs font-black uppercase tracking-wider">New</span>
-            </button>
+            <p className="text-[10px] text-gray-500 font-bold mt-1 uppercase tracking-widest">
+              Context: <span className="text-primary/70">{document.name}</span>
+            </p>
           </div>
         </div>
+        
+        <button
+          onClick={() => router.push('/dashboard/upload')}
+          className="flex items-center gap-2 px-6 py-2.5 bg-white/5 hover:bg-white/10 text-white rounded-2xl transition-all border border-white/5 text-xs font-black uppercase tracking-widest active:scale-95"
+        >
+          <Plus size={16} className="text-primary" />
+          <span>New Thread</span>
+        </button>
       </div>
 
-      {/* Messages Area */}
-      <div className="flex-1 overflow-y-auto bg-gray-50 scroll-smooth">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      {/* Messages Container */}
+      <div className="flex-1 overflow-y-auto px-4 custom-scrollbar relative z-10">
+        <div className="max-w-4xl mx-auto space-y-4 pb-24">
           {messages.map((msg) => (
             <ChatBubble
               key={msg.id}
@@ -159,12 +154,13 @@ export default function ChatInterface() {
           ))}
 
           {isLoading && (
-            <div className="flex justify-start mb-4">
-              <div className="bg-white border border-gray-200 rounded-lg rounded-bl-none px-4 py-3 shadow-sm">
-                <div className="flex space-x-1.5">
-                  <div className="w-1.5 h-1.5 bg-primary/40 rounded-full animate-bounce"></div>
-                  <div className="w-1.5 h-1.5 bg-primary/40 rounded-full animate-bounce [animation-delay:-0.3s]"></div>
-                  <div className="w-1.5 h-1.5 bg-primary/40 rounded-full animate-bounce [animation-delay:-0.15s]"></div>
+            <div className="flex justify-start animate-scale-in">
+              <div className="glass px-6 py-4 rounded-3xl rounded-bl-none border-primary/20 shadow-lg">
+                <div className="flex items-center gap-3">
+                   <div className="relative">
+                      <div className="w-5 h-5 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+                   </div>
+                   <span className="text-[10px] font-black uppercase tracking-widest text-primary animate-pulse">Consulting Neural Core...</span>
                 </div>
               </div>
             </div>
@@ -174,10 +170,11 @@ export default function ChatInterface() {
         </div>
       </div>
 
-      {/* Input Area */}
-      <div className="border-t border-gray-200 bg-white p-4 flex-shrink-0">
-        <div className="max-w-4xl mx-auto">
-          <MessageInput onSendMessage={handleSendMessage} isLoading={isLoading} />
+      {/* Input Overlay */}
+      <div className="absolute bottom-0 inset-x-0 p-6 pb-2 z-30">
+        <div className="max-w-4xl mx-auto relative">
+           <div className="absolute inset-0 bg-darker/60 blur-2xl -z-10 rounded-full" />
+           <MessageInput onSendMessage={handleSendMessage} isLoading={isLoading} />
         </div>
       </div>
     </div>
