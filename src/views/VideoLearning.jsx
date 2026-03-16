@@ -25,66 +25,77 @@ export default function VideoLearning() {
     }
   }, [document, documentId, router])
 
+  const isSynthesizingRef = useRef(false);
+
   // EFFECT: Lazy-load video clips for each scene
   useEffect(() => {
-    if (scenes.length > 0) {
+    if (scenes.length > 0 && !isSynthesizingRef.current) {
       const synthesizeVideos = async () => {
-        for (let i = 0; i < scenes.length; i++) {
-          if (!scenes[i].videoUrl && !scenes[i].error) {
-            let attempt = 0;
-            let success = false;
-            
-            while (attempt < 2 && !success) {
-              try {
-                const res = await fetch('/api/video-synthesize', {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({ prompt: scenes[i].video_prompt })
-                });
-                
-                if (res.ok) {
-                  const { videoUrl } = await res.json();
-                  setScenes(prev => {
-                    const updated = [...prev];
-                    updated[i] = { ...updated[i], videoUrl, error: false };
-                    return updated;
+        isSynthesizingRef.current = true;
+        try {
+          for (let i = 0; i < scenes.length; i++) {
+            if (!scenes[i].videoUrl && !scenes[i].error) {
+              let attempt = 0;
+              let success = false;
+              
+              while (attempt < 2 && !success) {
+                try {
+                  console.log(`[SequentialSynth] Processing scene ${i+1}/${scenes.length}...`);
+                  const res = await fetch('/api/video-synthesize', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ prompt: scenes[i].video_prompt })
                   });
-                  setSynthesizedCount(prev => prev + 1);
-                  success = true;
-                } else {
-                  const errData = await res.json().catch(() => ({}));
-                  const errMsg = errData.error || `Status: ${res.status}`;
                   
-                  if (errMsg.includes("CREDIT") || errMsg.includes("SHORTFALL")) {
-                     setScenes(prev => {
-                       const updated = [...prev];
-                       updated[i] = { ...updated[i], error: true, errorType: 'CREDITS' };
-                       return updated;
-                     });
-                     // If credits are the issue, don't bother retrying or checking other scenes
-                     return; 
+                  if (res.ok) {
+                    const { videoUrl } = await res.json();
+                    setScenes(prev => {
+                      const updated = [...prev];
+                      updated[i] = { ...updated[i], videoUrl, error: false };
+                      return updated;
+                    });
+                    setSynthesizedCount(prev => prev + 1);
+                    success = true;
+                    // Wait after success to let UI catch up
+                    await new Promise(r => setTimeout(r, 1000));
+                  } else {
+                    const errData = await res.json().catch(() => ({}));
+                    const errMsg = errData.error || `Status: ${res.status}`;
+                    
+                    if (errMsg.includes("CREDIT") || errMsg.includes("SHORTFALL")) {
+                       setScenes(prev => {
+                         const updated = [...prev];
+                         updated[i] = { ...updated[i], error: true, errorType: 'CREDITS' };
+                         return updated;
+                       });
+                       // Credits are likely project-wide, so stop the loop
+                       return; 
+                    }
+                    throw new Error(errMsg);
                   }
-                  throw new Error(errMsg);
+                } catch (err) {
+                  console.error(`Synthesis failed for scene ${i}, attempt ${attempt + 1}:`, err);
+                  if (attempt === 1) { // 2 attempts max (0 and 1)
+                    setScenes(prev => {
+                      const updated = [...prev];
+                      updated[i] = { ...updated[i], error: true, errorType: 'SYSTEM' };
+                      return updated;
+                    });
+                  }
                 }
-              } catch (err) {
-                console.error(`Synthesis failed for scene ${i}, attempt ${attempt + 1}:`, err);
-                if (attempt === 1) { // 2 attempts max (0 and 1)
-                  setScenes(prev => {
-                    const updated = [...prev];
-                    updated[i] = { ...updated[i], error: true, errorType: 'SYSTEM' };
-                    return updated;
-                  });
-                }
-              }
-              if (!success) {
-                attempt++;
-                // Wait before retry
-                if (attempt < 2) { // Only wait if there's another attempt
-                  await new Promise(r => setTimeout(r, 2000));
+                
+                if (!success) {
+                  attempt++;
+                  // Wait before retry
+                  if (attempt < 2) { // Only wait if there's another attempt
+                    await new Promise(r => setTimeout(r, 2000));
+                  }
                 }
               }
             }
           }
+        } finally {
+          isSynthesizingRef.current = false;
         }
       };
       synthesizeVideos();

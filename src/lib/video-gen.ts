@@ -12,7 +12,7 @@ const sdk = new Bytez(BYTEZ_API_KEY);
 const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
 
 const MODELS = [
-  "google/gemini-1.5-flash",    // Permanent Scientific SVG Figure Generator
+  "google/gemini-flash-latest", // Permanent Scientific SVG Figure Generator
   "sourceful/riverflow-v2-pro", // Primary OpenRouter Image Model
   "google/veo-2.0-generate-001",
   "@cf/bytedance/stable-video-diffusion-img2vid-xt",
