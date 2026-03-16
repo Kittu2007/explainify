@@ -9,41 +9,63 @@ const sdk = new Bytez(BYTEZ_API_KEY);
  * 
  * Note: Bytez.js returns data in different formats based on the model.
  */
+const MODELS = [
+  "google/veo-2.0-generate-001",
+  "@cf/bytedance/stable-video-diffusion-img2vid-xt", // Alternative video model
+  "stabilityai/stable-diffusion-xl-base-1.0" // Image fallback if video fails entirely
+];
+
+/**
+ * Generate a video clip using Google Veo 2.0 with fallbacks.
+ */
 export async function generateVideoClip(prompt: string): Promise<string> {
-  try {
-    console.log(`[Veo] Generating video for prompt: "${prompt.substring(0, 50)}..."`);
-    
-    // choose veo-2.0-generate-001
-    const model = sdk.model("google/veo-2.0-generate-001");
+  let lastError = "";
+  
+  for (const modelId of MODELS) {
+    try {
+      console.log(`[Veo] Attempting generation with model: ${modelId}`);
+      const model = sdk.model(modelId);
+      
+      const { error, output } = await model.run(prompt);
 
-    // send input to model
-    const { error, output } = await model.run(prompt);
+      if (error) {
+        console.warn(`[Veo] Model ${modelId} failed:`, error);
+        lastError = typeof error === 'string' ? error : JSON.stringify(error);
+        if (lastError.includes("balance") || lastError.includes("credit")) {
+           console.log(`[Veo] Credit issue detected for ${modelId}, moving to next model...`);
+           continue;
+        }
+        continue;
+      }
 
-    if (error) {
-      console.error("[Veo] Generation error:", error);
-      throw new Error(`Veo generation failed: ${JSON.stringify(error)}`);
+      if (!output) continue;
+
+      // Handle Buffer/Blob
+      if (output instanceof Buffer) {
+        const base64 = output.toString("base64");
+        // Check if it's an image or video based on modelId
+        const mime = modelId.includes("video") || modelId.includes("veo") ? "video/mp4" : "image/png";
+        return `data:${mime};base64,${base64}`;
+      }
+
+      // Handle string (URL or direct)
+      if (typeof output === 'string') {
+        if (output.startsWith("http") || output.startsWith("data:")) return output;
+        // If it's just a string, it might be base64 without prefix
+        return `data:video/mp4;base64,${output}`;
+      }
+
+      // Handle object with uri
+      if (output && typeof output === 'object' && (output as any).uri) {
+        return (output as any).uri;
+      }
+
+      console.warn(`[Veo] Unrecognized output format for ${modelId}:`, typeof output);
+    } catch (err: any) {
+      console.error(`[Veo] Exception with ${modelId}:`, err.message);
+      lastError = err.message;
     }
-
-    // Output is typically a blob or a URL depending on the Bytez implementation for this model.
-    // If it's a Buffer/Blob, we convert to base64 for easy transport in JSON to frontend.
-    if (output instanceof Buffer) {
-      const base64 = output.toString("base64");
-      return `data:video/mp4;base64,${base64}`;
-    }
-
-    if (typeof output === 'string') {
-       return output; // Might be a URL
-    }
-
-    // Fallback if it's an object with a uri
-    if (output && typeof output === 'object' && (output as any).uri) {
-       return (output as any).uri;
-    }
-
-    console.warn("[Veo] Unexpected output format:", typeof output);
-    return "";
-  } catch (err: any) {
-    console.error("[Veo] Unhandled error:", err.message);
-    throw err;
   }
+
+  throw new Error(`All video generation models failed. Last error: ${lastError}`);
 }

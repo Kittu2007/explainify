@@ -19,20 +19,29 @@ export default function VisualScene({ scene }) {
   if (!scene) return null;
 
   const { videoUrl, video_prompt } = scene;
+  const isImage = videoUrl?.startsWith('data:image/') || videoUrl?.match(/\.(jpeg|jpg|gif|png)$/);
 
   return (
     <div className="w-full h-full flex flex-col relative bg-[#020202] overflow-hidden group">
       {videoUrl ? (
         <div className="absolute inset-0 animate-fade-in group">
-          <video 
-            src={videoUrl}
-            className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity duration-1000"
-            autoPlay
-            loop
-            muted
-            playsInline
-            key={videoUrl}
-          />
+          {isImage ? (
+            <img 
+              src={videoUrl}
+              className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity duration-1000"
+              alt={video_prompt}
+            />
+          ) : (
+            <video 
+              src={videoUrl}
+              className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity duration-1000"
+              autoPlay
+              loop
+              muted
+              playsInline
+              key={videoUrl}
+            />
+          )}
           <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-black/20 pointer-events-none" />
         </div>
       ) : (
