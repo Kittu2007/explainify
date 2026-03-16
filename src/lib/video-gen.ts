@@ -12,6 +12,7 @@ const sdk = new Bytez(BYTEZ_API_KEY);
 const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
 
 const MODELS = [
+  "google/gemini-1.5-flash",    // Permanent Scientific SVG Figure Generator
   "sourceful/riverflow-v2-pro", // Primary OpenRouter Image Model
   "google/veo-2.0-generate-001",
   "@cf/bytedance/stable-video-diffusion-img2vid-xt",
@@ -19,22 +20,61 @@ const MODELS = [
 ];
 
 /**
- * Generate a visual clip using Riverflow V2 Pro or fallbacks.
+ * Generate a visual clip using Gemini SVG or fallbacks.
  */
 export async function generateVideoClip(prompt: string): Promise<string> {
   let lastError = "";
   const apiKey = process.env.OPENROUTER_API_KEY;
+  const googleApiKey = process.env.GOOGLE_AI_STUDIO_API_KEY;
 
-  if (!apiKey) {
-    console.error("[VisualGen] CRITICAL: OPENROUTER_API_KEY is missing from environment variables.");
+  if (!apiKey && !googleApiKey) {
+    console.error("[VisualGen] CRITICAL: Both API keys are missing from environment variables.");
   }
   
   for (const modelId of MODELS) {
     try {
       console.log(`[VisualGen] Attempting generation with model: ${modelId}`);
       
+      // Special handling for Google AI Studio (SVG Generation)
+      if (modelId.startsWith("google/gemini")) {
+        if (!googleApiKey) throw new Error("Google AI Studio key missing");
+        
+        const shortModelId = modelId.split('/')[1];
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${shortModelId}:generateContent?key=${googleApiKey}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            contents: [{
+              parts: [{
+                text: `${prompt}\n\nStrict Requirement: Generate a high-fidelity, professional 2D scientific SVG schematic. Clean academic style, university-grade labels, white background. Return ONLY the SVG code without any markdown or code blocks.`
+              }]
+            }]
+          })
+        });
+
+        if (!response.ok) {
+           const errText = await response.text();
+           console.error("[VisualGen] Google AI Studio Error:", errText);
+           throw new Error(`Google API Error: ${response.status}`);
+        }
+
+        const data = await response.json();
+        let svgCode = data.candidates?.[0]?.content?.parts?.[0]?.text || "";
+        
+        // Clean up SVG code if it contains markdown markers
+        svgCode = svgCode.replace(/```svg/g, '').replace(/```/g, '').trim();
+        
+        if (svgCode.includes('<svg')) {
+          console.log("[VisualGen] Successfully generated SVG via Gemini");
+          const encodedSvg = Buffer.from(svgCode).toString('base64');
+          return `data:image/svg+xml;base64,${encodedSvg}`;
+        }
+        
+        throw new Error("Invalid SVG output from Gemini");
+      }
+
       // Special handling for OpenRouter models
-      if (modelId.includes("/")) {
+      if (modelId.includes("/") && !modelId.startsWith("google/")) {
         if (!apiKey) throw new Error("OpenRouter API key missing");
 
         const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {

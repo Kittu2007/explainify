@@ -19,18 +19,24 @@ export default function VisualScene({ scene }) {
   if (!scene) return null;
 
   const { videoUrl, video_prompt } = scene;
-  const isImage = videoUrl?.startsWith('data:image/') || videoUrl?.match(/\.(jpeg|jpg|gif|png)$/);
+  const isImage = videoUrl?.startsWith('data:image/') || videoUrl?.match(/\.(jpeg|jpg|gif|png|svg)$/);
+  const isSvg = videoUrl?.includes('image/svg+xml');
 
   return (
     <div className="w-full h-full flex flex-col relative bg-[#020202] overflow-hidden group">
       {videoUrl ? (
         <div className="absolute inset-0 animate-fade-in group">
           {isImage ? (
-            <img 
-              src={videoUrl}
-              className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity duration-1000"
-              alt={video_prompt}
-            />
+            <div className={`w-full h-full flex items-center justify-center p-4 ${isSvg ? 'bg-[#050505]' : ''}`}>
+              <img 
+                src={videoUrl}
+                className={`${isSvg ? 'w-full h-full object-contain' : 'w-full h-full object-cover'} opacity-80 group-hover:opacity-100 transition-all duration-1000 transform group-hover:scale-[1.02]`}
+                alt={video_prompt}
+              />
+              {isSvg && (
+                <div className="absolute inset-0 pointer-events-none opacity-20 bg-[radial-gradient(#1a1a1a_1px,transparent_1px)] [background-size:20px_20px]" />
+              )}
+            </div>
           ) : (
             <video 
               src={videoUrl}
