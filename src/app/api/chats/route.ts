@@ -16,7 +16,7 @@ export async function GET(request: NextRequest) {
 
   const { data: chats, error } = await supabase
     .from("chats")
-    .select("*, messages(*)")
+    .select("*, messages(*), documents(*)")
     .eq("user_id", userId)
     .order("created_at", { ascending: false });
 

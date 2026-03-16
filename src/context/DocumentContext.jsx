@@ -30,10 +30,19 @@ export function DocumentProvider({ children }) {
   const loadChat = (chatData) => {
     setChatId(chatData.id)
     setMessages(chatData.messages || [])
-    // Optionally load document status if linked
+    
     if (chatData.document_id) {
        setDocumentId(chatData.document_id)
-       // We might need to fetch file metadata if it's not present
+       
+       // If document metadata is pre-loaded (from joined API call)
+       if (chatData.documents) {
+         const doc = chatData.documents;
+         setDocument({
+           name: doc.filename,
+           size: doc.file_size,
+           uploadedAt: doc.metadata?.uploadedAt || doc.created_at
+         })
+       }
     }
   }
   

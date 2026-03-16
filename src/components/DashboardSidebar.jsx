@@ -49,6 +49,7 @@ export default function DashboardSidebar() {
   };
 
   const handleChatSelect = (chat) => {
+    console.log("[Sidebar] Selected chat:", chat.id);
     loadChat(chat);
     router.push('/dashboard/chat');
   };
