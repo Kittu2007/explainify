@@ -33,9 +33,8 @@ export default function VisualScene({ scene }) {
                 className={`${isSvg ? 'w-full h-full object-contain' : 'w-full h-full object-cover'} opacity-80 group-hover:opacity-100 transition-all duration-1000 transform group-hover:scale-[1.02]`}
                 alt={video_prompt}
               />
-              {isSvg && (
-                <div className="absolute inset-0 pointer-events-none opacity-20 bg-[radial-gradient(#1a1a1a_1px,transparent_1px)] [background-size:20px_20px]" />
-              )}
+              <div className="absolute inset-0 pointer-events-none opacity-10 bg-[radial-gradient(#ffffff_1px,transparent_1px)] [background-size:24px_24px] z-10" />
+              <div className="absolute inset-0 pointer-events-none opacity-5 bg-[linear-gradient(to_right,#808080_1px,transparent_1px),linear-gradient(to_bottom,#808080_1px,transparent_1px)] [background-size:100px_100px] z-10" />
             </div>
           ) : (
             <video 
