@@ -112,10 +112,29 @@ const GooeyNav = ({
     }
   };
   useEffect(() => {
+    setActiveIndex(initialActiveIndex);
+  }, [initialActiveIndex]);
+
+  useEffect(() => {
     if (!navRef.current || !containerRef.current) return;
     const activeLi = navRef.current.querySelectorAll('li')[activeIndex];
     if (activeLi) {
       updateEffectPosition(activeLi);
+      
+      // Trigger particles if it's a transition (not initial)
+      if (initialActiveIndex !== undefined) {
+          if (filterRef.current) {
+            const particles = filterRef.current.querySelectorAll('.particle');
+            particles.forEach(p => filterRef.current.removeChild(p));
+            makeParticles(filterRef.current);
+          }
+          if (textRef.current) {
+            textRef.current.classList.remove('active');
+            void textRef.current.offsetWidth;
+            textRef.current.classList.add('active');
+          }
+      }
+      
       textRef.current?.classList.add('active');
     }
     const resizeObserver = new ResizeObserver(() => {
