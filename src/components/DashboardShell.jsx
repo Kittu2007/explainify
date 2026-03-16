@@ -5,8 +5,6 @@ import DashboardNavbar from './DashboardNavbar';
 import Silk from './ui/Silk';
 
 export default function DashboardShell({ children }) {
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
-
   return (
     <div className="flex min-h-screen overflow-hidden relative">
       {/* Dynamic Silk Background */}
@@ -18,18 +16,11 @@ export default function DashboardShell({ children }) {
         rotation={0} 
       />
 
-      {/* Sidebar */}
-      <DashboardSidebar 
-        isCollapsed={isSidebarCollapsed} 
-        onToggle={() => setIsSidebarCollapsed(!isSidebarCollapsed)} 
-      />
+      {/* Sidebar (Overlay) */}
+      <DashboardSidebar />
 
       {/* Main Content Area */}
-      <div 
-        className={`flex-1 flex flex-col transition-all duration-500 relative z-10 ${
-          isSidebarCollapsed ? 'ml-24' : 'ml-72'
-        }`}
-      >
+      <div className="flex-1 flex flex-col relative z-10">
         <div className="p-6 h-screen flex flex-col">
           <DashboardNavbar />
           
