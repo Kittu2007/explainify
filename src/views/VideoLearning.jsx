@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from "next/navigation";
-import { Play, Pause, RotateCcw, Video, Volume2, Settings, Share2, Loader2, Sparkles, BarChart2, Activity, ChevronRight, ChevronLeft, AlertCircle, Layers, Zap } from 'lucide-react'
+import { Play, Pause, RotateCcw, Video, Volume2, Settings, Share2, Loader2, Sparkles, BarChart2, Activity, ChevronRight, ChevronLeft, AlertCircle, Layers, Zap, Clock } from 'lucide-react'
 import { useDocument } from '../context/DocumentContext'
 import VisualScene from '../components/VisualScene'
 
@@ -51,7 +51,7 @@ export default function VideoLearning() {
                     const { videoUrl } = await res.json();
                     setScenes(prev => {
                       const updated = [...prev];
-                      updated[i] = { ...updated[i], videoUrl, error: false };
+                      updated[i] = { ...updated[i], videoUrl, error: false, errorType: null, errorMsg: null };
                       return updated;
                     });
                     setSynthesizedCount(prev => prev + 1);
@@ -62,13 +62,18 @@ export default function VideoLearning() {
                     const errData = await res.json().catch(() => ({}));
                     const errMsg = errData.error || `Status: ${res.status}`;
                     
-                    if (errMsg.includes("CREDIT") || errMsg.includes("SHORTFALL")) {
-                       setScenes(prev => {
-                         const updated = [...prev];
-                         updated[i] = { ...updated[i], error: true, errorType: 'CREDITS' };
-                         return updated;
-                       });
-                       // Credits are likely project-wide, so stop the loop
+                    let errorType = 'SYSTEM';
+                    if (errMsg.includes("CREDIT") || errMsg.includes("SHORTFALL")) errorType = 'CREDITS';
+                    if (errMsg.includes("RATE_LIMIT")) errorType = 'RATE_LIMIT';
+
+                    setScenes(prev => {
+                      const updated = [...prev];
+                      updated[i] = { ...updated[i], error: true, errorType, errorMsg: errMsg };
+                      return updated;
+                    });
+
+                    if (errorType === 'CREDITS' || errorType === 'RATE_LIMIT') {
+                       // Serious errors: stop the loop
                        return; 
                     }
                     throw new Error(errMsg);
@@ -402,6 +407,18 @@ export default function VideoLearning() {
                   </div>
                 </div>
               )}
+
+              {scenes.some(s => s.errorType === 'RATE_LIMIT') && (
+                <div className="mb-6 p-4 rounded-2xl bg-blue-500/10 border border-blue-500/20 text-blue-400 flex items-start gap-4 text-left max-w-md mx-auto animate-pulse">
+                  <Clock size={20} className="flex-shrink-0 mt-0.5" />
+                  <div>
+                    <p className="text-xs font-black uppercase tracking-widest mb-1">Rate Limit Active</p>
+                    <p className="text-[10px] font-bold opacity-80 leading-relaxed uppercase">
+                      Gemini API is currently busy. The system will automatically resume synthesis in 60 seconds once the quota resets.
+                    </p>
+                  </div>
+                </div>
+              )}
            </div>
 
            <div className="bento-card p-8 border-white/5 h-[450px] flex flex-col">
@@ -436,11 +453,22 @@ export default function VideoLearning() {
                           {!scene.videoUrl && (
                              <div className="flex items-center gap-2">
                                 {scene.error ? (
-                                  <span className={`text-[8px] font-black uppercase px-2 py-0.5 rounded-full ${
-                                    scene.errorType === 'CREDITS' ? 'bg-orange-500/20 text-orange-500' : 'bg-red-500/20 text-red-500'
-                                  }`}>
-                                    {scene.errorType === 'CREDITS' ? 'Refuel Required' : 'Synthesis Halted'}
-                                  </span>
+                                  <div className="flex flex-col gap-0.5">
+                                    <span className={`text-[8px] font-black uppercase px-2 py-0.5 rounded-full w-fit ${
+                                      scene.errorType === 'CREDITS' ? 'bg-orange-500/20 text-orange-500' : 
+                                      scene.errorType === 'RATE_LIMIT' ? 'bg-blue-500/20 text-blue-500' :
+                                      'bg-red-500/20 text-red-500'
+                                    }`}>
+                                      {scene.errorType === 'CREDITS' ? 'Refuel Required' : 
+                                       scene.errorType === 'RATE_LIMIT' ? 'Rate Limited' :
+                                       'Synthesis Halted'}
+                                    </span>
+                                    {scene.errorMsg && (
+                                      <span className="text-[7px] text-gray-500 uppercase font-bold px-1 opacity-60">
+                                        {scene.errorMsg.substring(0, 30)}
+                                      </span>
+                                    )}
+                                  </div>
                                 ) : (
                                   <span className={`text-[8px] font-black uppercase px-2 py-0.5 rounded-full ${idx === currentSceneIndex ? 'bg-primary/20 text-primary' : 'bg-white/5 text-gray-500'}`}>
                                     {idx === currentSceneIndex ? 'Active' : scene.videoUrl ? 'Ready' : 'Pending'}
