@@ -25,6 +25,27 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(null)
   const [isLoading, setIsLoading] = useState(true)
 
+  const syncSession = async (firebaseUser) => {
+    try {
+      if (firebaseUser) {
+        const idToken = await firebaseUser.getIdToken()
+        await fetch('/api/auth/session', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ idToken }),
+        })
+      } else {
+        await fetch('/api/auth/session', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ idToken: null }),
+        })
+      }
+    } catch (e) {
+      console.error("Session sync failed", e)
+    }
+  }
+
   useEffect(() => {
     if (!auth) {
       setIsLoading(false);
@@ -34,22 +55,11 @@ export function AuthProvider({ children }) {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
         setUser(firebaseUser)
-        // Sync session cookie in background
-        firebaseUser.getIdToken().then(idToken => {
-          fetch('/api/auth/session', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ idToken }),
-          }).catch(e => console.error("Session sync failed", e));
-        }).catch(e => console.error("Token retrieval failed", e));
+        // Background sync for auto-login/refresh
+        syncSession(firebaseUser)
       } else {
         setUser(null)
-        // Clear session cookie in background
-        fetch('/api/auth/session', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ idToken: null }),
-        }).catch(() => {});
+        syncSession(null)
       }
       setIsLoading(false)
     })
@@ -74,6 +84,8 @@ export function AuthProvider({ children }) {
     const provider = new GoogleAuthProvider()
     try {
       const result = await signInWithPopup(auth, provider)
+      // Blocking sync: wait for cookie before returning to view
+      await syncSession(result.user)
       return { user: result.user }
     } catch (error) {
       return { error }
@@ -86,6 +98,8 @@ export function AuthProvider({ children }) {
     }
     try {
       const result = await firebaseSignIn(auth, email, password)
+      // Blocking sync: wait for cookie
+      await syncSession(result.user)
       return { user: result.user }
     } catch (error) {
       return { error }
@@ -98,6 +112,8 @@ export function AuthProvider({ children }) {
     }
     try {
       const result = await firebaseSignUp(auth, email, password)
+      // Blocking sync: wait for cookie
+      await syncSession(result.user)
       return { user: result.user }
     } catch (error) {
       return { error }
