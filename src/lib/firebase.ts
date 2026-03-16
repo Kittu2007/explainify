@@ -14,9 +14,10 @@ const firebaseConfig = {
 let app;
 let auth;
 
-const isConfigValid = !!firebaseConfig.apiKey;
+const isConfigValid = !!firebaseConfig.apiKey && !!firebaseConfig.authDomain;
+const isAuthAvailable = isConfigValid;
 
-if (typeof window !== "undefined" || isConfigValid) {
+if (typeof window !== "undefined" && isConfigValid) {
   try {
     app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
     auth = getAuth(app);
@@ -25,4 +26,4 @@ if (typeof window !== "undefined" || isConfigValid) {
   }
 }
 
-export { app, auth };
+export { app, auth, isAuthAvailable };
