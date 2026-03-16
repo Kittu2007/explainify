@@ -11,7 +11,7 @@ export default function DashboardShell({ children }) {
       <Silk 
         speed={5} 
         scale={1} 
-        color="#7B7481" 
+        color="#7A1CAC" 
         noiseIntensity={1.5} 
         rotation={0} 
       />
