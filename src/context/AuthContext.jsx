@@ -1,19 +1,24 @@
 "use client";
 
 import { createContext, useContext, useEffect, useState } from 'react'
-import { auth } from '@/lib/firebase'
+import { auth, isAuthAvailable } from '@/lib/firebase'
 import { 
   onAuthStateChanged, 
   signOut as firebaseSignOut, 
   GoogleAuthProvider, 
-  signInWithPopup 
+  signInWithPopup,
+  signInWithEmailAndPassword as firebaseSignIn,
+  createUserWithEmailAndPassword as firebaseSignUp
 } from 'firebase/auth'
 
 const AuthContext = createContext({
   user: null,
   isLoading: true,
+  isAuthAvailable: false,
   signOut: async () => {},
   signInWithGoogle: async () => {},
+  signInWithEmail: async (email, password) => {},
+  signUpWithEmail: async (email, password) => {},
 })
 
 export function AuthProvider({ children }) {
@@ -30,12 +35,14 @@ export function AuthProvider({ children }) {
       if (firebaseUser) {
         setUser(firebaseUser)
         // Set session cookie for middleware
-        const idToken = await firebaseUser.getIdToken()
-        await fetch('/api/auth/session', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ idToken }),
-        })
+        try {
+          const idToken = await firebaseUser.getIdToken()
+          await fetch('/api/auth/session', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ idToken }),
+          })
+        } catch (e) { console.error("Session update failed", e) }
       } else {
         setUser(null)
         // Clear session cookie
@@ -43,7 +50,7 @@ export function AuthProvider({ children }) {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ idToken: null }),
-        })
+        }).catch(() => {});
       }
       setIsLoading(false)
     })
@@ -54,8 +61,11 @@ export function AuthProvider({ children }) {
   const signOut = async () => {
     if (!auth) return
     setIsLoading(true)
-    await firebaseSignOut(auth)
-    window.location.href = '/login'
+    try {
+      await firebaseSignOut(auth)
+    } finally {
+      window.location.href = '/login'
+    }
   }
 
   const signInWithGoogle = async () => {
@@ -71,8 +81,40 @@ export function AuthProvider({ children }) {
     }
   }
 
+  const signInWithEmail = async (email, password) => {
+    if (!auth) {
+      return { error: { message: "Auth not initialized. Check your environment variables." } }
+    }
+    try {
+      const result = await firebaseSignIn(auth, email, password)
+      return { user: result.user }
+    } catch (error) {
+      return { error }
+    }
+  }
+
+  const signUpWithEmail = async (email, password) => {
+    if (!auth) {
+      return { error: { message: "Auth not initialized. Check your environment variables." } }
+    }
+    try {
+      const result = await firebaseSignUp(auth, email, password)
+      return { user: result.user }
+    } catch (error) {
+      return { error }
+    }
+  }
+
   return (
-    <AuthContext.Provider value={{ user, isLoading, signOut, signInWithGoogle }}>
+    <AuthContext.Provider value={{ 
+      user, 
+      isLoading, 
+      isAuthAvailable,
+      signOut, 
+      signInWithGoogle, 
+      signInWithEmail, 
+      signUpWithEmail 
+    }}>
       {children}
     </AuthContext.Provider>
   )
