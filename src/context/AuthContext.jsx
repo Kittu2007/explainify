@@ -21,6 +21,11 @@ export function AuthProvider({ children }) {
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
+    if (!auth) {
+      setIsLoading(false);
+      return;
+    }
+
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
         setUser(firebaseUser)
@@ -47,12 +52,16 @@ export function AuthProvider({ children }) {
   }, [])
 
   const signOut = async () => {
+    if (!auth) return
     setIsLoading(true)
     await firebaseSignOut(auth)
     window.location.href = '/login'
   }
 
   const signInWithGoogle = async () => {
+    if (!auth) {
+      return { error: { message: "Auth not initialized. Check your environment variables." } }
+    }
     const provider = new GoogleAuthProvider()
     try {
       const result = await signInWithPopup(auth, provider)
