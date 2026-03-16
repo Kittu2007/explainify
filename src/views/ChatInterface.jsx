@@ -126,7 +126,7 @@ export default function ChatInterface() {
     }
   }
 
-  if (!document) return null
+  if (!document && !chatId) return null
   
   return (
     <div className="flex flex-col h-[calc(100vh-12rem)] relative animate-fade-in group">
@@ -145,7 +145,7 @@ export default function ChatInterface() {
                <div className="px-1.5 py-0.5 bg-green-500/10 rounded-md border border-green-500/20 text-[8px] font-black text-green-500 uppercase tracking-widest leading-none">Encrypted</div>
             </div>
             <p className="text-[10px] text-gray-500 font-bold mt-1 uppercase tracking-widest">
-              Context: <span className="text-primary/70">{document.name}</span>
+              Context: <span className="text-primary/70">{document?.name || 'Neural Stream'}</span>
             </p>
           </div>
         </div>
