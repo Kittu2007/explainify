@@ -9,9 +9,11 @@ const sdk = new Bytez(BYTEZ_API_KEY);
  * 
  * Note: Bytez.js returns data in different formats based on the model.
  */
-const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
+const GOOGLE_AI_STUDIO_API_KEY = process.env.GOOGLE_AI_STUDIO_API_KEY;
+const NVIDIA_VISUAL_API_KEY = process.env.NVIDIA_VISUAL_API_KEY;
 
 const MODELS = [
+  "nvidia/stable-diffusion-3-medium", // High-Fidelity NVIDIA NIM Engine
   "google/gemini-flash-latest", // Permanent Scientific SVG Figure Generator
   "sourceful/riverflow-v2-pro", // Primary OpenRouter Image Model
   "google/veo-2.0-generate-001",
@@ -35,6 +37,51 @@ export async function generateVideoClip(prompt: string): Promise<string> {
     try {
       console.log(`[VisualGen] Attempting generation with model: ${modelId}`);
       
+      // Special handling for NVIDIA NIM (High-Fidelity Images)
+      if (modelId.startsWith("nvidia/")) {
+        if (!NVIDIA_VISUAL_API_KEY) {
+          console.error("[VisualGen] NVIDIA Visual API Key is MISSING in runtime.");
+          throw new Error("NVIDIA_API_KEY_MISSING");
+        }
+
+        const nvidiaModelName = modelId.split('/')[1];
+        const invokeUrl = `https://ai.api.nvidia.com/v1/genai/stabilityai/${nvidiaModelName}`;
+
+        const response = await fetch(invokeUrl, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${NVIDIA_VISUAL_API_KEY}`,
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            "prompt": prompt,
+            "cfg_scale": 5,
+            "aspect_ratio": "16:9",
+            "seed": 0,
+            "steps": 40
+          })
+        });
+
+        if (!response.ok) {
+           const errText = await response.text();
+           console.error(`[VisualGen] NVIDIA API Error (${response.status}):`, errText);
+           if (response.status === 429) throw new Error("NVIDIA_RATE_LIMIT");
+           throw new Error(`NVIDIA API Error: ${response.status}`);
+        }
+
+        const data = await response.json();
+        // NVIDIA returns base64 in data.image or data.artifacts[0].base64
+        const base64Data = data.image || (data.artifacts && data.artifacts[0]?.base64);
+        
+        if (base64Data) {
+          console.log("[VisualGen] Successfully generated image via NVIDIA NIM");
+          return `data:image/png;base64,${base64Data}`;
+        }
+        
+        throw new Error("Invalid output from NVIDIA NIM");
+      }
+
       // Special handling for Google AI Studio (SVG Generation)
       if (modelId.startsWith("google/gemini")) {
         if (!googleApiKey) {
