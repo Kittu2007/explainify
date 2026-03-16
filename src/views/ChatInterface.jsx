@@ -7,26 +7,40 @@ import ChatBubble from '../components/ChatBubble'
 import MessageInput from '../components/MessageInput'
 
 export default function ChatInterface() {
-  const { document, documentId } = useDocument()
+  const { document, documentId, messages: contextMessages, chatId, setChatId, addMessage, loadChat } = useDocument()
   const router = useRouter()
-  const [messages, setMessages] = useState([
-    { id: 1, text: "System Online. Neural pathways established. How may I assist with your document analysis today?", isUser: false }
-  ])
+  const [messages, setMessages] = useState([])
   const [isLoading, setIsLoading] = useState(false)
   const messagesEndRef = useRef(null)
   
+  // Initialize messages from context or default
   useEffect(() => {
-    if (!document) {
+    if (contextMessages && contextMessages.length > 0) {
+      setMessages(contextMessages.map((m, i) => ({
+        id: i,
+        text: m.content || m.text,
+        isUser: m.role === 'user' || m.isUser,
+        sources: m.sources || []
+      })))
+    } else {
+      setMessages([
+        { id: 1, text: "System Online. Neural pathways established. How may I assist with your document analysis today?", isUser: false }
+      ])
+    }
+  }, [contextMessages])
+
+  useEffect(() => {
+    if (!document && !chatId) {
       router.push('/dashboard/upload')
     }
-  }, [document, router])
+  }, [document, chatId, router])
   
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages])
   
   const handleSendMessage = async (userInput) => {
-    if (!userInput.trim() || !documentId) return
+    if (!userInput.trim()) return
 
     const userMessage = {
       id: Date.now(),
@@ -34,6 +48,7 @@ export default function ChatInterface() {
       isUser: true
     }
     setMessages(prev => [...prev, userMessage])
+    addMessage('user', userInput)
     setIsLoading(true)
 
     const aiMessageId = Date.now() + 1;
@@ -51,20 +66,14 @@ export default function ChatInterface() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           documentId: documentId,
-          question: userInput
+          question: userInput,
+          chatId: chatId
         })
       })
 
       if (!response.ok) {
         const errData = await response.json().catch(() => ({}))
         throw new Error(errData.error || `Server error (${response.status})`)
-      }
-
-      const contentType = response.headers.get('content-type')
-      if (contentType && contentType.includes('application/json')) {
-        const data = await response.json()
-        setMessages(prev => prev.map(m => m.id === aiMessageId ? { ...m, text: data.answer, sources: data.sources } : m))
-        return
       }
 
       const reader = response.body.getReader()
@@ -78,18 +87,23 @@ export default function ChatInterface() {
         if (done) break
 
         const chunk = textDecoder.decode(value, { stream: true })
-        if (chunk.startsWith('__METADATA__:')) {
+        if (chunk.includes('__METADATA__')) {
           const parts = chunk.split('\n')
-          const metaStr = parts[0].replace('__METADATA__:', '')
-          try {
-            const meta = JSON.parse(metaStr)
-            sources = meta.sources || []
-          } catch (e) { console.error("Failed to parse metadata", e) }
-          
-          if (parts.length > 1) {
-            const extra = parts.slice(1).join('\n')
-            fullText += extra
+          const metaLine = parts.find(p => p.startsWith('__METADATA__:'))
+          if (metaLine) {
+            const metaStr = metaLine.replace('__METADATA__:', '')
+            try {
+              const meta = JSON.parse(metaStr)
+              sources = meta.sources || []
+              if (meta.chatId && !chatId) {
+                setChatId(meta.chatId)
+              }
+            } catch (e) { console.error("Failed to parse metadata", e) }
           }
+          
+          // Filter out the metadata line and keep the rest
+          const content = parts.filter(p => !p.startsWith('__METADATA__:')).join('\n')
+          fullText += content
         } else {
           fullText += chunk
         }
@@ -98,6 +112,9 @@ export default function ChatInterface() {
           m.id === aiMessageId ? { ...m, text: fullText, sources: sources } : m
         ))
       }
+      
+      addMessage('assistant', fullText)
+
     } catch (error) {
       console.error('Failed to send message:', error)
       const errorText = `Encryption Error: Unable to verify neural bridge. Details: ${error.message || 'Unknown'}.`

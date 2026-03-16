@@ -109,6 +109,26 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Create an initial chat for this document if user is logged in
+    let chatId = null;
+    const { getServerUser } = await import("@/lib/auth-server");
+    const user = await getServerUser();
+    if (user) {
+      const { data: chat, error: chatError } = await supabase
+        .from("chats")
+        .insert({
+          user_id: user.uid,
+          title: `Analysis: ${filename}`,
+          document_id: doc.id
+        })
+        .select("id")
+        .single();
+      
+      if (!chatError && chat) {
+        chatId = chat.id;
+      }
+    }
+
     // Chunk the text
     const chunks = chunkText(text);
 
@@ -144,6 +164,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       documentId: doc.id,
+      chatId,
       filename: filename || "document.txt",
       pageCount,
       chunkCount: chunks.length,

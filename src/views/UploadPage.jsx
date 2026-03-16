@@ -121,7 +121,7 @@ export default function UploadPage() {
       }
       
       setFiles(prev => [...prev, fileData])
-      uploadDocument(currentFile, data.documentId)
+      uploadDocument(currentFile, data.documentId, data.chatId)
       setCurrentFile(null)
       setUploading(false)
       
