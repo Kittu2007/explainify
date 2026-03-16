@@ -355,10 +355,13 @@ export default function VideoLearning() {
                  <div className="p-3 bg-primary/20 rounded-2xl border border-primary/30">
                     <Activity className="text-primary" size={24} />
                  </div>
-                 <div>
-                    <h3 className="font-black text-lg text-white leading-tight">Neural Synthesis Center</h3>
-                    <p className="text-[10px] text-primary font-black uppercase tracking-widest">Google Veo 2.0 Active</p>
-                 </div>
+                  <div>
+                    <h3 className="font-black text-lg text-white leading-tight mb-0.5">Neural Synthesis Center</h3>
+                    <div className="flex items-center gap-1.5 font-black text-[9px] uppercase tracking-[0.2em]">
+                       <span className="text-secondary animate-pulse">●</span>
+                       <span className="text-primary opacity-90">NVIDIA NIM SD3 ACTIVE</span>
+                    </div>
+                  </div>
               </div>
 
               <div className="space-y-4 mb-8">
@@ -383,17 +386,21 @@ export default function VideoLearning() {
                  </div>
               </div>
 
-              <p className="text-[10px] text-primary font-black uppercase tracking-[0.2em] mb-2 animate-pulse">Neural Figure Synthesis</p>
-              <h2 className="text-3xl font-black text-white tracking-tighter mb-4 leading-none italic uppercase">Textbook Architecture</h2>
-              <div className="flex items-center gap-2 mb-6 p-2 bg-white/5 rounded-2xl border border-white/5 w-fit mx-auto">
+              <p className="text-[10px] font-black uppercase tracking-[0.4em] mb-2 text-white/40">Visual Processor Units</p>
+              <h2 className="text-4xl font-black text-white tracking-tighter mb-4 leading-none uppercase italic">Textbook Engine</h2>
+              
+              <div className="flex items-center gap-3 mb-8 p-3 bg-white/[0.03] rounded-3xl border border-white/5 w-fit mx-auto backdrop-blur-3xl group hover:border-primary/30 transition-all duration-700">
                 <div className="flex -space-x-2">
                   {[1, 2, 3].map(i => (
-                    <div key={i} className="w-6 h-6 rounded-full border-2 border-[#020202] bg-primary/20 flex items-center justify-center">
-                      <Zap size={10} className="text-primary" />
+                    <div key={i} className="w-8 h-8 rounded-full border-2 border-[#020202] bg-primary/20 flex items-center justify-center shadow-[0_0_15px_rgba(230,41,255,0.2)]">
+                      <Zap size={12} className="text-primary animate-pulse" />
                     </div>
                   ))}
                 </div>
-                <span className="text-[9px] font-bold text-gray-400 uppercase tracking-widest px-2">Scientific Core Active</span>
+                <div className="flex flex-col items-start pr-4">
+                  <span className="text-[9px] font-black text-white/90 uppercase tracking-widest">Scientific Core</span>
+                  <span className="text-[8px] font-medium text-primary uppercase tracking-[0.2em] animate-pulse">Synchronized</span>
+                </div>
               </div>
 
               {scenes.some(s => s.errorType === 'CREDITS') && (

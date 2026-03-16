@@ -55,11 +55,11 @@ export async function generateVideoClip(prompt: string): Promise<string> {
             'Content-Type': 'application/json'
           },
           body: JSON.stringify({
-            "prompt": prompt,
+            "prompt": `High-fidelity professional 2D scientific schematic for a textbook. Flat vector style, clean lines, plain white background. Features precise arrows and clear, legible English labels. Highly detailed, university-grade educational illustration. No gibberish text, only standard technical labels. Subject: ${prompt}`,
             "cfg_scale": 5,
             "aspect_ratio": "16:9",
             "seed": 0,
-            "steps": 40
+            "steps": 50
           })
         });
 
