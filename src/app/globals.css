@@ -2,98 +2,84 @@
 @tailwind components;
 @tailwind utilities;
 
-@layer utilities {
-  .delay-100 {
-    animation-delay: 100ms;
-  }
-  
-  .delay-200 {
-    animation-delay: 200ms;
-  }
-
-  /* Custom Animations for Visual Engine */
-  @keyframes fade-in {
-    from { opacity: 0; }
-    to { opacity: 1; }
-  }
-
-  @keyframes slide-up {
-    from { opacity: 0; transform: translateY(20px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-
-  @keyframes slide-right {
-    from { opacity: 0; transform: translateX(-20px); }
-    to { opacity: 1; transform: translateX(0); }
-  }
-
-  @keyframes grow-height {
-    from { transform: scaleY(0); transform-origin: bottom; }
-    to { transform: scaleY(1); transform-origin: bottom; }
-  }
-
-  @keyframes scale-in {
-    from { opacity: 0; transform: scale(0.9); }
-    to { opacity: 1; transform: scale(1); }
-  }
-
-  @keyframes spin-slow {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
-  }
-
-  .animate-fade-in { animation: fade-in 0.6s ease-out forwards; }
-  .animate-slide-up { animation: slide-up 0.6s ease-out forwards; }
-  .animate-slide-right { animation: slide-right 0.6s ease-out forwards; }
-  .animate-grow-height { animation: grow-height 1s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-  .animate-scale-in { animation: scale-in 0.5s ease-out forwards; }
-  .animate-spin-slow { animation: spin-slow 12s linear infinite; }
+:root {
+  --primary: #e629ff;
+  --primary-glow: #e629ff44;
+  --secondary: #9d00ff;
+  --dark: #070707;
+  --darker: #020202;
+  --light: #f8f9fa;
+  --card-bg: rgba(20, 20, 20, 0.7);
+  --border-color: rgba(255, 255, 255, 0.1);
 }
 
 @layer base {
   body {
-    @apply font-sans bg-light text-dark;
+    @apply font-sans bg-[#050505] text-[#e0e0e0] antialiased;
   }
-  
-  h1 {
-    @apply text-4xl font-bold;
+}
+
+@layer utilities {
+  .glass {
+    background: rgba(20, 20, 20, 0.6);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
   }
-  
-  h2 {
-    @apply text-3xl font-bold;
+
+  .text-glow {
+    text-shadow: 0 0 10px var(--primary-glow);
   }
-  
-  h3 {
-    @apply text-2xl font-bold;
+
+  /* Custom Animations */
+  @keyframes blob {
+    0% { transform: translate(0px, 0px) scale(1); }
+    33% { transform: translate(30px, -50px) scale(1.1); }
+    66% { transform: translate(-20px, 20px) scale(0.9); }
+    100% { transform: translate(0px, 0px) scale(1); }
   }
-  
-  button {
-    @apply transition-all duration-200;
+
+  @keyframes silk-flow {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
+
+  .animate-blob {
+    animation: blob 7s infinite alternate;
+  }
+
+  .animate-silk {
+    background: linear-gradient(-45deg, #050505, #12001a, #050505, #0a0112);
+    background-size: 400% 400%;
+    animation: silk-flow 15s ease infinite;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 4px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: var(--primary);
   }
 }
 
 @layer components {
-  .btn-primary {
-    @apply px-6 py-3 bg-primary text-white rounded-lg font-semibold hover:bg-secondary transform hover:scale-105 active:scale-95 transition-all;
+  .bento-card {
+    @apply glass rounded-[2rem] p-8 transition-all duration-300 hover:border-primary/30 hover:shadow-[0_0_30px_rgba(230,41,255,0.1)];
   }
-  
-  .btn-secondary {
-    @apply px-6 py-3 bg-secondary text-white rounded-lg font-semibold hover:bg-primary transform hover:scale-105 active:scale-95 transition-all;
+
+  .pill-nav-item {
+    @apply px-4 py-2 rounded-full transition-all duration-300 relative overflow-hidden flex items-center gap-2;
   }
-  
-  .btn-outline {
-    @apply px-6 py-3 border-2 border-primary text-primary rounded-lg font-semibold hover:bg-primary hover:text-white transition-all;
-  }
-  
-  .card {
-    @apply bg-white rounded-xl shadow-lg p-6 hover:shadow-2xl transition-shadow;
-  }
-  
-  .input-field {
-    @apply w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all;
-  }
-  
-  .section-title {
-    @apply text-3xl font-bold text-dark mb-8;
+
+  .gooey-button {
+    @apply relative px-8 py-3 bg-primary text-white font-bold rounded-full transition-all duration-300 hover:scale-105 active:scale-95 shadow-[0_0_20px_rgba(230,41,255,0.3)];
   }
 }

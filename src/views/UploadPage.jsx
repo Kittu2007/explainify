@@ -1,7 +1,7 @@
 "use client";
 import { useState } from 'react'
 import { useRouter } from "next/navigation";
-import { Upload, FileText, Check, AlertCircle } from 'lucide-react'
+import { Upload, FileText, Check, AlertCircle, Shield, Zap, Search, ArrowRight } from 'lucide-react'
 import { useDocument } from '../context/DocumentContext'
 import ClickSparkButton from '../components/ClickSparkButton'
 import UploadedFilesList from '../components/UploadedFilesList'
@@ -46,7 +46,6 @@ export default function UploadPage() {
   }
   
   const handleFile = (selectedFile) => {
-    // Validate file type
     const validTypes = [
       'application/pdf',
       'text/plain',
@@ -63,12 +62,11 @@ export default function UploadPage() {
       return
     }
     
-    if (selectedFile.size > 50 * 1024 * 1024) { // 50MB limit
+    if (selectedFile.size > 50 * 1024 * 1024) { 
       setError('File size must be less than 50MB.')
       return
     }
     
-    // Check if file already exists
     if (files.some(f => f.name === selectedFile.name)) {
       setError(`File "${selectedFile.name}" is already uploaded.`)
       return
@@ -84,7 +82,6 @@ export default function UploadPage() {
     setError(null)
     
     try {
-      // 1. Direct Upload to Supabase Storage
       const { supabase } = await import('../lib/supabase')
       const fileExt = currentFile.name.split('.').pop()
       const fileName = `${Math.random().toString(36).substring(2)}-${Date.now()}.${fileExt}`
@@ -98,7 +95,6 @@ export default function UploadPage() {
         throw new Error(`Storage upload failed: ${storageError.message}`)
       }
 
-      // 2. Notify Backend with Metadata
       const response = await fetch('/api/upload', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -129,7 +125,6 @@ export default function UploadPage() {
       setCurrentFile(null)
       setUploading(false)
       
-      // Redirect to chat
       setTimeout(() => {
         router.push('/dashboard/chat')
       }, 500)
@@ -145,39 +140,18 @@ export default function UploadPage() {
   }
   
   return (
-    <div className="py-6">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="mb-12">
-          <h1 className="text-4xl font-bold mb-4">Upload Your Document</h1>
-          <p className="text-xl text-gray-600">
-            Choose a file to analyze. Supported formats: PDF, Word, and Text documents.
-          </p>
-        </div>
-        
-        {/* Error Alert */}
-        {error && (
-          <div className="mb-6 bg-red-50 border border-red-200 rounded-lg p-4 flex items-start space-x-3">
-            <AlertCircle className="text-red-600 flex-shrink-0 mt-0.5" size={20} />
-            <div>
-              <p className="font-semibold text-red-900">Upload Error</p>
-              <p className="text-red-800 text-sm">{error}</p>
-            </div>
-          </div>
-        )}
-        
-        {/* Upload Zone */}
-        <div
-          onDragEnter={handleDrag}
-          onDragLeave={handleDrag}
-          onDragOver={handleDrag}
-          onDrop={handleDrop}
-          className={`rounded-2xl border-2 border-dashed p-12 text-center transition-all ${
-            dragActive
-              ? 'border-primary bg-primary/5 scale-105'
-              : 'border-gray-300 bg-white'
-          }`}
-        >
-          <input
+    <div className="space-y-8 animate-fade-in p-2">
+      <div className="flex flex-col gap-2">
+        <h1 className="text-5xl font-black text-white tracking-tighter">Import Knowledge</h1>
+        <p className="text-gray-500 font-medium">Feed the neural network with specialized documents.</p>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Main Upload Area - Large Bento Piece */}
+        <div className="lg:col-span-2 bento-card flex flex-col items-center justify-center min-h-[400px] border-dashed border-2 relative overflow-hidden group">
+           <div className="absolute inset-0 bg-primary/5 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
+           
+           <input
             type="file"
             id="fileInput"
             onChange={handleChange}
@@ -185,90 +159,113 @@ export default function UploadPage() {
             accept=".pdf,.txt,.doc,.docx"
             multiple
           />
-          
+
           {!currentFile ? (
-            <>
-              <Upload className="mx-auto mb-4 text-primary" size={48} />
-              <h3 className="text-2xl font-bold mb-2">Drag and drop your document</h3>
-              <p className="text-gray-600 mb-6">or</p>
-              <label htmlFor="fileInput" className="btn-primary inline-block cursor-pointer">
-                Browse Files
-              </label>
-              <p className="text-sm text-gray-500 mt-4">
-                Supported formats: PDF, Word (.doc, .docx), and Text (.txt)
+            <div 
+              onDragEnter={handleDrag}
+              onDragLeave={handleDrag}
+              onDragOver={handleDrag}
+              onDrop={handleDrop}
+              className="w-full h-full flex flex-col items-center justify-center p-8 text-center cursor-pointer"
+              onClick={() => document.getElementById('fileInput').click()}
+            >
+              <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                <Upload className="text-primary" size={32} />
+              </div>
+              <h3 className="text-2xl font-black text-white mb-2">Drop your neural data here</h3>
+              <p className="text-gray-500 max-w-xs mx-auto text-sm leading-relaxed">
+                PDF, Word, or Text files up to 50MB. Click to browse your local storage.
               </p>
-            </>
+            </div>
           ) : (
-            <div className="space-y-6">
-              <div className="flex items-center justify-center space-x-4">
-                <FileText className="text-primary" size={48} />
-                <div className="text-left">
-                  <p className="font-semibold text-lg">{currentFile.name}</p>
-                  <p className="text-gray-600">
-                    {(currentFile.size / 1024 / 1024).toFixed(2)} MB
+            <div className="w-full space-y-8 animate-scale-in flex flex-col items-center">
+              <div className="flex items-center gap-6 p-6 glass rounded-2xl w-full max-w-md">
+                <div className="p-4 bg-primary/20 rounded-xl">
+                  <FileText className="text-primary" size={32} />
+                </div>
+                <div className="flex-1 truncate text-left">
+                  <p className="font-black text-white truncate">{currentFile.name}</p>
+                  <p className="text-[10px] text-gray-500 uppercase font-black tracking-widest leading-none mt-1">
+                    {(currentFile.size / 1024 / 1024).toFixed(2)} MB • Ready to Process
                   </p>
                 </div>
               </div>
-              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+
+              <div className="flex gap-4">
                 <button
                   onClick={() => setCurrentFile(null)}
-                  className="btn-outline"
+                  className="px-6 py-3 rounded-full border border-white/10 text-gray-400 font-bold text-sm hover:bg-white/5 transition-all"
                   disabled={uploading}
                 >
-                  Change File
+                  Discard
                 </button>
-                <ClickSparkButton
+                <button
                   onClick={handleUpload}
-                  className="btn-primary flex items-center justify-center space-x-2"
+                  className="gooey-button h-[48px] min-w-[180px] flex items-center justify-center gap-2"
                   disabled={uploading}
                 >
                   {uploading ? (
                     <>
-                      <span className="animate-spin">⏳</span>
-                      <span>Uploading...</span>
+                      <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      <span>Syncing...</span>
                     </>
                   ) : (
                     <>
-                      <Check size={20} />
-                      <span>Process Document</span>
+                      <Zap size={18} className="fill-white" />
+                      <span>Inject Knowledge</span>
                     </>
                   )}
-                </ClickSparkButton>
+                </button>
               </div>
             </div>
           )}
-        </div>
-        
-        {/* Uploaded Files List */}
-        {files.length > 0 && (
-          <div className="mt-12">
-            <UploadedFilesList files={files} onRemove={removeFile} />
-          </div>
-        )}
-        
-        {/* Benefits */}
-        <div className="mt-16 grid md:grid-cols-3 gap-8">
-          {[
-            {
-              title: 'Fast Processing',
-              desc: 'Your document is analyzed in seconds using advanced AI'
-            },
-            {
-              title: 'Secure Upload',
-              desc: 'All files are encrypted and stored securely'
-            },
-            {
-              title: 'Easy Access',
-              desc: 'Ask questions and get instant answers about your content'
-            }
-          ].map((benefit, idx) => (
-            <div key={idx} className="card text-center">
-              <h3 className="font-bold mb-2">{benefit.title}</h3>
-              <p className="text-gray-600">{benefit.desc}</p>
+
+          {error && (
+            <div className="absolute bottom-6 left-6 right-6 p-4 glass rounded-2xl border-red-500/30 flex items-center gap-3 animate-slide-up">
+               <AlertCircle className="text-red-500" size={18} />
+               <p className="text-xs font-bold text-red-500">{error}</p>
             </div>
-          ))}
+          )}
+        </div>
+
+        {/* Info Bento Pieces */}
+        <div className="flex flex-col gap-6">
+          <div className="bento-card p-6 flex flex-col justify-between h-[180px] group overflow-hidden bg-gradient-to-br from-[#0c0c0c] to-[#050505]">
+             <div className="p-3 bg-blue-500/10 rounded-xl w-fit">
+               <Shield className="text-blue-500" size={20} />
+             </div>
+             <div>
+               <h4 className="font-black text-lg text-white">Neural Security</h4>
+               <p className="text-[11px] text-gray-500 font-medium">Bank-grade encryption for all processed documents.</p>
+             </div>
+             <div className="absolute top-[-20px] right-[-20px] w-24 h-24 bg-blue-500/5 blur-2xl rounded-full" />
+          </div>
+
+          <div className="bento-card p-6 flex flex-col justify-between h-[180px] group overflow-hidden bg-gradient-to-br from-[#0c0c0c] to-[#050505]">
+             <div className="p-3 bg-emerald-500/10 rounded-xl w-fit">
+               <Zap className="text-emerald-500" size={20} />
+             </div>
+             <div>
+               <h4 className="font-black text-lg text-white">Rapid Indexing</h4>
+               <p className="text-[11px] text-gray-500 font-medium">Sub-second retrieval for large knowledge bases.</p>
+             </div>
+             <div className="absolute top-[-20px] right-[-20px] w-24 h-24 bg-emerald-500/5 blur-2xl rounded-full" />
+          </div>
         </div>
       </div>
+
+      {/* Uploaded History - Bento Piece */}
+      {files.length > 0 && (
+        <div className="bento-card min-h-[200px] border-white/5">
+           <div className="flex items-center justify-between mb-8">
+              <h3 className="text-2xl font-black text-white tracking-tight">Active Repositories</h3>
+              <div className="px-3 py-1 bg-white/5 rounded-full text-[10px] font-black text-gray-500 uppercase tracking-widest tracking-widest border border-white/5">
+                 {files.length} indexed
+              </div>
+           </div>
+           <UploadedFilesList files={files} onRemove={removeFile} />
+        </div>
+      )}
     </div>
   )
 }
