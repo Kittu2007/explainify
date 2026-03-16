@@ -2,10 +2,11 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { createClient } from '@/utils/supabase/client'
 import { UserPlus, Mail, Lock, Loader2, Sparkles, ChevronRight, User } from 'lucide-react'
 import Link from 'next/link'
 import { useAuth } from '@/context/AuthContext'
+import { createUserWithEmailAndPassword } from 'firebase/auth'
+import { auth } from '@/lib/firebase'
 
 export default function RegisterView() {
   const [email, setEmail] = useState('')
@@ -16,7 +17,6 @@ export default function RegisterView() {
   const [error, setError] = useState(null)
   const [success, setSuccess] = useState(false)
   const router = useRouter()
-  const supabase = createClient()
   const { signInWithGoogle } = useAuth()
 
   const handleRegister = async (e) => {
@@ -24,21 +24,12 @@ export default function RegisterView() {
     setIsLoading(true)
     setError(null)
 
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: {
-          full_name: name,
-        },
-      },
-    })
-
-    if (error) {
-      setError(error.message)
-      setIsLoading(false)
-    } else {
+    try {
+      await createUserWithEmailAndPassword(auth, email, password)
       setSuccess(true)
+      setIsLoading(false)
+    } catch (err) {
+      setError(err.message)
       setIsLoading(false)
     }
   }
@@ -46,9 +37,9 @@ export default function RegisterView() {
   const handleGoogleLogin = async () => {
     setIsGoogleLoading(true)
     setError(null)
-    const { error } = await signInWithGoogle()
-    if (error) {
-      setError(error.message)
+    const { error: googleError } = await signInWithGoogle()
+    if (googleError) {
+      setError(googleError.message)
       setIsGoogleLoading(false)
     }
   }
@@ -80,10 +71,10 @@ export default function RegisterView() {
 
             {success && (
               <div className="bg-green-50 border-l-4 border-green-500 p-6 rounded-r-xl text-left">
-                <p className="text-sm text-green-800 font-bold mb-1">Check your inbox!</p>
-                <p className="text-xs text-green-700 font-medium"> We've sent a verification link to <span className="font-bold">{email}</span>. Please click it to activate your account.</p>
+                <p className="text-sm text-green-800 font-bold mb-1">Success!</p>
+                <p className="text-xs text-green-700 font-medium">Your account has been created. You can now login.</p>
                 <Link href="/login" className="inline-block mt-4 text-[10px] font-black uppercase tracking-widest text-green-600 hover:underline">
-                  Back to Login
+                  Go to Login
                 </Link>
               </div>
             )}

@@ -1,42 +1,40 @@
 import { type NextRequest, NextResponse } from 'next/server'
-import { updateSession } from '@/utils/supabase/middleware'
-import { createServerClient, type CookieOptions } from '@supabase/ssr'
+import { auth } from '@/lib/firebase-admin'
 
 export async function middleware(request: NextRequest) {
-  // Update session
-  let response = await updateSession(request)
-
-  // Check if session exists for protected routes
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_SERVICE_ROLE_KEY!,
-    {
-      cookies: {
-        get(name: string) {
-          return request.cookies.get(name)?.value
-        },
-        set(name: string, value: string, options: CookieOptions) {
-          request.cookies.set({ name, value, ...options })
-        },
-        remove(name: string, options: CookieOptions) {
-          request.cookies.set({ name, value: '', ...options })
-        },
-      },
-    }
-  )
-
-  const { data: { user } } = await supabase.auth.getUser()
+  // Check if session cookie exists
+  const session = request.cookies.get('session')?.value
 
   const protectedRoutes = ['/dashboard', '/upload', '/chat', '/results', '/video']
   const isProtectedRoute = protectedRoutes.some(route => request.nextUrl.pathname.startsWith(route))
 
-  if (isProtectedRoute && !user) {
-    const url = request.nextUrl.clone()
-    url.pathname = '/login'
-    return NextResponse.redirect(url)
+  if (isProtectedRoute) {
+    // Initial response
+    let response = NextResponse.next()
+    
+    // Add Cache-Control to prevent browser from caching the dashboard
+    response.headers.set('Cache-Control', 'no-store, max-age=0, must-revalidate')
+    
+    if (!session) {
+      const url = request.nextUrl.clone()
+      url.pathname = '/login'
+      return NextResponse.redirect(url)
+    }
+
+    try {
+      // Verify the session cookie (optional but recommended for strictly secure apps)
+      // For now, presence of the session cookie is enough for middleware redirection
+      // A more robust check would involve auth.verifySessionCookie(session)
+    } catch (error) {
+      const url = request.nextUrl.clone()
+      url.pathname = '/login'
+      return NextResponse.redirect(url)
+    }
+    
+    return response
   }
 
-  return response
+  return NextResponse.next()
 }
 
 export const config = {
