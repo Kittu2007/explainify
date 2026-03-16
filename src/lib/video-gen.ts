@@ -37,7 +37,10 @@ export async function generateVideoClip(prompt: string): Promise<string> {
       
       // Special handling for Google AI Studio (SVG Generation)
       if (modelId.startsWith("google/gemini")) {
-        if (!googleApiKey) throw new Error("Google AI Studio key missing");
+        if (!googleApiKey) {
+          console.error("[VisualGen] Google AI Studio Key is MISSING in runtime.");
+          throw new Error("GOOGLE_API_KEY_MISSING");
+        }
         
         const shortModelId = modelId.split('/')[1];
         const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${shortModelId}:generateContent?key=${googleApiKey}`, {
@@ -46,7 +49,7 @@ export async function generateVideoClip(prompt: string): Promise<string> {
           body: JSON.stringify({
             contents: [{
               parts: [{
-                text: `${prompt}\n\nStrict Requirement: Generate a high-fidelity, professional 2D scientific SVG schematic. Clean academic style, university-grade labels, white background. Return ONLY the SVG code without any markdown or code blocks.`
+                text: `${prompt}\n\nStrict Requirement: Generate a high-fidelity, professional 2D scientific SVG schematic. Clean academic style, university-grade labels, white background. Return the SVG code directly.`
               }]
             }]
           })
@@ -54,22 +57,27 @@ export async function generateVideoClip(prompt: string): Promise<string> {
 
         if (!response.ok) {
            const errText = await response.text();
-           console.error("[VisualGen] Google AI Studio Error:", errText);
+           console.error(`[VisualGen] Google API Error (${response.status}):`, errText);
+           
+           if (response.status === 429) {
+             throw new Error("GOOGLE_RATE_LIMIT");
+           }
            throw new Error(`Google API Error: ${response.status}`);
         }
 
         const data = await response.json();
-        let svgCode = data.candidates?.[0]?.content?.parts?.[0]?.text || "";
+        const rawContent = data.candidates?.[0]?.content?.parts?.[0]?.text || "";
         
-        // Clean up SVG code if it contains markdown markers
-        svgCode = svgCode.replace(/```svg/g, '').replace(/```/g, '').trim();
-        
-        if (svgCode.includes('<svg')) {
-          console.log("[VisualGen] Successfully generated SVG via Gemini");
+        // Robust Regex for SVG extraction
+        const svgMatch = rawContent.match(/<svg[\s\S]*?<\/svg>/);
+        if (svgMatch) {
+          const svgCode = svgMatch[0];
+          console.log("[VisualGen] Successfully extracted SVG via Gemini");
           const encodedSvg = Buffer.from(svgCode).toString('base64');
           return `data:image/svg+xml;base64,${encodedSvg}`;
         }
         
+        console.warn("[VisualGen] Model returned text but no SVG block found:", rawContent.substring(0, 100));
         throw new Error("Invalid SVG output from Gemini");
       }
 
