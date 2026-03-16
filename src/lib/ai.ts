@@ -11,7 +11,7 @@ const getClient = () => {
   });
 };
 
-const LLM_MODEL = "deepseek-ai/deepseek-v3.1";
+const LLM_MODEL = "google/gemma-3n-e4b-it";
 
 /**
  * Answer a question using retrieved document context (RAG).
@@ -46,7 +46,8 @@ Instructions:
         content: `## Document Context\n${context}\n\n## Question\n${question}`,
       },
     ],
-    temperature: 0.1, // Lower temperature for higher precision
+    temperature: 0.2,
+    top_p: 0.7,
     max_tokens: 2048,
   });
 
@@ -79,7 +80,8 @@ Instructions:
         content: text,
       },
     ],
-    temperature: 0.1,
+    temperature: 0.2,
+    top_p: 0.7,
     max_tokens: 2048,
   });
 
@@ -153,7 +155,8 @@ Rules: 5-8 scenes, 10-20s each. Return ONLY JSON.`,
         content: `## Topic\n${topic}\n\n## Document Context\n${context}`,
       },
     ],
-    temperature: 0.4,
+    temperature: 0.2, 
+    top_p: 0.7,
     max_tokens: 3000,
   });
 
@@ -198,7 +201,8 @@ export async function askWithContextStream(
         content: `## Document Context\n${context}\n\n## Question\n${question}`,
       },
     ],
-    temperature: 0.1,
+    temperature: 0.2,
+    top_p: 0.7,
     stream: true,
   });
 }
