@@ -34,6 +34,7 @@ export function AuthProvider({ children }) {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
         setUser(firebaseUser)
+<<<<<<< HEAD
         // Sync session cookie in background
         firebaseUser.getIdToken().then(idToken => {
           fetch('/api/auth/session', {
@@ -42,6 +43,17 @@ export function AuthProvider({ children }) {
             body: JSON.stringify({ idToken }),
           }).catch(e => console.error("Session sync failed", e));
         }).catch(e => console.error("Token retrieval failed", e));
+=======
+        // Set session cookie for middleware
+        try {
+          const idToken = await firebaseUser.getIdToken()
+          await fetch('/api/auth/session', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ idToken }),
+          })
+        } catch (e) { console.error("Session update failed", e) }
+>>>>>>> main
       } else {
         setUser(null)
         // Clear session cookie in background
