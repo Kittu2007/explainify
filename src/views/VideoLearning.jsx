@@ -31,40 +31,57 @@ export default function VideoLearning() {
       const synthesizeVideos = async () => {
         for (let i = 0; i < scenes.length; i++) {
           if (!scenes[i].videoUrl && !scenes[i].error) {
-            let retryCount = 0;
+            let attempt = 0;
             let success = false;
             
-            while (retryCount < 2 && !success) {
+            while (attempt < 2 && !success) {
               try {
                 const res = await fetch('/api/video-synthesize', {
                   method: 'POST',
                   headers: { 'Content-Type': 'application/json' },
                   body: JSON.stringify({ prompt: scenes[i].video_prompt })
                 });
+                
                 if (res.ok) {
                   const { videoUrl } = await res.json();
                   setScenes(prev => {
-                    const newScenes = [...prev];
-                    newScenes[i] = { ...newScenes[i], videoUrl, error: false };
-                    return newScenes;
+                    const updated = [...prev];
+                    updated[i] = { ...updated[i], videoUrl, error: false };
+                    return updated;
                   });
                   setSynthesizedCount(prev => prev + 1);
                   success = true;
                 } else {
-                  throw new Error(`Status: ${res.status}`);
+                  const errData = await res.json().catch(() => ({}));
+                  const errMsg = errData.error || `Status: ${res.status}`;
+                  
+                  if (errMsg.includes("CREDIT") || errMsg.includes("SHORTFALL")) {
+                     setScenes(prev => {
+                       const updated = [...prev];
+                       updated[i] = { ...updated[i], error: true, errorType: 'CREDITS' };
+                       return updated;
+                     });
+                     // If credits are the issue, don't bother retrying or checking other scenes
+                     return; 
+                  }
+                  throw new Error(errMsg);
                 }
               } catch (err) {
-                console.error(`Failed to synthesize scene ${i} (attempt ${retryCount + 1}):`, err);
-                retryCount++;
-                if (retryCount === 2) {
+                console.error(`Synthesis failed for scene ${i}, attempt ${attempt + 1}:`, err);
+                if (attempt === 1) { // 2 attempts max (0 and 1)
                   setScenes(prev => {
-                    const newScenes = [...prev];
-                    newScenes[i] = { ...newScenes[i], error: true };
-                    return newScenes;
+                    const updated = [...prev];
+                    updated[i] = { ...updated[i], error: true, errorType: 'SYSTEM' };
+                    return updated;
                   });
                 }
+              }
+              if (!success) {
+                attempt++;
                 // Wait before retry
-                await new Promise(r => setTimeout(r, 2000));
+                if (attempt < 2) { // Only wait if there's another attempt
+                  await new Promise(r => setTimeout(r, 2000));
+                }
               }
             }
           }
@@ -362,6 +379,18 @@ export default function VideoLearning() {
                 </div>
                 <span className="text-[9px] font-bold text-gray-400 uppercase tracking-widest px-2">Scientific Core Active</span>
               </div>
+
+              {scenes.some(s => s.errorType === 'CREDITS') && (
+                <div className="mb-6 p-4 rounded-2xl bg-orange-500/10 border border-orange-500/20 text-orange-500 flex items-start gap-4 text-left max-w-md mx-auto animate-bounce-subtle">
+                  <AlertCircle size={20} className="flex-shrink-0 mt-0.5" />
+                  <div>
+                    <p className="text-xs font-black uppercase tracking-widest mb-1">API Credit Shortfall</p>
+                    <p className="text-[10px] font-bold opacity-80 leading-relaxed uppercase">
+                      Your OpenRouter or ByteZ balance is depleted. Please refuel your API accounts to resume high-precision figure synthesis.
+                    </p>
+                  </div>
+                </div>
+              )}
            </div>
 
            <div className="bento-card p-8 border-white/5 h-[450px] flex flex-col">
@@ -394,16 +423,20 @@ export default function VideoLearning() {
                        <div className="flex items-center gap-2">
                           <span className={`text-[9px] font-black tracking-widest uppercase px-2 py-0.5 rounded-md ${currentSceneIndex === idx ? 'bg-primary text-white' : 'bg-white/5 text-gray-600'}`}>0{idx + 1}</span>
                           {!scene.videoUrl && (
-                             <div className="flex items-center gap-1.5 px-2 py-0.5 bg-white/5 rounded-md">
+                             <div className="flex items-center gap-2">
                                 {scene.error ? (
-                                   <AlertCircle size={8} className="text-red-500" />
+                                  <span className={`text-[8px] font-black uppercase px-2 py-0.5 rounded-full ${
+                                    scene.errorType === 'CREDITS' ? 'bg-orange-500/20 text-orange-500' : 'bg-red-500/20 text-red-500'
+                                  }`}>
+                                    {scene.errorType === 'CREDITS' ? 'Refuel Required' : 'Synthesis Halted'}
+                                  </span>
                                 ) : (
-                                   <Loader2 size={8} className="text-gray-600 animate-spin" />
+                                  <span className={`text-[8px] font-black uppercase px-2 py-0.5 rounded-full ${idx === currentSceneIndex ? 'bg-primary/20 text-primary' : 'bg-white/5 text-gray-500'}`}>
+                                    {idx === currentSceneIndex ? 'Active' : scene.videoUrl ? 'Ready' : 'Pending'}
+                                  </span>
                                 )}
-                                <span className={`text-[8px] font-black uppercase tracking-widest text-[7px] ${scene.error ? 'text-red-500' : 'text-gray-600'}`}>
-                                   {scene.error ? 'Synthesis Halted' : 'Buffering'}
-                                </span>
-                             </div>
+                                <Zap size={10} className={idx === currentSceneIndex ? "text-primary fill-primary" : "text-gray-500"} />
+                              </div>
                           )}
                        </div>
                        {currentSceneIndex === idx && <Zap size={12} className="text-primary fill-primary animate-pulse" />}
