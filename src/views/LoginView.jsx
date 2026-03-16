@@ -19,9 +19,9 @@ export default function LoginView() {
   // Permanent fix for redirection: listen to global auth state
   useEffect(() => {
     if (user && !isAuthLoading) {
-      router.push('/dashboard/upload')
+      window.location.href = '/dashboard/upload'
     }
-  }, [user, isAuthLoading, router])
+  }, [user, isAuthLoading])
 
   const handleLogin = async (e) => {
     e.preventDefault()
@@ -34,7 +34,7 @@ export default function LoginView() {
       setError(loginError.message)
       setIsLoading(false)
     } else {
-      router.push('/dashboard/upload')
+      window.location.href = '/dashboard/upload'
     }
   }
 

@@ -21,9 +21,9 @@ export default function RegisterView() {
   // Permanent fix for redirection: listen to global auth state
   useEffect(() => {
     if (user && !isAuthLoading) {
-      router.push('/dashboard/upload')
+      window.location.href = '/dashboard/upload'
     }
-  }, [user, isAuthLoading, router])
+  }, [user, isAuthLoading])
 
   const handleRegister = async (e) => {
     e.preventDefault()
@@ -36,17 +36,23 @@ export default function RegisterView() {
       setError(regError.message)
       setIsLoading(false)
     } else {
-      setSuccess(true)
-      setIsLoading(false)
+      window.location.href = '/dashboard/upload'
     }
   }
 
   const handleGoogleLogin = async () => {
     setIsGoogleLoading(true)
     setError(null)
-    const { error: googleError } = await signInWithGoogle()
-    if (googleError) {
-      setError(googleError.message)
+    try {
+      const { user, error: googleError } = await signInWithGoogle()
+      if (googleError) {
+        setError(googleError.message)
+        setIsGoogleLoading(false)
+      } else if (user) {
+        window.location.href = '/dashboard/upload'
+      }
+    } catch (err) {
+      setError(err.message)
       setIsGoogleLoading(false)
     }
   }
