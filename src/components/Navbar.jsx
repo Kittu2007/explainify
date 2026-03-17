@@ -4,6 +4,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { Menu, X, LogOut, User, LogIn } from 'lucide-react'
 import { useState } from 'react'
 import { useAuth } from '@/context/AuthContext'
+import ClickSparkButton from './ClickSparkButton'
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false)
@@ -66,13 +67,13 @@ export default function Navbar() {
                   </button>
                 </div>
               ) : (
-                <Link 
-                  href="/login"
+                <ClickSparkButton 
+                  onClick={() => router.push("/login")}
                   className="flex items-center gap-2 px-5 py-2.5 bg-primary hover:bg-secondary text-white rounded-xl text-sm font-bold transition-all shadow-lg shadow-primary/20 group"
                 >
                   <LogIn size={16} />
                   <span>Sign In</span>
-                </Link>
+                </ClickSparkButton>
               )}
             </div>
           </div>
@@ -114,13 +115,15 @@ export default function Navbar() {
               </Link>
             ))}
             {!user && (
-              <Link
-                href="/login"
-                onClick={() => setIsOpen(false)}
-                className="block px-4 py-3 bg-primary text-white font-black uppercase tracking-widest text-[10px] rounded-xl text-center shadow-lg mx-2 mt-4"
+              <ClickSparkButton
+                onClick={() => {
+                  setIsOpen(false);
+                  router.push("/login");
+                }}
+                className="block w-[95%] px-4 py-3 bg-primary text-white font-black uppercase tracking-widest text-[10px] rounded-xl text-center shadow-lg mx-2 mt-4"
               >
                 Sign In
-              </Link>
+              </ClickSparkButton>
             )}
           </div>
         )}

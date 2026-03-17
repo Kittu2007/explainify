@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import ParticlesBackground from "./ParticlesBackground";
+import ClickSparkButton from "./ClickSparkButton";
 
 export default function HeroSection() {
   const router = useRouter();
@@ -89,17 +90,12 @@ export default function HeroSection() {
           </motion.div>
         </div>
         {/* Glowing CTA Button */}
-        <motion.button
+        <ClickSparkButton
           onClick={() => router.push("/dashboard/upload")}
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.3 }}
-          whileHover={{ scale: 1.08, boxShadow: "0 0 40px #A855F7, 0 0 80px #7C3AED" }}
-          whileTap={{ scale: 0.95 }}
-          className="px-12 py-5 bg-gradient-to-r from-[#A855F7] via-[#7C3AED] to-[#5B21B6] rounded-xl font-semibold text-2xl transition-all duration-300 shadow-2xl text-white border border-[#C4B5FD]/30 hover:shadow-[0_0_40px_#A855F7,0_0_80px_#7C3AED]"
+          className="px-12 py-5 bg-gradient-to-r from-[#A855F7] via-[#7C3AED] to-[#5B21B6] rounded-xl font-semibold text-2xl transition-all duration-300 shadow-2xl text-white border border-[#C4B5FD]/30 hover:shadow-[0_0_40px_#A855F7,0_0_80px_#7C3AED] hover:scale-105"
         >
           Upload Document
-        </motion.button>
+        </ClickSparkButton>
         {/* Subtext */}
         <motion.p
           initial={{ opacity: 0 }}
