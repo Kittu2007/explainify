@@ -26,6 +26,7 @@ export async function generateNarrationAudio(text: string): Promise<string> {
 
     if (Buffer.isBuffer(output)) {
       const base64 = output.toString("base64");
+      console.log(`[TTS] Generated payload: ${base64.length} bytes`);
       return `data:audio/mpeg;base64,${base64}`;
     }
 
