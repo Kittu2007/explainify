@@ -45,19 +45,14 @@ export default function VideoLearning() {
 
   const isSynthesizingVideoRef = useRef(false);
   const isSynthesizingAudioRef = useRef(false);
-  const audioUrlsRef = useRef({}); // Cache object URLs
   const [isAudioPrimed, setIsAudioPrimed] = useState(false);
 
-  // Robust Blob conversion using fetch (handles Data URIs more reliably)
-  const dataUriToBlobUrl = async (dataUri) => {
+  // Helper: Safely Base64 encode text for URLs
+  const encodeText = (text) => {
     try {
-      if (dataUri.startsWith('http')) return dataUri; // Skip conversion for direct URLs
-      const response = await fetch(dataUri);
-      const blob = await response.blob();
-      return URL.createObjectURL(blob);
+      return btoa(unescape(encodeURIComponent(text)));
     } catch (e) {
-      console.error("Blob conversion failed:", e);
-      return dataUri;
+      return encodeURIComponent(text);
     }
   };
 
@@ -123,30 +118,16 @@ export default function VideoLearning() {
         isSynthesizingAudioRef.current = true;
         try {
           for (let i = 0; i < scenes.length; i++) {
-            if (!scenes[i].audioUrl && !scenes[i].error) {
-              try {
-                const res = await fetch('/api/audio-synthesize', {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({ text: scenes[i].narration })
+             if (!scenes[i].audioUrl) {
+                // Instantly assign the binary proxy URL
+                const binaryUrl = `/api/audio-synthesize?t=${encodeText(scenes[i].narration)}`;
+                setScenes(prev => {
+                  const updated = [...prev];
+                  updated[i] = { ...updated[i], audioUrl: binaryUrl };
+                  return updated;
                 });
-                
-                if (res.ok) {
-                  const data = await res.json();
-                  const blobUrl = await dataUriToBlobUrl(data.audioUrl);
-                  audioUrlsRef.current[i] = blobUrl;
-                  
-                  setScenes(prev => {
-                    const updated = [...prev];
-                    updated[i] = { ...updated[i], audioUrl: blobUrl };
-                    return updated;
-                  });
-                  setAudioSynthesizedCount(prev => prev + 1);
-                }
-              } catch (err) {
-                console.error(`Audio failed for scene ${i}`, err);
-              }
-            }
+                setAudioSynthesizedCount(prev => prev + 1);
+             }
           }
         } finally {
           isSynthesizingAudioRef.current = false;
@@ -242,12 +223,10 @@ export default function VideoLearning() {
     }
   }, [currentSceneIndex, isPlaying, scenes[currentSceneIndex]?.audioUrl, isMuted, volume]);
 
-  // Clean up ObjectURLs on unmount
+  // Clean up simplified
   useEffect(() => {
     return () => {
-      Object.values(audioUrlsRef.current).forEach(url => {
-        if (url.startsWith('blob:')) URL.revokeObjectURL(url);
-      });
+      // No object URLs to revoke anymore
     };
   }, []);
 
