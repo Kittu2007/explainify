@@ -70,6 +70,19 @@
   }
 }
 
+@layer components {
+  .bento-card {
+    @apply glass rounded-[2rem] p-8 transition-all duration-300 hover:border-primary/30 hover:shadow-[0_0_30px_rgba(230,41,255,0.1)];
+  }
+
+  .pill-nav-item {
+    @apply px-4 py-2 rounded-full transition-all duration-300 relative overflow-hidden flex items-center gap-2;
+  }
+
+  .gooey-button {
+    @apply relative px-8 py-3 bg-primary text-white font-bold rounded-full transition-all duration-300 hover:scale-105 active:scale-95 shadow-[0_0_20px_rgba(230,41,255,0.3)];
+  }
+
   .magic-bento {
     @apply relative overflow-hidden transition-all duration-700 border border-white/5;
     background: linear-gradient(135deg, rgba(15, 15, 15, 0.7) 0%, rgba(5, 5, 5, 0.9) 100%);
