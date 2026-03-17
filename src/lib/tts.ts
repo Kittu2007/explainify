@@ -24,9 +24,9 @@ export async function generateNarrationAudio(text: string): Promise<string> {
       throw new Error(`TTS generation failed: ${JSON.stringify(error)}`);
     }
 
-    if (output instanceof Buffer) {
+    if (Buffer.isBuffer(output)) {
       const base64 = output.toString("base64");
-      return `data:audio/mp3;base64,${base64}`;
+      return `data:audio/mpeg;base64,${base64}`;
     }
 
     if (typeof output === 'string' && output.startsWith('data:')) {
