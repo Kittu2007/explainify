@@ -169,10 +169,15 @@ const GooeyNav = ({
           .effect.text {
             color: #EBD3F8;
             transition: color 0.3s ease;
-            font-size: 0.875rem;
+            font-size: 0.7rem;
             font-weight: 700;
             text-transform: uppercase;
             letter-spacing: 0.05em;
+          }
+          @media (min-width: 768px) {
+            .effect.text {
+              font-size: 0.875rem;
+            }
           }
           .effect.text.active {
             color: white;
@@ -300,7 +305,7 @@ const GooeyNav = ({
         <nav className="flex relative" style={{ transform: 'translate3d(0,0,0.01px)' }}>
           <ul
             ref={navRef}
-            className="flex gap-4 list-none p-0 px-4 m-0 relative z-[3]"
+            className="flex gap-1 md:gap-4 list-none p-0 px-2 md:px-4 m-0 relative z-[3]"
             style={{
               color: '#EBD3F8',
               textShadow: '0 1px 1px hsl(205deg 30% 10% / 0.2)'
@@ -309,7 +314,7 @@ const GooeyNav = ({
             {items.map((item, index) => (
               <li
                 key={index}
-                className={`rounded-full relative cursor-pointer transition-[background-color_color_box-shadow] duration-300 ease text-sm font-bold uppercase tracking-wider ${
+                className={`rounded-full relative cursor-pointer transition-[background-color_color_box-shadow] duration-300 ease text-[10px] md:text-sm font-bold uppercase tracking-wider ${
                   activeIndex === index ? 'active' : 'hover:text-white'
                 }`}
               >
@@ -321,7 +326,7 @@ const GooeyNav = ({
                   }}
                   href={item.href}
                   onKeyDown={e => handleKeyDown(e, index)}
-                  className="outline-none py-[0.8em] px-[1.2em] inline-block no-underline"
+                  className="outline-none py-[0.6em] px-[0.8em] md:py-[0.8em] md:px-[1.2em] inline-block no-underline"
                 >
                   {item.label}
                 </a>

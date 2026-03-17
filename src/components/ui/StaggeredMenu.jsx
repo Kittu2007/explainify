@@ -83,12 +83,12 @@ export const StaggeredMenu = ({
         >
           <div className="relative w-4 h-4 md:w-5 md:h-5 flex items-center justify-center">
             {open ? (
-              <X size={18} className="text-primary animate-in spin-in-90 duration-300" />
+              <X className="text-primary animate-in spin-in-90 duration-300 w-4 h-4 md:w-[18px] md:h-[18px]" />
             ) : (
-              <History size={18} className="text-primary animate-in zoom-in duration-300" />
+              <History className="text-primary animate-in zoom-in duration-300 w-4 h-4 md:w-[18px] md:h-[18px]" />
             )}
           </div>
-          <span className="text-[10px] md:text-xs font-black uppercase tracking-widest text-[#EBD3F8] group-hover:text-white transition-colors">
+          <span className="hidden sm:inline text-[10px] md:text-xs font-black uppercase tracking-widest text-[#EBD3F8] group-hover:text-white transition-colors">
             {open ? 'Close' : 'History'}
           </span>
         </button>
