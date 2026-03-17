@@ -138,7 +138,7 @@ export default function ResultsDashboard() {
             className="flex-1 md:flex-none gooey-button flex items-center justify-center gap-2 px-4 md:px-8 py-2 md:py-3"
           >
             <span className="text-[10px] md:text-sm">Visualize Insights</span>
-            <ArrowRight size={16} md:size={18} />
+            <ArrowRight className="w-4 h-4 md:w-4.5 md:h-4.5" />
           </button>
         </div>
       </div>
@@ -149,7 +149,7 @@ export default function ResultsDashboard() {
           <div className="magic-bento min-h-[300px] md:min-h-[500px] border-white/5 p-6 md:p-12 rounded-[2rem] md:rounded-[3.5rem]">
             <div className="flex items-center gap-3 mb-6 md:mb-10">
               <div className="p-2.5 md:p-4 bg-primary/10 rounded-xl md:rounded-3xl">
-                <FileText className="text-primary" size={24} md:size={32} />
+                <FileText className="text-primary w-6 h-6 md:w-8 md:h-8" />
               </div>
               <h2 className="text-xl md:text-3xl font-black text-white tracking-tight">Executive Summary</h2>
             </div>

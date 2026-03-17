@@ -254,7 +254,7 @@ export default function VideoLearning() {
             onClick={() => generateVideoContent()}
             className="flex-1 md:flex-none gooey-button flex items-center justify-center gap-2 px-4 md:px-8 py-2 md:py-3"
           >
-            <RotateCcw size={16} md:size={18} />
+            <RotateCcw className="w-4 h-4 md:w-[18px] md:h-[18px]" />
             <span className="text-[10px] md:text-sm">Re-Synthesize</span>
           </button>
         </div>
@@ -274,16 +274,20 @@ export default function VideoLearning() {
                className="absolute inset-0 z-30 opacity-0 group-hover:opacity-100 transition-all duration-700 flex items-center justify-center bg-black/40 backdrop-blur-[2px] cursor-pointer"
                onClick={() => setIsPlaying(!isPlaying)}
              >
-               <div className="w-16 h-16 md:w-24 md:h-24 bg-white/10 hover:bg-white/20 rounded-full backdrop-blur-3xl flex items-center justify-center border border-white/10 shadow-2xl transform hover:scale-110 active:scale-95 transition-all">
-                 {isPlaying ? <Pause className="text-white" size={32} md:size={40} fill="white" /> : <Play className="text-white ml-2" size={32} md:size={40} fill="white" />}
-               </div>
+                <div className="w-16 h-16 md:w-24 md:h-24 bg-white/10 hover:bg-white/20 rounded-full backdrop-blur-3xl flex items-center justify-center border border-white/10 shadow-2xl transform hover:scale-110 active:scale-95 transition-all">
+                  {isPlaying ? (
+                    <Pause className="text-white w-8 h-8 md:w-10 md:h-10" fill="white" />
+                  ) : (
+                    <Play className="text-white ml-1 w-8 h-8 md:w-10 md:h-10" fill="white" />
+                  )}
+                </div>
              </div>
           </div>
 
           {/* New Narration Section */}
           <div className="magic-bento p-6 md:p-10 bg-[#050505]/60 backdrop-blur-3xl border-white/5 animate-fade-in min-h-[100px] md:min-h-[140px] flex flex-col justify-center rounded-[1.5rem] md:rounded-[3rem]">
              <div className="flex items-center gap-2 mb-3 md:mb-4">
-                <Layers size={12} md:size={14} className="text-primary" />
+                <Layers className="text-primary w-3 h-3 md:w-3.5 md:h-3.5" />
                 <span className="text-[8px] md:text-[10px] font-black text-primary uppercase tracking-[0.3em]">Segment {currentSceneIndex + 1} Synthesis</span>
              </div>
              <p className="text-lg md:text-2xl font-bold text-white leading-tight opacity-90 italic">
@@ -322,27 +326,27 @@ export default function VideoLearning() {
              </div>
  
              <div className="flex items-center justify-between gap-4">
-                <div className="flex items-center gap-4 md:gap-8">
-                   <button onClick={() => setCurrentSceneIndex(Math.max(0, currentSceneIndex - 1))} className="p-2 md:p-3 text-gray-500 hover:text-white transition-colors">
-                      <ChevronLeft size={24} md:size={28} strokeWidth={3} />
-                   </button>
-                   <button onClick={() => setIsPlaying(!isPlaying)} className="w-12 h-12 md:w-16 md:h-16 bg-white text-black rounded-full flex items-center justify-center hover:scale-110 active:scale-95 transition-all shadow-[0_0_30px_rgba(255,255,255,0.2)]">
-                      {isPlaying ? <Pause size={24} md:size={28} fill="black" /> : <Play size={24} md:size={28} fill="black" className="ml-1" />}
-                   </button>
-                   <button onClick={() => setCurrentSceneIndex(Math.min(scenes.length - 1, currentSceneIndex + 1))} className="p-2 md:p-3 text-gray-500 hover:text-white transition-colors">
-                      <ChevronRight size={24} md:size={28} strokeWidth={3} />
-                   </button>
-                </div>
+                 <div className="flex items-center gap-4 md:gap-8">
+                    <button onClick={() => setCurrentSceneIndex(Math.max(0, currentSceneIndex - 1))} className="p-2 md:p-3 text-gray-500 hover:text-white transition-colors">
+                       <ChevronLeft className="w-6 h-6 md:w-7 md:h-7" strokeWidth={3} />
+                    </button>
+                    <button onClick={() => setIsPlaying(!isPlaying)} className="w-12 h-12 md:w-16 md:h-16 bg-white text-black rounded-full flex items-center justify-center hover:scale-110 active:scale-95 transition-all shadow-[0_0_30px_rgba(255,255,255,0.2)]">
+                       {isPlaying ? <Pause className="w-6 h-6 md:w-7 md:h-7" fill="black" /> : <Play className="w-6 h-6 md:w-7 md:h-7 ml-1" fill="black" />}
+                    </button>
+                    <button onClick={() => setCurrentSceneIndex(Math.min(scenes.length - 1, currentSceneIndex + 1))} className="p-2 md:p-3 text-gray-500 hover:text-white transition-colors">
+                       <ChevronRight className="w-6 h-6 md:w-7 md:h-7" strokeWidth={3} />
+                    </button>
+                 </div>
  
-                <div className="flex items-center gap-3 md:gap-6">
-                   <div className="px-3 md:px-6 py-2 md:py-3 glass rounded-xl md:rounded-2xl border-white/10 flex items-center gap-2 md:gap-3">
-                      <div className="w-1.5 h-1.5 md:w-2 md:h-2 bg-primary rounded-full animate-pulse" />
-                      <span className="text-[8px] md:text-[10px] font-black text-white uppercase tracking-widest whitespace-nowrap">{currentScene.scene_type || 'neural'} mode</span>
+                   <div className="flex items-center gap-3 md:gap-6">
+                      <div className="px-3 md:px-6 py-2 md:py-3 glass rounded-xl md:rounded-2xl border-white/10 flex items-center gap-2 md:gap-3">
+                         <div className="w-1.5 h-1.5 md:w-2 md:h-2 bg-primary rounded-full animate-pulse" />
+                         <span className="text-[8px] md:text-[10px] font-black text-white uppercase tracking-widest whitespace-nowrap">{currentScene.scene_type || 'neural'} mode</span>
+                      </div>
+                      <button onClick={handleRestart} className="p-3 md:p-4 bg-white/5 hover:bg-white/10 rounded-xl md:rounded-2xl border border-white/10 text-gray-400 hover:text-white transition-all">
+                         <RotateCcw className="w-4 h-4 md:w-5 md:h-5" />
+                      </button>
                    </div>
-                   <button onClick={handleRestart} className="p-3 md:p-4 bg-white/5 hover:bg-white/10 rounded-xl md:rounded-2xl border border-white/10 text-gray-400 hover:text-white transition-all">
-                      <RotateCcw size={16} md:size={20} />
-                   </button>
-                </div>
              </div>
           </div>
         </div>
@@ -353,7 +357,7 @@ export default function VideoLearning() {
            <div className="magic-bento p-6 md:p-10 bg-gradient-to-br from-primary/10 to-transparent border-primary/20 rounded-[1.5rem] md:rounded-[3rem]">
               <div className="flex items-center gap-3 mb-6">
                  <div className="p-2 md:p-3 bg-primary/20 rounded-xl md:rounded-2xl border border-primary/30">
-                    <Activity className="text-primary" size={20} md:size={24} />
+                    <Activity className="text-primary w-5 h-5 md:w-6 md:h-6" />
                  </div>
                   <div>
                     <h3 className="font-black text-sm md:text-lg text-white leading-tight mb-0.5">Neural Synthesis Center</h3>
@@ -432,7 +436,7 @@ export default function VideoLearning() {
               <div className="flex items-center justify-between mb-6 md:mb-8">
                  <div className="flex items-center gap-2 md:gap-3">
                     <div className="p-2 md:p-2.5 bg-white/5 rounded-xl border border-white/10">
-                       <Layers className="text-primary" size={16} md:size={20} />
+                       <Layers className="text-primary w-4 h-4 md:w-5 md:h-5" />
                     </div>
                     <h3 className="font-black text-lg md:text-xl text-white tracking-tight">Timeline</h3>
                  </div>

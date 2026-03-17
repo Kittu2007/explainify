@@ -137,7 +137,7 @@ export default function ChatInterface() {
       <div className="glass mx-auto px-4 md:px-8 py-3 md:py-4 rounded-[1.5rem] md:rounded-[2rem] border border-white/10 w-full mb-4 md:mb-6 flex items-center justify-between shadow-2xl z-20">
         <div className="flex items-center gap-2 md:gap-4 overflow-hidden">
           <div className="p-2 md:p-2.5 bg-primary/10 rounded-xl md:rounded-2xl border border-primary/20 shrink-0">
-            <Cpu className="text-primary" size={18} md:size={20} />
+            <Cpu className="text-primary w-[18px] h-[18px] md:w-5 md:h-5" />
           </div>
           <div className="overflow-hidden">
             <div className="flex items-center gap-2">
@@ -154,7 +154,7 @@ export default function ChatInterface() {
           onClick={() => router.push('/dashboard/upload')}
           className="flex items-center gap-2 px-3 md:px-6 py-2 md:py-2.5 bg-white/5 hover:bg-white/10 text-white rounded-xl md:rounded-2xl transition-all border border-white/5 text-[10px] md:text-xs font-black uppercase tracking-widest active:scale-95 shrink-0"
         >
-          <Plus size={14} md:size={16} className="text-primary" />
+          <Plus className="text-primary w-3.5 h-3.5 md:w-4 md:h-4" />
           <span className="hidden sm:inline">New Thread</span>
           <span className="sm:hidden">New</span>
         </button>
