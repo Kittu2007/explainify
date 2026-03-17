@@ -46,6 +46,7 @@ export async function generateVideoClip(prompt: string): Promise<string> {
 
         const nvidiaModelName = modelId.split('/')[1];
         const invokeUrl = `https://ai.api.nvidia.com/v1/genai/stabilityai/${nvidiaModelName}`;
+        const NEGATIVE_PROMPT = "photorealistic, people, photography, cinematic lighting, complex artwork, presentation slide, decorative background, blurry, low resolution, artistic paintings, colorful backgrounds, 3D render";
 
         const response = await fetch(invokeUrl, {
           method: 'POST',
@@ -55,10 +56,11 @@ export async function generateVideoClip(prompt: string): Promise<string> {
             'Content-Type': 'application/json'
           },
           body: JSON.stringify({
-            "prompt": `High-fidelity professional 2D scientific schematic for a textbook. Flat vector style, clean lines, plain white background. Features precise arrows and clear, legible English labels. Highly detailed, university-grade educational illustration. No gibberish text, only standard technical labels. Subject: ${prompt}`,
-            "cfg_scale": 5,
+            "prompt": `[SCIENTIFIC TEXTBOOK DIAGRAM] ${prompt}. STYLE: simple labeling, clear arrows, engineering schematic, university-grade illustration, 2D vector line art, plain white background, minimal colors, high clarity.`,
+            "negative_prompt": NEGATIVE_PROMPT,
+            "cfg_scale": 7,
             "aspect_ratio": "16:9",
-            "seed": 0,
+            "seed": 42,
             "steps": 50
           })
         });
@@ -96,7 +98,7 @@ export async function generateVideoClip(prompt: string): Promise<string> {
           body: JSON.stringify({
             contents: [{
               parts: [{
-                text: `${prompt}\n\nStrict Requirement: Generate a high-fidelity, professional 2D scientific SVG schematic. Clean academic style, university-grade labels, white background. Return the SVG code directly.`
+                text: `[SCIENTIFIC TEXTBOOK DIAGRAM] ${prompt}\n\nStrict Requirement: Generate a high-fidelity, professional 2D scientific SVG schematic. Clean textbook style, university-grade English labels, simple vector lines, plain white background. Return only the valid SVG code.`
               }]
             }]
           })
