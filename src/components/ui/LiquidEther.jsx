@@ -1,4 +1,5 @@
-﻿import { useEffect, useRef } from 'react';
+﻿" use client\;
+import { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 import './LiquidEther.css';
 
