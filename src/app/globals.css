@@ -70,16 +70,45 @@
   }
 }
 
-@layer components {
-  .bento-card {
-    @apply glass rounded-[2rem] p-8 transition-all duration-300 hover:border-primary/30 hover:shadow-[0_0_30px_rgba(230,41,255,0.1)];
+  .magic-bento {
+    @apply relative overflow-hidden transition-all duration-700 border border-white/5;
+    background: linear-gradient(135deg, rgba(15, 15, 15, 0.7) 0%, rgba(5, 5, 5, 0.9) 100%);
+    backdrop-filter: blur(20px);
   }
 
-  .pill-nav-item {
-    @apply px-4 py-2 rounded-full transition-all duration-300 relative overflow-hidden flex items-center gap-2;
+  .magic-bento:hover {
+    @apply -translate-y-2 border-primary/40 shadow-[0_20px_40px_rgba(0,0,0,0.4)];
   }
 
-  .gooey-button {
-    @apply relative px-8 py-3 bg-primary text-white font-bold rounded-full transition-all duration-300 hover:scale-105 active:scale-95 shadow-[0_0_20px_rgba(230,41,255,0.3)];
+  .magic-bento::before {
+    content: '';
+    @apply absolute inset-0 opacity-0 transition-opacity duration-700 pointer-events-none;
+    background: radial-gradient(circle at var(--mouse-x, 50%) var(--mouse-y, 50%), rgba(230, 41, 255, 0.1) 0%, transparent 70%);
+  }
+
+  .magic-bento:hover::before {
+    @apply opacity-100;
+  }
+
+  .bento-icon-container {
+    @apply p-4 rounded-2xl mb-6 transition-all duration-500 relative;
+  }
+
+  .magic-bento:hover .bento-icon-container {
+    @apply scale-110 rotate-12;
+  }
+
+  .glow-blue {
+    box-shadow: 0 0 20px rgba(59, 130, 246, 0.2);
+  }
+  .magic-bento:hover .glow-blue {
+    box-shadow: 0 0 40px rgba(59, 130, 246, 0.5);
+  }
+
+  .glow-emerald {
+    box-shadow: 0 0 20px rgba(16, 185, 129, 0.2);
+  }
+  .magic-bento:hover .glow-emerald {
+    box-shadow: 0 0 40px rgba(16, 185, 129, 0.5);
   }
 }
