@@ -15,6 +15,7 @@ export default function VideoLearning() {
   const [currentSceneIndex, setCurrentSceneIndex] = useState(0)
   const [error, setError] = useState(null)
   const [synthesizedCount, setSynthesizedCount] = useState(0)
+  const [audioSynthesizedCount, setAudioSynthesizedCount] = useState(0)
   const audioRef = useRef(null)
   
   useEffect(() => {
@@ -25,13 +26,14 @@ export default function VideoLearning() {
     }
   }, [document, documentId, router])
 
-  const isSynthesizingRef = useRef(false);
+  const isSynthesizingVideoRef = useRef(false);
+  const isSynthesizingAudioRef = useRef(false);
 
   // EFFECT: Lazy-load video clips for each scene
   useEffect(() => {
-    if (scenes.length > 0 && !isSynthesizingRef.current) {
+    if (scenes.length > 0 && !isSynthesizingVideoRef.current) {
       const synthesizeVideos = async () => {
-        isSynthesizingRef.current = true;
+        isSynthesizingVideoRef.current = true;
         try {
           for (let i = 0; i < scenes.length; i++) {
             if (!scenes[i].videoUrl && !scenes[i].error) {
@@ -40,7 +42,6 @@ export default function VideoLearning() {
               
               while (attempt < 2 && !success) {
                 try {
-                  console.log(`[SequentialSynth] Processing scene ${i+1}/${scenes.length}...`);
                   const res = await fetch('/api/video-synthesize', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -51,59 +52,63 @@ export default function VideoLearning() {
                     const { videoUrl } = await res.json();
                     setScenes(prev => {
                       const updated = [...prev];
-                      updated[i] = { ...updated[i], videoUrl, error: false, errorType: null, errorMsg: null };
+                      updated[i] = { ...updated[i], videoUrl, error: false };
                       return updated;
                     });
                     setSynthesizedCount(prev => prev + 1);
                     success = true;
-                    // Wait after success to let UI catch up
-                    await new Promise(r => setTimeout(r, 1000));
                   } else {
-                    const errData = await res.json().catch(() => ({}));
-                    const errMsg = errData.error || `Status: ${res.status}`;
-                    
-                    let errorType = 'SYSTEM';
-                    if (errMsg.includes("CREDIT") || errMsg.includes("SHORTFALL")) errorType = 'CREDITS';
-                    if (errMsg.includes("RATE_LIMIT")) errorType = 'RATE_LIMIT';
-
-                    setScenes(prev => {
-                      const updated = [...prev];
-                      updated[i] = { ...updated[i], error: true, errorType, errorMsg: errMsg };
-                      return updated;
-                    });
-
-                    if (errorType === 'CREDITS' || errorType === 'RATE_LIMIT') {
-                       // Serious errors: stop the loop
-                       return; 
-                    }
-                    throw new Error(errMsg);
+                    throw new Error("Video synth failed");
                   }
                 } catch (err) {
-                  console.error(`Synthesis failed for scene ${i}, attempt ${attempt + 1}:`, err);
-                  if (attempt === 1) { // 2 attempts max (0 and 1)
-                    setScenes(prev => {
-                      const updated = [...prev];
-                      updated[i] = { ...updated[i], error: true, errorType: 'SYSTEM' };
-                      return updated;
-                    });
-                  }
+                  console.error(`Video failed for scene ${i}`, err);
                 }
-                
-                if (!success) {
-                  attempt++;
-                  // Wait before retry
-                  if (attempt < 2) { // Only wait if there's another attempt
-                    await new Promise(r => setTimeout(r, 2000));
-                  }
-                }
+                if (!success) attempt++;
               }
             }
           }
         } finally {
-          isSynthesizingRef.current = false;
+          isSynthesizingVideoRef.current = false;
         }
       };
       synthesizeVideos();
+    }
+  }, [scenes.length]);
+
+  // EFFECT: Lazy-load audio narration for each scene
+  useEffect(() => {
+    if (scenes.length > 0 && !isSynthesizingAudioRef.current) {
+      const synthesizeAudio = async () => {
+        isSynthesizingAudioRef.current = true;
+        try {
+          for (let i = 0; i < scenes.length; i++) {
+            if (!scenes[i].audioUrl && !scenes[i].error) {
+              try {
+                const res = await fetch('/api/audio-synthesize', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ text: scenes[i].narration })
+                });
+                
+                if (res.ok) {
+                  const { audioUrl } = await res.json();
+                  setScenes(prev => {
+                    const updated = [...prev];
+                    updated[i] = { ...updated[i], audioUrl };
+                    return updated;
+                  });
+                  setAudioSynthesizedCount(prev => prev + 1);
+                }
+              } catch (err) {
+                console.error(`Audio failed for scene ${i}`, err);
+              }
+            }
+          }
+        } finally {
+          isSynthesizingAudioRef.current = false;
+        }
+      };
+      synthesizeAudio();
     }
   }, [scenes.length]);
 
@@ -140,38 +145,22 @@ export default function VideoLearning() {
   useEffect(() => {
     if (isPlaying && scenes[currentSceneIndex]?.audioUrl) {
       if (audioRef.current) {
-        audioRef.current.src = scenes[currentSceneIndex].audioUrl;
+        const currentSrc = audioRef.current.src;
+        const targetSrc = scenes[currentSceneIndex].audioUrl;
+        
+        // Only update src if it changed to avoid restarting same audio
+        if (!currentSrc.endsWith(targetSrc.substring(targetSrc.length - 20))) {
+          audioRef.current.src = targetSrc;
+        }
+        
         audioRef.current.play().catch(e => console.warn("Audio play blocked:", e));
       }
     } else {
       audioRef.current?.pause();
     }
-  }, [currentSceneIndex, isPlaying, scenes]);
+  }, [currentSceneIndex, isPlaying, scenes[currentSceneIndex]?.audioUrl]);
 
-  useEffect(() => {
-    let interval;
-    if (isPlaying && progress < 100) {
-      interval = setInterval(() => {
-        setProgress(prev => {
-          const next = prev + 0.2; 
-          if (next >= 100) {
-            setIsPlaying(false);
-            return 100;
-          }
-          
-          if (scenes.length > 0) {
-            const sceneIndex = Math.floor((next / 100) * scenes.length);
-            if (sceneIndex !== currentSceneIndex && sceneIndex < scenes.length) {
-              setCurrentSceneIndex(sceneIndex);
-            }
-          }
-          
-          return next;
-        });
-      }, 50);
-    }
-    return () => clearInterval(interval);
-  }, [isPlaying, progress, scenes.length, currentSceneIndex]);
+  // Sync logic is now driven by the `<audio />` element's `onTimeUpdate` and `onEnded` events.
 
   const handleRestart = () => {
     setProgress(0)
@@ -226,7 +215,26 @@ export default function VideoLearning() {
 
   return (
     <div className="space-y-12 animate-fade-in p-4 max-w-7xl mx-auto">
-      <audio ref={audioRef} />
+      <audio 
+        ref={audioRef} 
+        onTimeUpdate={(e) => {
+          if (scenes.length === 0) return;
+          const audio = e.currentTarget;
+          if (audio.duration) {
+            const baseProgress = (currentSceneIndex / scenes.length) * 100;
+            const segmentProgress = (audio.currentTime / audio.duration) * (100 / scenes.length);
+            setProgress(baseProgress + segmentProgress);
+          }
+        }}
+        onEnded={() => {
+          if (currentSceneIndex < scenes.length - 1) {
+            setCurrentSceneIndex(prev => prev + 1);
+          } else {
+            setIsPlaying(false);
+            setProgress(100);
+          }
+        }}
+      />
       
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 md:gap-6">
         <div className="space-y-2 overflow-hidden">
@@ -300,9 +308,9 @@ export default function VideoLearning() {
              <div className="space-y-4">
                 <div className="flex justify-between items-center px-1">
                    <div className="flex items-center gap-2 md:gap-3">
-                      <div className="px-2 md:px-3 py-1 bg-white/5 rounded-full text-[8px] md:text-[10px] font-black text-gray-400 uppercase tracking-widest">Timeline</div>
+                      <div className="px-2 md:px-3 py-1 bg-white/5 rounded-full text-[8px] md:text-[10px] font-black text-gray-400 uppercase tracking-widest">Seg. {currentSceneIndex + 1}</div>
                       <span className="text-[8px] md:text-[10px] font-black text-gray-600 uppercase tracking-widest">
-                         {((progress / 100) * (scenes.length * 15)).toFixed(1)}s / {(scenes.length * 15)}s
+                         Narration Active
                       </span>
                    </div>
                    <span className="text-[8px] md:text-[10px] font-black text-primary uppercase tracking-[0.2em]">{progress.toFixed(0)}%</span>
@@ -340,7 +348,8 @@ export default function VideoLearning() {
  
                    <div className="flex items-center gap-3 md:gap-6">
                       <div className="px-3 md:px-6 py-2 md:py-3 glass rounded-xl md:rounded-2xl border-white/10 flex items-center gap-2 md:gap-3">
-                         <div className="w-1.5 h-1.5 md:w-2 md:h-2 bg-primary rounded-full animate-pulse" />
+                         <div className={`w-1.5 h-1.5 md:w-2 md:h-2 rounded-full animate-pulse ${scenes[currentSceneIndex]?.audioUrl ? 'bg-primary' : 'bg-gray-600'}`} />
+                         <Volume2 size={12} className={scenes[currentSceneIndex]?.audioUrl ? "text-primary transition-all scale-110" : "text-gray-600"} />
                          <span className="text-[8px] md:text-[10px] font-black text-white uppercase tracking-widest whitespace-nowrap">{currentScene.scene_type || 'neural'} mode</span>
                       </div>
                       <button onClick={handleRestart} className="p-3 md:p-4 bg-white/5 hover:bg-white/10 rounded-xl md:rounded-2xl border border-white/10 text-gray-400 hover:text-white transition-all">
@@ -393,18 +402,20 @@ export default function VideoLearning() {
               <p className="text-[8px] md:text-[10px] font-black uppercase tracking-[0.4em] mb-2 text-white/40">Visual Processor Units</p>
               <h2 className="text-2xl md:text-4xl font-black text-white tracking-tighter mb-4 leading-none uppercase italic">Textbook Engine</h2>
               
-              <div className="flex items-center gap-3 mb-8 p-3 bg-white/[0.03] rounded-3xl border border-white/5 w-fit mx-auto backdrop-blur-3xl group hover:border-primary/30 transition-all duration-700">
-                <div className="flex -space-x-2">
-                  {[1, 2, 3].map(i => (
-                    <div key={i} className="w-8 h-8 rounded-full border-2 border-[#020202] bg-primary/20 flex items-center justify-center shadow-[0_0_15px_rgba(230,41,255,0.2)]">
-                      <Zap size={12} className="text-primary animate-pulse" />
+              <div className="flex items-center justify-around mb-8 p-4 bg-white/[0.03] rounded-3xl border border-white/5 backdrop-blur-3xl">
+                 <div className="flex flex-col items-center gap-1">
+                    <div className={`w-8 h-8 rounded-full border-2 ${audioSynthesizedCount === scenes.length ? 'border-primary bg-primary/20' : 'border-white/10 animate-pulse'} flex items-center justify-center`}>
+                      <Activity className={audioSynthesizedCount === scenes.length ? "text-primary" : "text-gray-600"} size={16} />
                     </div>
-                  ))}
-                </div>
-                <div className="flex flex-col items-start pr-4">
-                  <span className="text-[9px] font-black text-white/90 uppercase tracking-widest">Scientific Core</span>
-                  <span className="text-[8px] font-medium text-primary uppercase tracking-[0.2em] animate-pulse">Synchronized</span>
-                </div>
+                    <span className="text-[10px] font-black uppercase text-gray-500">Audio {audioSynthesizedCount}/{scenes.length}</span>
+                 </div>
+                 
+                 <div className="flex flex-col items-center gap-1">
+                    <div className={`w-8 h-8 rounded-full border-2 ${synthesizedCount === scenes.length ? 'border-primary bg-primary/20' : 'border-white/10 animate-pulse'} flex items-center justify-center`}>
+                      <Layers className={synthesizedCount === scenes.length ? "text-primary" : "text-gray-600"} size={16} />
+                    </div>
+                    <span className="text-[10px] font-black uppercase text-gray-500">Visuals {synthesizedCount}/{scenes.length}</span>
+                 </div>
               </div>
 
               {scenes.some(s => s.errorType === 'CREDITS') && (

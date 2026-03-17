@@ -77,21 +77,8 @@ export async function POST(request: NextRequest) {
     console.log("[Video] Generating script with LLM...");
     const script = await generateVideoScript(topic, contextChunks);
 
-    // Generate Audio for each scene in parallel (Audio is fast, Video will be lazy-loaded)
-    console.log(`[Video] Generating Audio for ${script.scenes.length} scenes...`);
-    const scenesWithAudio = await Promise.all(
-      script.scenes.map(async (scene) => {
-        try {
-          const audioUrl = await generateNarrationAudio(scene.narration);
-          return { ...scene, audioUrl, videoUrl: null }; // videoUrl set to null for frontend lazy-loading
-        } catch (mediaError: any) {
-          console.error(`[Video] Audio generation failed for scene:`, mediaError.message);
-          return { ...scene, audioUrl: null, videoUrl: null };
-        }
-      })
-    );
-
-    const finalScript = { ...script, scenes: scenesWithAudio };
+    // Audio synthesis is now handled sequentially by the frontend to prevent timeouts
+    const finalScript = { ...script, scenes: script.scenes.map(s => ({ ...s, audioUrl: null, videoUrl: null })) };
     console.log("[Video] Success.");
 
     return NextResponse.json({
