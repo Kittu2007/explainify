@@ -65,7 +65,7 @@ export default function LoginView() {
       </div>
 
       {/* Main Content */}
-      <div className="relative z-10 w-full max-w-md px-6">
+      <div className="relative z-10 w-full max-w-[400px] px-6">
         <MagicBento 
           enableSpotlight={true}
           glowColor="200, 0, 255"

@@ -6,7 +6,7 @@ export default function Footer() {
   const pathname = usePathname()
   const currentYear = new Date().getFullYear()
   
-  if (pathname.startsWith('/dashboard')) return null;
+  if (pathname.startsWith('/dashboard') || pathname === '/login' || pathname === '/register') return null;
   
   return (
     <footer className="bg-dark text-white mt-20">

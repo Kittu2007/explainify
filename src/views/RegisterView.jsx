@@ -73,7 +73,7 @@ export default function RegisterView() {
         />
       </div>
 
-      <div className="relative z-10 w-full max-w-md px-6">
+      <div className="relative z-10 w-full max-w-[400px] px-6">
         <MagicBento 
           enableSpotlight={true}
           glowColor="0, 255, 238"
