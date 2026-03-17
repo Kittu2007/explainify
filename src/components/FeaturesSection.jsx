@@ -1,4 +1,5 @@
 import { FileText, MessageSquare, Play, Zap } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
 import FeatureBlock from "./FeatureBlock";
 
 /* ─── Feature Data ──────────────────────────────────────────────── */
@@ -127,6 +128,39 @@ function AuroraBackground() {
 
 /* ─── FeaturesSection ───────────────────────────────────────────── */
 export default function FeaturesSection() {
+  const [activeFeature, setActiveFeature] = useState(0);
+  const featureRefs = useRef([]);
+
+  /* ─ Detect active feature using Intersection Observer ─ */
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            const index = featureRefs.current.indexOf(entry.target);
+            if (index !== -1) {
+              setActiveFeature(index);
+            }
+          }
+        });
+      },
+      {
+        threshold: 0.25,
+        rootMargin: "0px 0px -15% 0px",
+      }
+    );
+
+    featureRefs.current.forEach((ref) => {
+      if (ref) observer.observe(ref);
+    });
+
+    return () => {
+      featureRefs.current.forEach((ref) => {
+        if (ref) observer.unobserve(ref);
+      });
+    };
+  }, []);
+
   return (
     <section
       id="features"
@@ -160,12 +194,20 @@ export default function FeaturesSection() {
       {/* Feature blocks */}
       <div className="relative z-10">
         {features.map((feature, index) => (
-          <FeatureBlock
+          <div
             key={index}
-            icon={feature.icon}
-            title={feature.title}
-            description={feature.description}
-          />
+            ref={(el) => {
+              if (el) featureRefs.current[index] = el;
+            }}
+          >
+            <FeatureBlock
+              icon={feature.icon}
+              title={feature.title}
+              description={feature.description}
+              isActive={activeFeature === index}
+              index={index}
+            />
+          </div>
         ))}
       </div>
 

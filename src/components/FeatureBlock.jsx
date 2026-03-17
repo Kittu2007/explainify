@@ -33,85 +33,123 @@ function ShimmerTitle({ children }) {
 }
 
 /* ─── FeatureBlock ──────────────────────────────────────────────── */
-export default function FeatureBlock({ icon: Icon, title, description }) {
+export default function FeatureBlock({ icon: Icon, title, description, isActive = false }) {
   const ref = useRef(null);
   const controls = useAnimation();
 
-  // Use a generous margin so the block "snaps" when it centres on screen
-  const isInView = useInView(ref, { margin: "-25% 0px -25% 0px", once: false });
+  /* ─ Initial entry animation (triggers on early visibility) ─ */
+  const isInView = useInView(ref, { 
+    amount: 0.25,
+    once: false
+  });
 
   useEffect(() => {
     if (isInView) {
-      controls.start("visible");
-    } else {
-      controls.start("hidden");
+      controls.start("enter");
     }
   }, [isInView, controls]);
 
+  /* ─ Block variants: initial entry + active/inactive states ─ */
   const blockVariants = {
-    hidden: {
-      scale: 0.85,
+    initial: {
+      scale: 0.95,
       opacity: 0,
-      y: 80,
+      y: 40,
+      filter: "blur(6px)",
     },
-    visible: {
+    enter: {
       scale: 1,
       opacity: 1,
       y: 0,
+      filter: "blur(0px)",
       transition: {
-        duration: 0.75,
-        ease: [0.22, 1, 0.36, 1],
-        staggerChildren: 0.12,
+        duration: 0.5,
+        ease: "easeOut",
+      },
+    },
+    active: {
+      scale: 1,
+      opacity: 1,
+      y: 0,
+      filter: "blur(0px)",
+      zIndex: 2,
+      transition: {
+        duration: 0.55,
+        ease: "easeOut",
+      },
+    },
+    inactive: {
+      scale: 0.92,
+      opacity: 0.5,
+      y: -20,
+      filter: "blur(4px)",
+      boxShadow: "none",
+      zIndex: 1,
+      transition: {
+        duration: 0.55,
+        ease: "easeOut",
       },
     },
   };
 
   const childVariants = {
     hidden: { opacity: 0, y: 24 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.55, ease: "easeOut" } },
+    visible: { 
+      opacity: 1, 
+      y: 0, 
+      transition: { duration: 0.5, ease: "easeOut" } 
+    },
   };
 
   return (
     <motion.div
       ref={ref}
+      initial="initial"
+      animate={isInView ? (isActive ? "active" : "inactive") : "initial"}
       variants={blockVariants}
-      initial="hidden"
-      animate={controls}
-      className="flex flex-col items-center justify-center text-center px-6 py-14 md:py-20"
-      style={{ minHeight: "50vh" }}
+      className="flex flex-col items-center justify-center text-center px-6 py-14 md:py-20 will-change-transform"
+      style={{ 
+        minHeight: "50vh",
+        position: "relative",
+      }}
     >
       {/* ── Icon with glow + float ─────────────────────────────── */}
-      <motion.div variants={childVariants} className="mb-6 relative">
+      <motion.div 
+        variants={childVariants} 
+        initial="hidden"
+        animate={isInView ? "visible" : "hidden"}
+        className="mb-6 relative"
+      >
         {/* Outer glow halo */}
         <motion.div
-          className="absolute inset-0 rounded-3xl"
+          className="absolute inset-0 rounded-3xl pointer-events-none"
           style={{
             background: "rgba(123,31,162,0.35)",
             filter: "blur(22px)",
             transform: "scale(1.5)",
           }}
-          animate={{
-            opacity: [0.5, 0.9, 0.5],
-            scale: [1.4, 1.7, 1.4],
+          animate={isActive ? {
+            opacity: [0.6, 1, 0.6],
+            scale: [1.4, 1.8, 1.4],
+          } : {
+            opacity: [0.3, 0.5, 0.3],
+            scale: [1.2, 1.4, 1.2],
           }}
           transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
         />
 
         {/* Inner icon box */}
         <motion.div
-          className="relative w-[4.5rem] h-[4.5rem] rounded-2xl flex items-center justify-center"
+          className="relative w-[4.5rem] h-[4.5rem] rounded-2xl flex items-center justify-center will-change-transform"
           style={{
             background: "linear-gradient(135deg, #3B0046 0%, #7B1FA2 55%, #9C4DCC 100%)",
             border: "1.5px solid rgba(201,182,211,0.22)",
             boxShadow: "0 0 28px rgba(156,77,204,0.55), 0 0 60px rgba(123,31,162,0.3)",
           }}
-          animate={{
+          animate={isActive ? {
             y: [0, -10, 0],
-            boxShadow: [
-              "0 0 28px rgba(156,77,204,0.55), 0 0 60px rgba(123,31,162,0.3)",
-              "0 0 44px rgba(156,77,204,0.80), 0 0 90px rgba(123,31,162,0.5)",
-              "0 0 28px rgba(156,77,204,0.55), 0 0 60px rgba(123,31,162,0.3)",
-            ],
+          } : {
+            y: 0,
           }}
           transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut" }}
         >
@@ -120,9 +158,15 @@ export default function FeatureBlock({ icon: Icon, title, description }) {
 
         {/* Border pulse ring */}
         <motion.div
-          className="absolute inset-0 rounded-2xl border-2"
+          className="absolute inset-0 rounded-2xl border-2 pointer-events-none"
           style={{ borderColor: "rgba(156,77,204,0.6)" }}
-          animate={{ opacity: [0.4, 1, 0.4], scale: [1, 1.08, 1] }}
+          animate={isActive ? {
+            opacity: [0.6, 1, 0.6],
+            scale: [1, 1.12, 1],
+          } : {
+            opacity: [0.2, 0.4, 0.2],
+            scale: [1, 1.04, 1],
+          }}
           transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
         />
       </motion.div>
@@ -130,6 +174,8 @@ export default function FeatureBlock({ icon: Icon, title, description }) {
       {/* ── Title ─────────────────────────────────────────────────── */}
       <motion.h3
         variants={childVariants}
+        initial="hidden"
+        animate={isInView ? "visible" : "hidden"}
         className="text-2xl md:text-3xl font-extrabold mb-3 leading-tight"
       >
         <ShimmerTitle>{title}</ShimmerTitle>
@@ -138,20 +184,13 @@ export default function FeatureBlock({ icon: Icon, title, description }) {
       {/* ── Description ───────────────────────────────────────────── */}
       <motion.p
         variants={childVariants}
-        className="text-sm md:text-base leading-relaxed max-w-md"
+        initial="hidden"
+        animate={isInView ? "visible" : "hidden"}
+        className="text-sm md:text-base leading-relaxed max-w-md will-change-transform"
         style={{ color: "#C9B6D3", opacity: 0.82 }}
       >
         {description}
       </motion.p>
-
-      {/* ── Decorative separator ──────────────────────────────────── */}
-      <motion.div
-        variants={childVariants}
-        className="mt-6 h-0.5 w-12 rounded-full"
-        style={{
-          background: "linear-gradient(90deg, transparent, #9C4DCC, transparent)",
-        }}
-      />
     </motion.div>
   );
 }

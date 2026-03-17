@@ -4,6 +4,7 @@ import { TypeAnimation } from "react-type-animation";
 import LiquidEther from "./LiquidEther";
 import GlowCursor from "./GlowCursor";
 import FeaturesSection from "./FeaturesSection";
+import YouAskWeAnswer from "./YouAskWeAnswer";
 
 /* ─────────────────────────────────────────────────────────────────
    Framer Motion Variants
@@ -283,6 +284,7 @@ export default function Hero() {
       </motion.div>
     </div>
     <FeaturesSection />
+    <YouAskWeAnswer />
     </>
   );
 }
