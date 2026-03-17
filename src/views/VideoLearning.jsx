@@ -184,38 +184,63 @@ export default function VideoLearning() {
     }
   }
 
-  // EFFECT: Master Playback Controller (Virtual Heartbeat)
+  // EFFECT: Master Volume & Mute Sync
+  useEffect(() => {
+    if (audioRef.current) {
+      audioRef.current.volume = isMuted ? 0 : volume;
+      audioRef.current.muted = isMuted;
+    }
+  }, [volume, isMuted]);
+
+  // EFFECT: Master Playback Controller (Precision Sync)
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio) return;
+
+    const handleTimeUpdate = () => {
+      if (!audio.duration || useBrowserFallback) return;
+      
+      const segmentProgress = (audio.currentTime / audio.duration) * (100 / scenes.length);
+      const totalProgress = (currentSceneIndex / scenes.length) * 100 + segmentProgress;
+      setProgress(Math.min(totalProgress, 100));
+    };
+
+    const handleEnded = () => {
+      if (currentSceneIndex < scenes.length - 1) {
+        setCurrentSceneIndex(prev => prev + 1);
+      } else {
+        setIsPlaying(false);
+        setProgress(100);
+      }
+    };
+
+    audio.addEventListener('timeupdate', handleTimeUpdate);
+    audio.addEventListener('ended', handleEnded);
+    
+    return () => {
+      audio.removeEventListener('timeupdate', handleTimeUpdate);
+      audio.removeEventListener('ended', handleEnded);
+    };
+  }, [isPlaying, scenes.length, currentSceneIndex, useBrowserFallback]);
+
+  // Fallback Heartbeat for Browser Speech
   useEffect(() => {
     let interval;
-    if (isPlaying && scenes.length > 0) {
+    if (isPlaying && useBrowserFallback) {
       interval = setInterval(() => {
-        const audio = audioRef.current;
-        const isAudioPlaying = audio && !audio.paused && !audio.ended && audio.currentTime > 0;
-        
-        if (isAudioPlaying && audio.duration) {
-          // 1. Sync progress exactly with active audio
-          const baseProgress = (currentSceneIndex / scenes.length) * 100;
-          const segmentProgress = (audio.currentTime / audio.duration) * (100 / scenes.length);
-          setProgress(Math.min(baseProgress + segmentProgress, 99.9)); // Cap just below 100 until logic finishes
-        } else {
-          // 2. Fallback: Advance virtual time slowly (assume 15s per scene if no audio)
-          const fallbackStep = (100 / (scenes.length * 15)) * 0.2; // 0.2s steps
-          setProgress(prev => {
-            const next = prev + fallbackStep;
-            if (next >= 100) return 100;
-            
-            // Auto-advance scene if we hit a boundary in virtual time
-            const nextSceneIndex = Math.floor((next / 100) * scenes.length);
-            if (nextSceneIndex !== currentSceneIndex && nextSceneIndex < scenes.length) {
-              setCurrentSceneIndex(nextSceneIndex);
-            }
-            return next;
-          });
-        }
-      }, 200); // 200ms heartbeat is plenty for UI
+        setProgress(prev => {
+          const step = (100 / (scenes.length * 12)) * 0.5; // Approx 12s per scene
+          const next = prev + step;
+          const nextIdx = Math.floor((next / 100) * scenes.length);
+          if (nextIdx !== currentSceneIndex && nextIdx < scenes.length) {
+            setCurrentSceneIndex(nextIdx);
+          }
+          return Math.min(next, 100);
+        });
+      }, 500);
     }
     return () => clearInterval(interval);
-  }, [isPlaying, scenes.length, currentSceneIndex]);
+  }, [isPlaying, useBrowserFallback, currentSceneIndex, scenes.length]);
 
   useEffect(() => {
     if (isPlaying && scenes[currentSceneIndex]?.audioUrl) {
@@ -233,9 +258,6 @@ export default function VideoLearning() {
           audio.setAttribute('data-src', targetSrc);
           audio.load();
         }
-        
-        audio.volume = isMuted ? 0 : volume;
-        audio.muted = isMuted;
 
         // Level 2 -> Level 1 Fallback Trigger
         const playPromise = audio.play();
@@ -250,7 +272,7 @@ export default function VideoLearning() {
       audioRef.current?.pause();
       if (typeof window !== 'undefined') window.speechSynthesis?.cancel();
     }
-  }, [currentSceneIndex, isPlaying, scenes[currentSceneIndex]?.audioUrl, isMuted, volume, useBrowserFallback]);
+  }, [currentSceneIndex, isPlaying, scenes[currentSceneIndex]?.audioUrl, useBrowserFallback]);
 
   // Clean up simplified
   useEffect(() => {
@@ -286,9 +308,9 @@ export default function VideoLearning() {
           </div>
         </div>
         <div className="text-center space-y-4">
-          <h2 className="text-3xl font-black text-white tracking-widest uppercase italic">Neural Synthesis</h2>
+          <h2 className="text-3xl font-black text-white tracking-widest uppercase italic">Explainify Visual Engine</h2>
           <p className="text-white/40 font-black text-[10px] uppercase tracking-[0.4em] animate-pulse">
-             Generating script & narration via OpenAI...
+             Orchestrating script & narration streams...
           </p>
         </div>
       </div>
@@ -319,14 +341,6 @@ export default function VideoLearning() {
         onCanPlay={() => {
           if (isPlaying) {
             audioRef.current?.play().catch(e => console.warn("[Audio] Playback rejected:", e));
-          }
-        }}
-        onEnded={() => {
-          if (currentSceneIndex < scenes.length - 1) {
-            setCurrentSceneIndex(prev => prev + 1);
-          } else {
-            setIsPlaying(false);
-            setProgress(100);
           }
         }}
       />
@@ -514,7 +528,7 @@ export default function VideoLearning() {
                     <Activity className="text-primary w-5 h-5 md:w-6 md:h-6" />
                  </div>
                   <div>
-                    <h3 className="font-black text-sm md:text-lg text-white leading-tight mb-0.5">Neural Synthesis Center</h3>
+                    <h3 className="font-black text-sm md:text-lg text-white leading-tight mb-0.5">Explainify Visual Engine</h3>
                     <div className="flex items-center gap-1.5 font-black text-[9px] uppercase tracking-[0.2em]">
                        <span className="text-secondary animate-pulse">●</span>
                        <span className="text-primary opacity-90">NVIDIA NIM SD3 ACTIVE</span>
