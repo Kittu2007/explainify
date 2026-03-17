@@ -51,6 +51,7 @@ export default function VideoLearning() {
   // Robust Blob conversion using fetch (handles Data URIs more reliably)
   const dataUriToBlobUrl = async (dataUri) => {
     try {
+      if (dataUri.startsWith('http')) return dataUri; // Skip conversion for direct URLs
       const response = await fetch(dataUri);
       const blob = await response.blob();
       return URL.createObjectURL(blob);
@@ -227,15 +228,14 @@ export default function VideoLearning() {
         if (audio.getAttribute('data-src') !== targetSrc) {
           audio.src = targetSrc;
           audio.setAttribute('data-src', targetSrc);
-          audio.load();
+          audio.load(); // This triggers 'canplay' when ready
         }
         
         audio.volume = isMuted ? 0 : volume;
         audio.muted = isMuted;
-
-        audio.play().catch(e => {
-          console.warn("[Audio] Playback blocked:", e);
-        });
+        
+        // We no longer call .play() here.
+        // It's handled by the onCanPlay event for maximum stability.
       }
     } else if (!isPlaying) {
       audioRef.current?.pause();
@@ -306,6 +306,13 @@ export default function VideoLearning() {
     <div className="space-y-12 animate-fade-in p-4 max-w-7xl mx-auto">
       <audio 
         ref={audioRef} 
+        preload="auto"
+        crossOrigin="anonymous"
+        onCanPlay={() => {
+          if (isPlaying) {
+            audioRef.current?.play().catch(e => console.warn("[Audio] Playback rejected:", e));
+          }
+        }}
         onEnded={() => {
           if (currentSceneIndex < scenes.length - 1) {
             setCurrentSceneIndex(prev => prev + 1);

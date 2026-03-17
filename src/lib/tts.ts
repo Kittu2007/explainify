@@ -30,11 +30,14 @@ export async function generateNarrationAudio(text: string): Promise<string> {
       return `data:audio/mpeg;base64,${base64}`;
     }
 
-    if (typeof output === 'string' && output.startsWith('data:')) {
-       return output;
+    if (typeof output === 'string') {
+      if (output.startsWith('data:') || output.startsWith('http')) {
+        console.log(`[TTS] Success: Output is a valid ${output.startsWith('data:') ? 'Data URI' : 'URL'}`);
+        return output;
+      }
     }
 
-    console.warn("[TTS] Unexpected output format:", typeof output);
+    console.warn("[TTS] Unexpected output format:", typeof output, output);
     return "";
   } catch (err: any) {
     console.error("[TTS] Unhandled error:", err.message);
