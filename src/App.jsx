@@ -2,7 +2,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import { DocumentProvider } from './context/DocumentContext'
 import Navbar from './components/Navbar'
 import Footer from './components/Footer'
-import LandingPage from './pages/LandingPage'
+import Hero from './components/Hero'
 import UploadPage from './pages/UploadPage'
 import ChatInterface from './pages/ChatInterface'
 import ResultsDashboard from './pages/ResultsDashboard'
@@ -16,7 +16,7 @@ export default function App() {
           <Navbar />
           <main className="flex-grow">
             <Routes>
-              <Route path="/" element={<LandingPage />} />
+              <Route path="/" element={<Hero />} />
               <Route path="/upload" element={<UploadPage />} />
               <Route path="/chat" element={<ChatInterface />} />
               <Route path="/results" element={<ResultsDashboard />} />

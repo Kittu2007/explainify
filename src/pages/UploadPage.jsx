@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Upload, FileText, Check, AlertCircle } from 'lucide-react'
+import { Upload, FileText, Check, AlertCircle, ArrowLeft } from 'lucide-react'
+import { motion } from 'framer-motion'
 import { useDocument } from '../context/DocumentContext'
 import ClickSparkButton from '../components/ClickSparkButton'
 import UploadedFilesList from '../components/UploadedFilesList'
@@ -46,7 +47,6 @@ export default function UploadPage() {
   }
   
   const handleFile = (selectedFile) => {
-    // Validate file type
     const validTypes = [
       'application/pdf',
       'text/plain',
@@ -63,12 +63,11 @@ export default function UploadPage() {
       return
     }
     
-    if (selectedFile.size > 50 * 1024 * 1024) { // 50MB limit
+    if (selectedFile.size > 50 * 1024 * 1024) {
       setError('File size must be less than 50MB.')
       return
     }
     
-    // Check if file already exists
     if (files.some(f => f.name === selectedFile.name)) {
       setError(`File "${selectedFile.name}" is already uploaded.`)
       return
@@ -84,10 +83,8 @@ export default function UploadPage() {
     setError(null)
     
     try {
-      // Simulate file reading
       const fileReader = new FileReader()
       fileReader.onload = async (e) => {
-        // Simulate API call with delay
         await new Promise(resolve => setTimeout(resolve, 1500))
         
         const fileData = {
@@ -122,112 +119,172 @@ export default function UploadPage() {
     setFiles(prev => prev.filter((_, i) => i !== index))
   }
   
-  // If upload is successful, show Choose Action section
   if (uploadSuccess) {
     return (
-      <div className="min-h-[80vh] bg-gradient-to-br from-gray-50 to-light py-12">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="mb-12 text-center">
-            <div className="flex justify-center mb-6">
-              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
-                <Check className="text-green-600" size={40} />
+      <div className="min-h-[80vh] bg-gradient-to-br from-gray-950 via-gray-900 to-gray-950 py-16 relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-b from-purple-900/5 via-transparent to-indigo-900/5 pointer-events-none" />
+        
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+          <motion.div
+            className="mb-16 text-center"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+          >
+            <motion.div
+              className="flex justify-center mb-8"
+              animate={{ scale: [1, 1.1, 1] }}
+              transition={{ duration: 2, repeat: Infinity }}
+            >
+              <div className="w-20 h-20 bg-gradient-to-br from-green-500 to-emerald-600 rounded-full flex items-center justify-center shadow-lg shadow-green-500/50">
+                <Check className="text-white" size={48} />
               </div>
-            </div>
-            <h1 className="text-4xl font-bold mb-4">Document Uploaded Successfully!</h1>
-            <p className="text-xl text-gray-600">
+            </motion.div>
+            <motion.h1
+              className="text-4xl md:text-5xl font-bold mb-4 text-white"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.2 }}
+            >
+              Document Uploaded Successfully!
+            </motion.h1>
+            <motion.p
+              className="text-xl text-gray-300"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.3 }}
+            >
               Your document is ready. Choose what you'd like to do next.
-            </p>
-          </div>
+            </motion.p>
+          </motion.div>
           
-          {/* Choose Action Section */}
-          <div className="grid md:grid-cols-3 gap-8 my-12">
+          <div className="grid md:grid-cols-3 gap-8 my-16">
             {[
               {
                 title: 'Chat with Document',
                 desc: 'Ask questions about your document and get instant AI-powered answers.',
                 icon: '💬',
                 path: '/chat',
-                color: 'bg-blue-50 border-blue-200'
+                color: 'from-blue-600 to-blue-400'
               },
               {
                 title: 'View Results / Summary',
                 desc: 'Get a comprehensive summary and key insights from your document.',
                 icon: '📊',
                 path: '/results',
-                color: 'bg-purple-50 border-purple-200'
+                color: 'from-purple-600 to-purple-400'
               },
               {
                 title: 'Generate Learning Video',
                 desc: 'Create a personalized video explanation of your document content.',
                 icon: '🎥',
                 path: '/video',
-                color: 'bg-orange-50 border-orange-200'
+                color: 'from-orange-600 to-orange-400'
               }
             ].map((action, idx) => (
-              <div
+              <motion.div
                 key={idx}
-                className={`${action.color} border rounded-xl p-8 text-center hover:shadow-lg transition-all`}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: idx * 0.1 }}
+                whileHover={{ y: -10, scale: 1.02 }}
+                className={`group relative overflow-hidden rounded-2xl bg-gradient-to-br ${action.color} bg-opacity-10 border border-gray-700 p-8 text-center`}
               >
-                <div className="text-5xl mb-4">{action.icon}</div>
-                <h3 className="text-2xl font-bold mb-3 text-gray-900">{action.title}</h3>
-                <p className="text-gray-700 mb-6">{action.desc}</p>
-                <button
-                  onClick={() => navigate(action.path)}
-                  className="px-6 py-3 bg-primary text-white font-semibold rounded-lg hover:bg-primary/90 transition-colors"
-                >
-                  {action.title.split('/')[0].includes('Chat') ? 'Start Chat' : action.title.includes('Results') ? 'View Summary' : 'Generate Video'}
-                </button>
-              </div>
+                <motion.div
+                  className="absolute inset-0 bg-gradient-to-br from-transparent to-white/10 opacity-0 group-hover:opacity-100 transition-opacity"
+                />
+                
+                <div className="relative z-10">
+                  <div className="text-6xl mb-6 transform group-hover:scale-125 transition-transform duration-300">{action.icon}</div>
+                  <h3 className="text-2xl font-bold mb-4 text-white">{action.title}</h3>
+                  <p className="text-gray-300 mb-8 leading-relaxed">{action.desc}</p>
+                  <motion.button
+                    onClick={() => navigate(action.path)}
+                    className={`px-6 py-3 bg-gradient-to-r ${action.color} text-white font-semibold rounded-lg transition-all`}
+                    whileHover={{ scale: 1.05, boxShadow: `0 0 20px rgba(139, 92, 246, 0.5)` }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    {action.title.split('/')[0].includes('Chat') ? 'Start Chat' : action.title.includes('Results') ? 'View Summary' : 'Generate Video'}
+                  </motion.button>
+                </div>
+              </motion.div>
             ))}
           </div>
           
-          <div className="text-center mt-12">
-            <button
+          <motion.div
+            className="text-center mt-16"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.5 }}
+          >
+            <motion.button
               onClick={() => {
                 setUploadSuccess(false)
                 setFiles([])
               }}
-              className="px-6 py-2 text-primary font-semibold hover:underline"
+              className="px-8 py-3 text-purple-400 font-semibold hover:text-purple-300 transition-colors flex items-center justify-center gap-2 mx-auto"
+              whileHover={{ x: -5 }}
             >
-              ← Upload Another Document
-            </button>
-          </div>
+              <ArrowLeft size={20} />
+              Upload Another Document
+            </motion.button>
+          </motion.div>
         </div>
       </div>
     )
   }
   
   return (
-    <div className="min-h-[80vh] bg-gradient-to-br from-gray-50 to-light py-12">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="mb-12">
-          <h1 className="text-4xl font-bold mb-4">Upload Your Document</h1>
-          <p className="text-xl text-gray-600">
+    <div className="min-h-[80vh] bg-gradient-to-br from-gray-950 via-gray-900 to-gray-950 py-16 relative overflow-hidden">
+      <div className="absolute inset-0 bg-gradient-to-b from-purple-900/5 via-transparent to-indigo-900/5 pointer-events-none" />
+      <motion.div
+        className="absolute top-0 left-1/4 w-96 h-96 bg-purple-600 rounded-full blur-3xl opacity-10"
+        animate={{ y: [0, 50, 0] }}
+        transition={{ duration: 15, repeat: Infinity }}
+      />
+      <motion.div
+        className="absolute bottom-0 right-1/4 w-96 h-96 bg-indigo-600 rounded-full blur-3xl opacity-10"
+        animate={{ y: [0, -50, 0] }}
+        transition={{ duration: 15, repeat: Infinity }}
+      />
+      
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+        <motion.div
+          className="mb-12"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+        >
+          <h1 className="text-5xl md:text-6xl font-bold mb-6 text-white">Upload Your Document</h1>
+          <p className="text-xl text-gray-300">
             Choose a file to analyze. Supported formats: PDF, Word, and Text documents.
           </p>
-        </div>
+        </motion.div>
         
-        {/* Error Alert */}
         {error && (
-          <div className="mb-6 bg-red-50 border border-red-200 rounded-lg p-4 flex items-start space-x-3">
-            <AlertCircle className="text-red-600 flex-shrink-0 mt-0.5" size={20} />
+          <motion.div
+            className="mb-8 bg-red-900/20 border border-red-500/50 rounded-xl p-4 flex items-start space-x-3 backdrop-blur"
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+          >
+            <AlertCircle className="text-red-400 flex-shrink-0 mt-0.5" size={20} />
             <div>
-              <p className="font-semibold text-red-900">Upload Error</p>
-              <p className="text-red-800 text-sm">{error}</p>
+              <p className="font-semibold text-red-300">Upload Error</p>
+              <p className="text-red-200 text-sm">{error}</p>
             </div>
-          </div>
+          </motion.div>
         )}
         
-        {/* Upload Zone */}
-        <div
+        <motion.div
           onDragEnter={handleDrag}
           onDragLeave={handleDrag}
           onDragOver={handleDrag}
           onDrop={handleDrop}
-          className={`rounded-2xl border-2 border-dashed p-12 text-center transition-all ${
+          animate={dragActive ? { scale: 1.02 } : { scale: 1 }}
+          className={`rounded-3xl border-2 border-dashed p-16 text-center transition-all backdrop-blur-sm ${
             dragActive
-              ? 'border-primary bg-primary/5 scale-105'
-              : 'border-gray-300 bg-white'
+              ? 'border-purple-500 bg-purple-500/10'
+              : 'border-gray-700 bg-gray-800/30 hover:bg-gray-800/50'
           }`}
         >
           <input
@@ -240,44 +297,71 @@ export default function UploadPage() {
           />
           
           {!currentFile ? (
-            <>
-              <Upload className="mx-auto mb-4 text-primary" size={48} />
-              <h3 className="text-2xl font-bold mb-2">Drag and drop your document</h3>
-              <p className="text-gray-600 mb-6">or</p>
-              <label htmlFor="fileInput" className="btn-primary inline-block cursor-pointer">
-                Browse Files
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 }}
+            >
+              <motion.div
+                animate={{ y: [0, -10, 0] }}
+                transition={{ duration: 3, repeat: Infinity }}
+                className="mb-6"
+              >
+                <Upload className="mx-auto text-purple-400 drop-shadow-lg" size={56} />
+              </motion.div>
+              <h3 className="text-3xl font-bold mb-3 text-white">Drag and drop your document</h3>
+              <p className="text-gray-400 mb-8 text-lg">or</p>
+              <label htmlFor="fileInput" className="inline-block cursor-pointer">
+                <motion.button
+                  whileHover={{ scale: 1.08 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="px-8 py-4 bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-semibold rounded-lg hover:shadow-lg hover:shadow-purple-500/50 transition-all"
+                >
+                  Browse Files
+                </motion.button>
               </label>
-              <p className="text-sm text-gray-500 mt-4">
+              <p className="text-sm text-gray-400 mt-6">
                 Supported formats: PDF, Word (.doc, .docx), and Text (.txt)
               </p>
-            </>
+            </motion.div>
           ) : (
-            <div className="space-y-6">
-              <div className="flex items-center justify-center space-x-4">
-                <FileText className="text-primary" size={48} />
+            <motion.div
+              className="space-y-6"
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+            >
+              <div className="flex items-center justify-center space-x-6 bg-gray-700/30 rounded-2xl p-6">
+                <motion.div
+                  animate={{ rotate: [0, 10, -10, 0] }}
+                  transition={{ duration: 2, repeat: Infinity }}
+                >
+                  <FileText className="text-purple-400" size={56} />
+                </motion.div>
                 <div className="text-left">
-                  <p className="font-semibold text-lg">{currentFile.name}</p>
-                  <p className="text-gray-600">
+                  <p className="font-semibold text-lg text-white">{currentFile.name}</p>
+                  <p className="text-gray-400">
                     {(currentFile.size / 1024 / 1024).toFixed(2)} MB
                   </p>
                 </div>
               </div>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <button
+                <motion.button
                   onClick={() => setCurrentFile(null)}
-                  className="btn-outline"
+                  className="px-6 py-3 bg-gray-700 hover:bg-gray-600 text-white font-semibold rounded-lg transition-all"
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
                   disabled={uploading}
                 >
                   Change File
-                </button>
+                </motion.button>
                 <ClickSparkButton
                   onClick={handleUpload}
-                  className="btn-primary flex items-center justify-center space-x-2"
+                  className="px-8 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-semibold rounded-lg hover:shadow-lg hover:shadow-purple-500/50 flex items-center justify-center space-x-2 transition-all"
                   disabled={uploading}
                 >
                   {uploading ? (
                     <>
-                      <span className="animate-spin">⏳</span>
+                      <motion.span animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity }}>⏳</motion.span>
                       <span>Uploading...</span>
                     </>
                   ) : (
@@ -288,37 +372,50 @@ export default function UploadPage() {
                   )}
                 </ClickSparkButton>
               </div>
-            </div>
+            </motion.div>
           )}
-        </div>
+        </motion.div>
         
-        {/* Uploaded Files List */}
         {files.length > 0 && (
-          <div className="mt-12">
+          <motion.div
+            className="mt-12"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+          >
             <UploadedFilesList files={files} onRemove={removeFile} />
-          </div>
+          </motion.div>
         )}
         
-        {/* Benefits */}
-        <div className="mt-16 grid md:grid-cols-3 gap-8">
+        <div className="mt-20 grid md:grid-cols-3 gap-8">
           {[
             {
               title: 'Fast Processing',
-              desc: 'Your document is analyzed in seconds using advanced AI'
+              desc: 'Your document is analyzed in seconds using advanced AI',
+              icon: '⚡'
             },
             {
               title: 'Secure Upload',
-              desc: 'All files are encrypted and stored securely'
+              desc: 'All files are encrypted and stored securely',
+              icon: '🔒'
             },
             {
               title: 'Easy Access',
-              desc: 'Ask questions and get instant answers about your content'
+              desc: 'Ask questions and get instant answers about your content',
+              icon: '💡'
             }
           ].map((benefit, idx) => (
-            <div key={idx} className="card text-center">
-              <h3 className="font-bold mb-2">{benefit.title}</h3>
-              <p className="text-gray-600">{benefit.desc}</p>
-            </div>
+            <motion.div
+              key={idx}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: idx * 0.1 }}
+              viewport={{ once: true }}
+              className="bg-gray-800/30 border border-gray-700 rounded-xl p-6 text-center hover:bg-gray-800/50 transition-all"
+            >
+              <div className="text-4xl mb-4">{benefit.icon}</div>
+              <h3 className="font-bold mb-3 text-white text-lg">{benefit.title}</h3>
+              <p className="text-gray-400">{benefit.desc}</p>
+            </motion.div>
           ))}
         </div>
       </div>

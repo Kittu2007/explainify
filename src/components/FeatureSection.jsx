@@ -37,52 +37,117 @@ const featureData = [
 
 function FeatureItem({ icon: Icon, title, description, index }) {
   const ref = useRef(null);
-  // Use a high threshold so feature is considered "in view" when centered on screen
-  const isInView = useInView(ref, { threshold: 0.7, margin: "0px" });
+  // Use a threshold so feature is considered "in view" when centered on screen
+  const isInView = useInView(ref, { threshold: 0.5, margin: "-50px" });
+
+  // Pop-up animation variants
+  const popVariants = {
+    hidden: {
+      scale: 0.8,
+      opacity: 0.3,
+      filter: "blur(10px)",
+    },
+    visible: {
+      scale: 1,
+      opacity: 1,
+      filter: "blur(0px)",
+      transition: {
+        duration: 0.6,
+        type: "spring",
+        stiffness: 100,
+        damping: 15,
+      },
+    },
+    blurred: {
+      scale: 0.85,
+      opacity: 0.4,
+      filter: "blur(8px)",
+      transition: {
+        duration: 0.5,
+      },
+    },
+  };
 
   return (
     <motion.div
       ref={ref}
-      style={{
-        transform: isInView ? "scale(1.08)" : "scale(0.92)",
-        filter: isInView ? "blur(0px)" : "blur(6px)",
-        opacity: isInView ? 1 : 0.5,
-        transition: "transform 0.5s cubic-bezier(.68,-0.55,.27,1.55), filter 0.5s, opacity 0.5s"
-      }}
-      className="py-10 border-b border-gray-800 last:border-b-0"
+      variants={popVariants}
+      initial="hidden"
+      animate={isInView ? "visible" : "blurred"}
+      className="py-16 px-4 border-b border-gray-800/50 last:border-b-0 relative"
     >
-      <div className="max-w-3xl mx-auto px-6 text-center">
+      <div className="max-w-3xl mx-auto text-center">
+        {/* Glow background effect */}
+        <motion.div
+          className="absolute inset-0 bg-gradient-to-b from-purple-900/20 to-transparent rounded-3xl pointer-events-none"
+          animate={isInView ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.8 }}
+          transition={{ duration: 0.5 }}
+        />
+
         {/* Icon with Pop Effect */}
         <motion.div
-          className="mb-6 inline-block"
-          whileHover={isInView ? { scale: 1.15, rotate: 8 } : { scale: 1 }}
-          transition={{ type: "spring", stiffness: 400, damping: 10 }}
+          className="mb-8 inline-block relative z-10"
+          animate={isInView ? { scale: 1, rotate: 0 } : { scale: 0.9, rotate: -10 }}
+          transition={{ type: "spring", stiffness: 300, damping: 20 }}
         >
           <motion.div
-            className="w-16 h-16 rounded-2xl bg-gradient-to-br from-purple-600 to-indigo-600 flex items-center justify-center"
-            animate={isInView ? { boxShadow: "0 0 40px rgba(139, 92, 246, 0.6)" } : { boxShadow: "0 0 10px rgba(139, 92, 246, 0.2)" }}
-            transition={{ duration: 0.4 }}
+            className="w-20 h-20 rounded-3xl bg-gradient-to-br from-purple-600 via-purple-500 to-indigo-600 flex items-center justify-center relative"
+            animate={
+              isInView
+                ? {
+                    boxShadow: [
+                      "0 0 20px rgba(139, 92, 246, 0.4)",
+                      "0 0 40px rgba(139, 92, 246, 0.7)",
+                      "0 0 60px rgba(139, 92, 246, 0.5)",
+                    ],
+                  }
+                : { boxShadow: "0 0 10px rgba(139, 92, 246, 0.2)" }
+            }
+            transition={{
+              duration: 2,
+              repeat: isInView ? Infinity : 0,
+              ease: "easeInOut",
+            }}
           >
-            <Icon size={32} className="text-white" />
+            <motion.div
+              animate={isInView ? { y: [0, -4, 0] } : { y: 0 }}
+              transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+            >
+              <Icon size={40} className="text-white" />
+            </motion.div>
           </motion.div>
+
+          {/* Border glow */}
+          <motion.div
+            className="absolute inset-0 w-20 h-20 rounded-3xl border-2 border-purple-400"
+            animate={isInView ? { opacity: [0.5, 1, 0.5] } : { opacity: 0.2 }}
+            transition={{ duration: 2, repeat: Infinity }}
+          />
         </motion.div>
 
         {/* Title */}
-        <h3 className="text-2xl md:text-3xl font-bold text-white mb-4">
+        <motion.h3
+          className="text-3xl md:text-4xl font-bold text-white mb-4 relative z-10"
+          animate={isInView ? { y: 0, opacity: 1 } : { y: 10, opacity: 0.5 }}
+          transition={{ duration: 0.4, delay: 0.1 }}
+        >
           {title}
-        </h3>
+        </motion.h3>
 
         {/* Description */}
-        <p className="text-lg text-gray-400 leading-relaxed mb-6">
+        <motion.p
+          className="text-lg text-gray-300 leading-relaxed mb-8 relative z-10"
+          animate={isInView ? { y: 0, opacity: 1 } : { y: 10, opacity: 0.4 }}
+          transition={{ duration: 0.4, delay: 0.2 }}
+        >
           {description}
-        </p>
+        </motion.p>
 
-        {/* Visual Separator */}
+        {/* Visual Separator with animation */}
         <motion.div
-          className="h-1 w-16 bg-gradient-to-r from-purple-500 to-indigo-500 mx-auto rounded-full"
-          initial={{ width: 0, opacity: 0 }}
-          animate={isInView ? { width: 64, opacity: 1 } : { width: 0, opacity: 0 }}
-          transition={{ duration: 0.6, delay: 0.2 }}
+          className="h-1.5 w-20 bg-gradient-to-r from-purple-500 via-indigo-500 to-purple-500 mx-auto rounded-full relative z-10"
+          animate={isInView ? { width: 80, opacity: 1 } : { width: 0, opacity: 0 }}
+          transition={{ duration: 0.6, delay: 0.3 }}
         />
       </div>
     </motion.div>
@@ -91,9 +156,47 @@ function FeatureItem({ icon: Icon, title, description, index }) {
 
 export default function FeatureSection() {
   return (
-    <section className="relative bg-gradient-to-b from-gray-900 via-gray-900 to-gray-950 text-white py-6">
-      {/* Background Glow */}
-      <div className="absolute inset-0 bg-gradient-to-b from-purple-900/10 via-transparent to-indigo-900/10 pointer-events-none" />
+    <section className="relative bg-gradient-to-b from-gray-900 via-gray-950 to-gray-950 text-white py-20 overflow-hidden">
+      {/* Animated background gradient */}
+      <motion.div
+        className="absolute inset-0 bg-gradient-to-b from-purple-900/5 via-transparent to-indigo-900/5 pointer-events-none"
+        animate={{
+          backgroundPosition: ["0% 0%", "0% 100%"],
+        }}
+        transition={{
+          duration: 20,
+          repeat: Infinity,
+          repeatType: "reverse",
+        }}
+      />
+
+      {/* Floating orbs background */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <motion.div
+          className="absolute -top-40 left-1/4 w-96 h-96 bg-purple-600 rounded-full blur-3xl opacity-10"
+          animate={{
+            y: [0, 100, 0],
+            x: [0, 50, 0],
+          }}
+          transition={{
+            duration: 20,
+            repeat: Infinity,
+            ease: "easeInOut",
+          }}
+        />
+        <motion.div
+          className="absolute -bottom-40 right-1/4 w-96 h-96 bg-indigo-600 rounded-full blur-3xl opacity-10"
+          animate={{
+            y: [0, -100, 0],
+            x: [0, -50, 0],
+          }}
+          transition={{
+            duration: 25,
+            repeat: Infinity,
+            ease: "easeInOut",
+          }}
+        />
+      </div>
 
       {/* Content */}
       <div className="relative z-10">
