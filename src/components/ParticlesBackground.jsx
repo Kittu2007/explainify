@@ -1,8 +1,8 @@
-﻿import { useEffect, useRef } from "react";
+"use client";
+import { useEffect, useRef } from "react";
 
 /**
- * ParticlesBackground ΓÇö Canvas-based animated particle network.
- * Replaces broken react-tsparticles (v2 API incompatible with tsparticles v3).
+ * ParticlesBackground - Canvas-based animated particle network.
  * Renders purple floating dots with connecting lines on a dark background.
  */
 export default function ParticlesBackground() {

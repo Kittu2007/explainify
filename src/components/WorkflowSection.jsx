@@ -1,4 +1,5 @@
-﻿import { motion } from "framer-motion";
+"use client";
+import { motion } from "framer-motion";
 
 const steps = [
   { label: "Document", color: "#A855F7" },

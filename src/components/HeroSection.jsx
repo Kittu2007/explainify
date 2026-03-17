@@ -1,3 +1,4 @@
+"use client";
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
@@ -106,7 +107,7 @@ export default function HeroSection() {
           transition={{ duration: 0.8, delay: 0.6 }}
           className="mt-8 text-[#C4B5FD] text-base md:text-lg tracking-wide"
         >
-          Upload documents • Ask questions • Learn with AI
+          Upload documents &bull; Ask questions &bull; Learn with AI
         </motion.p>
         {/* Scroll Indicator */}
         <motion.div

@@ -1,4 +1,5 @@
-﻿import { useRef } from "react";
+"use client";
+import { useRef } from "react";
 import { motion, useInView } from "framer-motion";
 import { FileText, MessageSquare, Play, Zap, Users, Shield } from "lucide-react";
 
@@ -37,10 +38,8 @@ const featureData = [
 
 function FeatureItem({ icon: Icon, title, description, index }) {
   const ref = useRef(null);
-  // Use a threshold so feature is considered "in view" when centered on screen
   const isInView = useInView(ref, { threshold: 0.5, margin: "-50px" });
 
-  // Pop-up animation variants
   const popVariants = {
     hidden: {
       scale: 0.8,
@@ -77,14 +76,11 @@ function FeatureItem({ icon: Icon, title, description, index }) {
       className="py-16 px-4 border-b border-gray-800/50 last:border-b-0 relative"
     >
       <div className="max-w-3xl mx-auto text-center">
-        {/* Glow background effect */}
         <motion.div
           className="absolute inset-0 bg-gradient-to-b from-purple-900/20 to-transparent rounded-3xl pointer-events-none"
           animate={isInView ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.8 }}
           transition={{ duration: 0.5 }}
         />
-
-        {/* Icon with Pop Effect */}
         <motion.div
           className="mb-8 inline-block relative z-10"
           animate={isInView ? { scale: 1, rotate: 0 } : { scale: 0.9, rotate: -10 }}
@@ -116,16 +112,12 @@ function FeatureItem({ icon: Icon, title, description, index }) {
               <Icon size={40} className="text-white" />
             </motion.div>
           </motion.div>
-
-          {/* Border glow */}
           <motion.div
             className="absolute inset-0 w-20 h-20 rounded-3xl border-2 border-purple-400"
             animate={isInView ? { opacity: [0.5, 1, 0.5] } : { opacity: 0.2 }}
             transition={{ duration: 2, repeat: Infinity }}
           />
         </motion.div>
-
-        {/* Title */}
         <motion.h3
           className="text-3xl md:text-4xl font-bold text-white mb-4 relative z-10"
           animate={isInView ? { y: 0, opacity: 1 } : { y: 10, opacity: 0.5 }}
@@ -133,8 +125,6 @@ function FeatureItem({ icon: Icon, title, description, index }) {
         >
           {title}
         </motion.h3>
-
-        {/* Description */}
         <motion.p
           className="text-lg text-gray-300 leading-relaxed mb-8 relative z-10"
           animate={isInView ? { y: 0, opacity: 1 } : { y: 10, opacity: 0.4 }}
@@ -142,8 +132,6 @@ function FeatureItem({ icon: Icon, title, description, index }) {
         >
           {description}
         </motion.p>
-
-        {/* Visual Separator with animation */}
         <motion.div
           className="h-1.5 w-20 bg-gradient-to-r from-purple-500 via-indigo-500 to-purple-500 mx-auto rounded-full relative z-10"
           animate={isInView ? { width: 80, opacity: 1 } : { width: 0, opacity: 0 }}
@@ -157,7 +145,6 @@ function FeatureItem({ icon: Icon, title, description, index }) {
 export default function FeatureSection() {
   return (
     <section className="relative bg-gradient-to-b from-gray-900 via-gray-950 to-gray-950 text-white py-20 overflow-hidden">
-      {/* Animated background gradient */}
       <motion.div
         className="absolute inset-0 bg-gradient-to-b from-purple-900/5 via-transparent to-indigo-900/5 pointer-events-none"
         animate={{
@@ -169,8 +156,6 @@ export default function FeatureSection() {
           repeatType: "reverse",
         }}
       />
-
-      {/* Floating orbs background */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <motion.div
           className="absolute -top-40 left-1/4 w-96 h-96 bg-purple-600 rounded-full blur-3xl opacity-10"
@@ -197,8 +182,6 @@ export default function FeatureSection() {
           }}
         />
       </div>
-
-      {/* Content */}
       <div className="relative z-10">
         {featureData.map((feature, index) => (
           <FeatureItem

@@ -1,4 +1,5 @@
-﻿import ParticlesBackground from "../components/ParticlesBackground";
+"use client";
+import ParticlesBackground from "../components/ParticlesBackground";
 import HeroSection from "../components/HeroSection";
 import FeatureSection from "../components/FeatureSection";
 import WorkflowSection from "../components/WorkflowSection";

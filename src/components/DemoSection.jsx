@@ -1,4 +1,5 @@
-﻿import { motion } from "framer-motion";
+"use client";
+import { motion } from "framer-motion";
 
 export default function DemoSection() {
   return (
@@ -30,7 +31,7 @@ export default function DemoSection() {
           transition={{ duration: 0.7, delay: 0.4 }}
         >
           <div className="text-[#7C3AED] text-xl font-bold mb-2">AI Explanation</div>
-          <div className="bg-[#020617] rounded-lg p-4 text-white text-sm">"Explain the main idea of this document."</div>
+          <div className="bg-[#020617] rounded-lg p-4 text-white text-sm">&quot;Explain the main idea of this document.&quot;</div>
         </motion.div>
         {/* Video Preview */}
         <motion.div
