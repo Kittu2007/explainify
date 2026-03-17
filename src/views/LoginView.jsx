@@ -1,3 +1,5 @@
+"use client";
+
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { LogIn, Mail, Lock, Loader2, ChevronRight, AlertCircle, Sparkles } from 'lucide-react'
