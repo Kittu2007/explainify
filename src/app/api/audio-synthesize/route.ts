@@ -17,23 +17,34 @@ export async function GET(request: NextRequest) {
       }
     }
 
+    console.log(`[AudioGET] Request text length: ${text?.length}`);
+
     if (!text) return NextResponse.json({ error: "No text provided" }, { status: 400 });
 
     const buffer = await generateNarrationBuffer(text);
     
-    // Explicitly convert Buffer to Uint8Array for Response body
+    if (!buffer || buffer.length === 0) {
+      throw new Error("Generated audio buffer is empty");
+    }
+
     const responseBody = new Uint8Array(buffer);
+    console.log(`[AudioGET] Success: ${responseBody.length} bytes`);
     
     return new Response(responseBody, {
       headers: {
         "Content-Type": "audio/mpeg",
         "Content-Length": responseBody.length.toString(),
+        "X-Audio-Status": "Success",
         "Cache-Control": "public, max-age=31536000, immutable"
       }
     });
   } catch (error: any) {
-    console.error("[AudioGET] Failed:", error);
-    return new Response("Audio generation failed", { status: 500 });
+    console.error("[AudioGET] Fatal Error:", error.message);
+    // Return the error message so we can see it in the Network tab
+    return new Response(`Audio failed: ${error.message}`, { 
+      status: 500,
+      headers: { "X-Audio-Error": error.message }
+    });
   }
 }
 

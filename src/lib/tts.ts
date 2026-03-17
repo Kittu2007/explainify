@@ -24,15 +24,17 @@ export async function generateNarrationBuffer(text: string): Promise<Buffer> {
     
     if (typeof output === 'string' && output.startsWith('http')) {
       const res = await fetch(output);
+      if (!res.ok) throw new Error(`External TTS fetch failed: ${res.status} ${res.statusText}`);
       return Buffer.from(await res.arrayBuffer());
     }
     
     if (typeof output === 'string' && output.startsWith('data:')) {
       const base64 = output.split(',')[1];
+      if (!base64) throw new Error("Malformed Data URI from TTS");
       return Buffer.from(base64, 'base64');
     }
 
-    throw new Error("Unsupported TTS output format");
+    throw new Error(`Unsupported TTS format: ${typeof output}`);
   } catch (err: any) {
     console.error("[TTS] Buffer Error:", err.message);
     throw err;

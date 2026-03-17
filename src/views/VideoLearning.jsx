@@ -42,15 +42,20 @@ export default function VideoLearning() {
       generateVideoContent()
     }
   }, [document, documentId, router])
-
+  const [mounted, setMounted] = useState(false);
   const isSynthesizingVideoRef = useRef(false);
   const isSynthesizingAudioRef = useRef(false);
   const [isAudioPrimed, setIsAudioPrimed] = useState(false);
 
-  // Helper: Safely Base64 encode text for URLs
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // Helper: Safely Base64 encode text for URLs with full URI escaping
   const encodeText = (text) => {
     try {
-      return btoa(unescape(encodeURIComponent(text)));
+      const b64 = btoa(unescape(encodeURIComponent(text)));
+      return encodeURIComponent(b64); // Crucial for +, /, = chars
     } catch (e) {
       return encodeURIComponent(text);
     }
@@ -113,13 +118,13 @@ export default function VideoLearning() {
 
   // EFFECT: Lazy-load audio narration for each scene
   useEffect(() => {
-    if (scenes.length > 0 && !isSynthesizingAudioRef.current) {
+    if (scenes.length > 0 && mounted) {
       const synthesizeAudio = async () => {
+        if (isSynthesizingAudioRef.current) return;
         isSynthesizingAudioRef.current = true;
         try {
           for (let i = 0; i < scenes.length; i++) {
              if (!scenes[i].audioUrl) {
-                // Instantly assign the binary proxy URL
                 const binaryUrl = `/api/audio-synthesize?t=${encodeText(scenes[i].narration)}`;
                 setScenes(prev => {
                   const updated = [...prev];
@@ -135,7 +140,7 @@ export default function VideoLearning() {
       };
       synthesizeAudio();
     }
-  }, [scenes.length]);
+  }, [scenes.length, mounted]);
 
   const generateVideoContent = async () => {
     setLoading(true)
