@@ -46,10 +46,22 @@ export default function VideoLearning() {
   const isSynthesizingVideoRef = useRef(false);
   const isSynthesizingAudioRef = useRef(false);
   const [isAudioPrimed, setIsAudioPrimed] = useState(false);
+  const [useBrowserFallback, setUseBrowserFallback] = useState(false);
 
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  // Helper: Browser Speech Synthesis (Level 1 Fallback)
+  const playBrowserSpeech = (text) => {
+    if (typeof window === 'undefined' || !window.speechSynthesis) return;
+    window.speechSynthesis.cancel(); // Stop any pending speech
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.rate = 1.0;
+    utterance.pitch = 1.0;
+    utterance.volume = isMuted ? 0 : volume;
+    window.speechSynthesis.speak(utterance);
+  };
 
   // Helper: Safely Base64 encode text for URLs with full URI escaping
   const encodeText = (text) => {
@@ -209,24 +221,36 @@ export default function VideoLearning() {
     if (isPlaying && scenes[currentSceneIndex]?.audioUrl) {
       const audio = audioRef.current;
       if (audio) {
+        if (useBrowserFallback) {
+          playBrowserSpeech(scenes[currentSceneIndex].narration);
+          return;
+        }
+
         const targetSrc = scenes[currentSceneIndex].audioUrl;
         
         if (audio.getAttribute('data-src') !== targetSrc) {
           audio.src = targetSrc;
           audio.setAttribute('data-src', targetSrc);
-          audio.load(); // This triggers 'canplay' when ready
+          audio.load();
         }
         
         audio.volume = isMuted ? 0 : volume;
         audio.muted = isMuted;
-        
-        // We no longer call .play() here.
-        // It's handled by the onCanPlay event for maximum stability.
+
+        // Level 2 -> Level 1 Fallback Trigger
+        const playPromise = audio.play();
+        if (playPromise !== undefined) {
+           playPromise.catch(e => {
+             console.warn("[Audio] Level 2 failed, falling back to Level 1 (Browser):", e);
+             playBrowserSpeech(scenes[currentSceneIndex].narration);
+           });
+        }
       }
     } else if (!isPlaying) {
       audioRef.current?.pause();
+      if (typeof window !== 'undefined') window.speechSynthesis?.cancel();
     }
-  }, [currentSceneIndex, isPlaying, scenes[currentSceneIndex]?.audioUrl, isMuted, volume]);
+  }, [currentSceneIndex, isPlaying, scenes[currentSceneIndex]?.audioUrl, isMuted, volume, useBrowserFallback]);
 
   // Clean up simplified
   useEffect(() => {
@@ -437,14 +461,22 @@ export default function VideoLearning() {
                  </div>
  
                    <div className="flex items-center gap-3 md:gap-6">
-                      <div className="px-3 md:px-6 py-2 md:py-3 glass rounded-xl md:rounded-2xl border-white/10 flex items-center gap-3 md:gap-4 group/vol relative">
-                         <div className={`w-1.5 h-1.5 md:w-2 md:h-2 rounded-full ${scenes[currentSceneIndex]?.audioUrl ? 'bg-primary animate-pulse' : 'bg-gray-600'}`} />
+                       <button 
+                         onClick={() => setUseBrowserFallback(!useBrowserFallback)}
+                         className={`flex items-center gap-2 px-2 py-1 rounded-lg border transition-all ${useBrowserFallback ? 'bg-primary/20 border-primary text-primary' : 'bg-white/5 border-white/10 text-gray-500'}`}
+                         title="Toggle Browser AI Speech Fallback"
+                       >
+                          <div className={`w-1.5 h-1.5 rounded-full ${useBrowserFallback ? 'bg-primary' : 'bg-gray-600'}`} />
+                          <span className="text-[8px] font-black uppercase tracking-tighter">AI Fallback {useBrowserFallback ? 'ON' : 'OFF'}</span>
+                       </button>
+                       <div className="px-3 md:px-6 py-2 md:py-3 glass rounded-xl md:rounded-2xl border-white/10 flex items-center gap-3 md:gap-4 group/vol relative">
+                         <div className={`w-1.5 h-1.5 md:w-2 md:h-2 rounded-full ${scenes[currentSceneIndex]?.audioUrl && !useBrowserFallback ? 'bg-primary animate-pulse' : 'bg-gray-600'}`} />
                          
                          <div className="flex items-center gap-2">
                            <button onClick={() => setIsMuted(!isMuted)} className="hover:scale-110 transition-transform">
-                             <Volume2 className={scenes[currentSceneIndex]?.audioUrl ? "text-primary" : "text-gray-600"} size={16} />
+                             <Volume2 className={scenes[currentSceneIndex]?.audioUrl && !useBrowserFallback ? "text-primary" : "text-gray-600"} size={16} />
                            </button>
-                           {isPlaying && scenes[currentSceneIndex]?.audioUrl && <WaveVisualizer isPlaying={isPlaying} />}
+                           {isPlaying && (scenes[currentSceneIndex]?.audioUrl && !useBrowserFallback) && <WaveVisualizer isPlaying={isPlaying} />}
                          </div>
 
                          {/* Volume Slider HUD */}
