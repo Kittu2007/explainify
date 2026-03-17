@@ -230,26 +230,42 @@ export default function UploadPage() {
 
         {/* Info Bento Pieces */}
         <div className="flex flex-col gap-6">
-          <div className="bento-card p-6 flex flex-col justify-between h-[180px] group overflow-hidden bg-gradient-to-br from-[#0c0c0c] to-[#050505]">
-             <div className="p-3 bg-blue-500/10 rounded-xl w-fit">
-               <Shield className="text-blue-500" size={20} />
+          <div 
+            className="magic-bento p-10 flex flex-col justify-between h-[220px] rounded-[3rem] group"
+            onMouseMove={(e) => {
+              const rect = e.currentTarget.getBoundingClientRect();
+              e.currentTarget.style.setProperty('--mouse-x', `${e.clientX - rect.left}px`);
+              e.currentTarget.style.setProperty('--mouse-y', `${e.clientY - rect.top}px`);
+            }}
+          >
+             <div className="bento-icon-container bg-blue-500/10 w-fit glow-blue">
+               <Shield className="text-blue-500" size={24} />
              </div>
              <div>
-               <h4 className="font-black text-lg text-white">Neural Security</h4>
-               <p className="text-[11px] text-gray-500 font-medium">Bank-grade encryption for all processed documents.</p>
+               <h4 className="font-black text-2xl text-white tracking-tight mb-1">Neural Security</h4>
+               <p className="text-[12px] text-gray-400 font-medium leading-relaxed">
+                 Institutional-grade encryption protocols protect every document in our neural vector vault.
+               </p>
              </div>
-             <div className="absolute top-[-20px] right-[-20px] w-24 h-24 bg-blue-500/5 blur-2xl rounded-full" />
           </div>
 
-          <div className="bento-card p-6 flex flex-col justify-between h-[180px] group overflow-hidden bg-gradient-to-br from-[#0c0c0c] to-[#050505]">
-             <div className="p-3 bg-emerald-500/10 rounded-xl w-fit">
-               <Zap className="text-emerald-500" size={20} />
+          <div 
+            className="magic-bento p-10 flex flex-col justify-between h-[220px] rounded-[3rem] group"
+            onMouseMove={(e) => {
+              const rect = e.currentTarget.getBoundingClientRect();
+              e.currentTarget.style.setProperty('--mouse-x', `${e.clientX - rect.left}px`);
+              e.currentTarget.style.setProperty('--mouse-y', `${e.clientY - rect.top}px`);
+            }}
+          >
+             <div className="bento-icon-container bg-emerald-500/10 w-fit glow-emerald">
+               <Zap className="text-emerald-500" size={24} />
              </div>
              <div>
-               <h4 className="font-black text-lg text-white">Rapid Indexing</h4>
-               <p className="text-[11px] text-gray-500 font-medium">Sub-second retrieval for large knowledge bases.</p>
+               <h4 className="font-black text-2xl text-white tracking-tight mb-1">Rapid Indexing</h4>
+               <p className="text-[12px] text-gray-400 font-medium leading-relaxed">
+                 Sub-millisecond retrieval architecture for massive high-dimensional knowledge bases.
+               </p>
              </div>
-             <div className="absolute top-[-20px] right-[-20px] w-24 h-24 bg-emerald-500/5 blur-2xl rounded-full" />
           </div>
         </div>
       </div>
