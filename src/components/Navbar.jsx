@@ -11,7 +11,7 @@ export default function Navbar() {
   const router = useRouter()
   const { user, signOut } = useAuth()
   
-  if (pathname.startsWith('/dashboard')) return null;
+  if (pathname.startsWith('/dashboard') || pathname === '/login' || pathname === '/register') return null;
   
   const isActive = (path) => pathname === path
   
