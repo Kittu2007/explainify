@@ -142,25 +142,58 @@ export default function VideoLearning() {
     }
   }
 
+  // EFFECT: Master Playback Controller (Virtual Heartbeat)
+  useEffect(() => {
+    let interval;
+    if (isPlaying && scenes.length > 0) {
+      interval = setInterval(() => {
+        const audio = audioRef.current;
+        const isAudioPlaying = audio && !audio.paused && !audio.ended && audio.currentTime > 0;
+        
+        if (isAudioPlaying && audio.duration) {
+          // 1. Sync progress exactly with active audio
+          const baseProgress = (currentSceneIndex / scenes.length) * 100;
+          const segmentProgress = (audio.currentTime / audio.duration) * (100 / scenes.length);
+          setProgress(Math.min(baseProgress + segmentProgress, 99.9)); // Cap just below 100 until logic finishes
+        } else {
+          // 2. Fallback: Advance virtual time slowly (assume 15s per scene if no audio)
+          const fallbackStep = (100 / (scenes.length * 15)) * 0.2; // 0.2s steps
+          setProgress(prev => {
+            const next = prev + fallbackStep;
+            if (next >= 100) return 100;
+            
+            // Auto-advance scene if we hit a boundary in virtual time
+            const nextSceneIndex = Math.floor((next / 100) * scenes.length);
+            if (nextSceneIndex !== currentSceneIndex && nextSceneIndex < scenes.length) {
+              setCurrentSceneIndex(nextSceneIndex);
+            }
+            return next;
+          });
+        }
+      }, 200); // 200ms heartbeat is plenty for UI
+    }
+    return () => clearInterval(interval);
+  }, [isPlaying, scenes.length, currentSceneIndex]);
+
   useEffect(() => {
     if (isPlaying && scenes[currentSceneIndex]?.audioUrl) {
       if (audioRef.current) {
-        const currentSrc = audioRef.current.src;
+        // More robust src check
         const targetSrc = scenes[currentSceneIndex].audioUrl;
-        
-        // Only update src if it changed to avoid restarting same audio
-        if (!currentSrc.endsWith(targetSrc.substring(targetSrc.length - 20))) {
+        if (audioRef.current.getAttribute('data-src') !== targetSrc) {
           audioRef.current.src = targetSrc;
+          audioRef.current.setAttribute('data-src', targetSrc);
+          audioRef.current.load();
         }
         
-        audioRef.current.play().catch(e => console.warn("Audio play blocked:", e));
+        audioRef.current.play().catch(e => {
+          console.warn("Autoplay blocked or audio error:", e);
+        });
       }
-    } else {
+    } else if (!isPlaying) {
       audioRef.current?.pause();
     }
   }, [currentSceneIndex, isPlaying, scenes[currentSceneIndex]?.audioUrl]);
-
-  // Sync logic is now driven by the `<audio />` element's `onTimeUpdate` and `onEnded` events.
 
   const handleRestart = () => {
     setProgress(0)
@@ -217,15 +250,6 @@ export default function VideoLearning() {
     <div className="space-y-12 animate-fade-in p-4 max-w-7xl mx-auto">
       <audio 
         ref={audioRef} 
-        onTimeUpdate={(e) => {
-          if (scenes.length === 0) return;
-          const audio = e.currentTarget;
-          if (audio.duration) {
-            const baseProgress = (currentSceneIndex / scenes.length) * 100;
-            const segmentProgress = (audio.currentTime / audio.duration) * (100 / scenes.length);
-            setProgress(baseProgress + segmentProgress);
-          }
-        }}
         onEnded={() => {
           if (currentSceneIndex < scenes.length - 1) {
             setCurrentSceneIndex(prev => prev + 1);
@@ -349,7 +373,7 @@ export default function VideoLearning() {
                    <div className="flex items-center gap-3 md:gap-6">
                       <div className="px-3 md:px-6 py-2 md:py-3 glass rounded-xl md:rounded-2xl border-white/10 flex items-center gap-2 md:gap-3">
                          <div className={`w-1.5 h-1.5 md:w-2 md:h-2 rounded-full animate-pulse ${scenes[currentSceneIndex]?.audioUrl ? 'bg-primary' : 'bg-gray-600'}`} />
-                         <Volume2 size={12} className={scenes[currentSceneIndex]?.audioUrl ? "text-primary transition-all scale-110" : "text-gray-600"} />
+                         <Volume2 className={scenes[currentSceneIndex]?.audioUrl ? "text-primary transition-all scale-125 animate-pulse" : "text-gray-600"} size={16} />
                          <span className="text-[8px] md:text-[10px] font-black text-white uppercase tracking-widest whitespace-nowrap">{currentScene.scene_type || 'neural'} mode</span>
                       </div>
                       <button onClick={handleRestart} className="p-3 md:p-4 bg-white/5 hover:bg-white/10 rounded-xl md:rounded-2xl border border-white/10 text-gray-400 hover:text-white transition-all">
