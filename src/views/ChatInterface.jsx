@@ -134,17 +134,17 @@ export default function ChatInterface() {
       <div className="absolute inset-x-20 top-0 bottom-0 bg-primary/5 blur-[100px] rounded-full opacity-50 pointer-events-none" />
 
       {/* Floating Header */}
-      <div className="glass mx-auto px-8 py-4 rounded-[2rem] border border-white/10 w-full mb-6 flex items-center justify-between shadow-2xl z-20">
-        <div className="flex items-center gap-4">
-          <div className="p-2.5 bg-primary/10 rounded-2xl border border-primary/20">
-            <Cpu className="text-primary" size={20} />
+      <div className="glass mx-auto px-4 md:px-8 py-3 md:py-4 rounded-[1.5rem] md:rounded-[2rem] border border-white/10 w-full mb-4 md:mb-6 flex items-center justify-between shadow-2xl z-20">
+        <div className="flex items-center gap-2 md:gap-4 overflow-hidden">
+          <div className="p-2 md:p-2.5 bg-primary/10 rounded-xl md:rounded-2xl border border-primary/20 shrink-0">
+            <Cpu className="text-primary" size={18} md:size={20} />
           </div>
-          <div>
+          <div className="overflow-hidden">
             <div className="flex items-center gap-2">
-               <h1 className="text-lg font-black text-white leading-none">Neural Link</h1>
-               <div className="px-1.5 py-0.5 bg-green-500/10 rounded-md border border-green-500/20 text-[8px] font-black text-green-500 uppercase tracking-widest leading-none">Encrypted</div>
+               <h1 className="text-sm md:text-lg font-black text-white leading-none truncate">Neural Link</h1>
+               <div className="px-1 md:px-1.5 py-0.5 bg-green-500/10 rounded-md border border-green-500/20 text-[6px] md:text-[8px] font-black text-green-500 uppercase tracking-widest leading-none shrink-0">Encrypted</div>
             </div>
-            <p className="text-[10px] text-gray-500 font-bold mt-1 uppercase tracking-widest">
+            <p className="text-[8px] md:text-[10px] text-gray-500 font-bold mt-1 uppercase tracking-widest truncate">
               Context: <span className="text-primary/70">{document?.name || 'Neural Stream'}</span>
             </p>
           </div>
@@ -152,10 +152,11 @@ export default function ChatInterface() {
         
         <button
           onClick={() => router.push('/dashboard/upload')}
-          className="flex items-center gap-2 px-6 py-2.5 bg-white/5 hover:bg-white/10 text-white rounded-2xl transition-all border border-white/5 text-xs font-black uppercase tracking-widest active:scale-95"
+          className="flex items-center gap-2 px-3 md:px-6 py-2 md:py-2.5 bg-white/5 hover:bg-white/10 text-white rounded-xl md:rounded-2xl transition-all border border-white/5 text-[10px] md:text-xs font-black uppercase tracking-widest active:scale-95 shrink-0"
         >
-          <Plus size={16} className="text-primary" />
-          <span>New Thread</span>
+          <Plus size={14} md:size={16} className="text-primary" />
+          <span className="hidden sm:inline">New Thread</span>
+          <span className="sm:hidden">New</span>
         </button>
       </div>
 
@@ -188,7 +189,7 @@ export default function ChatInterface() {
       </div>
 
       {/* Input Overlay */}
-      <div className="absolute bottom-0 inset-x-0 p-6 pb-2 z-30">
+      <div className="absolute bottom-0 inset-x-0 p-3 md:p-6 pb-2 z-30">
         <div className="max-w-4xl mx-auto relative">
            <div className="absolute inset-0 bg-darker/60 blur-2xl -z-10 rounded-full" />
            <MessageInput onSendMessage={handleSendMessage} isLoading={isLoading} />

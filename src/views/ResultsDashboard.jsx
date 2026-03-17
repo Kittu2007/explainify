@@ -114,31 +114,31 @@ export default function ResultsDashboard() {
 
   return (
     <div className="space-y-8 animate-fade-in p-2">
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-        <div className="space-y-2">
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 md:gap-6">
+        <div className="space-y-2 overflow-hidden">
           <div className="flex items-center gap-2 px-3 py-1 bg-primary/10 rounded-full w-fit border border-primary/20">
              <Sparkles size={12} className="text-primary" />
              <span className="text-[10px] font-black uppercase tracking-widest text-primary">Intelligence Report</span>
           </div>
-          <h1 className="text-5xl font-black text-white tracking-tighter truncate max-w-2xl">
+          <h1 className="text-2xl sm:text-4xl md:text-6xl font-black text-white tracking-tighter truncate max-w-full">
             {document?.name || 'Knowledge Entity'}
           </h1>
         </div>
-        <div className="flex gap-4">
+        <div className="flex flex-wrap gap-2 md:gap-4 shrink-0">
           <button 
             onClick={handleExportPDF}
             disabled={exporting}
-            className="px-6 py-3 rounded-full border border-white/10 text-gray-400 font-bold text-sm hover:bg-white/5 transition-all flex items-center gap-2"
+            className="flex-1 md:flex-none px-4 md:px-6 py-2 md:py-3 rounded-full border border-white/10 text-gray-400 font-bold text-[10px] md:text-sm hover:bg-white/5 transition-all flex items-center justify-center gap-2"
           >
             {exporting ? <Loader2 size={16} className="animate-spin" /> : <Download size={18} />}
-            {exporting ? 'Exporting' : 'Download Brief'}
+            <span>{exporting ? 'Exporting' : 'Download Brief'}</span>
           </button>
           <button 
             onClick={() => router.push('/dashboard/video')}
-            className="gooey-button flex items-center gap-2"
+            className="flex-1 md:flex-none gooey-button flex items-center justify-center gap-2 px-4 md:px-8 py-2 md:py-3"
           >
-            <span>Visualize Insights</span>
-            <ArrowRight size={18} />
+            <span className="text-[10px] md:text-sm">Visualize Insights</span>
+            <ArrowRight size={16} md:size={18} />
           </button>
         </div>
       </div>
@@ -146,12 +146,12 @@ export default function ResultsDashboard() {
       <div ref={reportRef} className="grid grid-cols-1 lg:grid-cols-4 gap-6">
         {/* Main Brief Area */}
         <div className="lg:col-span-3 space-y-6">
-          <div className="bento-card min-h-[500px] border-white/5">
-            <div className="flex items-center gap-3 mb-8">
-              <div className="p-3 bg-primary/10 rounded-2xl">
-                <FileText className="text-primary" size={24} />
+          <div className="magic-bento min-h-[300px] md:min-h-[500px] border-white/5 p-6 md:p-12 rounded-[2rem] md:rounded-[3.5rem]">
+            <div className="flex items-center gap-3 mb-6 md:mb-10">
+              <div className="p-2.5 md:p-4 bg-primary/10 rounded-xl md:rounded-3xl">
+                <FileText className="text-primary" size={24} md:size={32} />
               </div>
-              <h2 className="text-2xl font-black text-white tracking-tight">Executive Summary</h2>
+              <h2 className="text-xl md:text-3xl font-black text-white tracking-tight">Executive Summary</h2>
             </div>
             <div className="prose prose-invert max-w-none text-gray-400 leading-relaxed font-medium">
               <ReactMarkdown remarkPlugins={[remarkGfm]}>
