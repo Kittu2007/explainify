@@ -20,12 +20,12 @@ export default function DashboardShell({ children }) {
       <DashboardSidebar />
 
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col relative z-10">
-        <div className="p-6 h-screen flex flex-col">
+      <div className="flex-1 flex flex-col relative z-10 w-full overflow-x-hidden">
+        <div className="p-4 md:p-10 min-h-screen flex flex-col">
           <DashboardNavbar />
           
-          <main className="flex-1 mt-6 overflow-y-auto custom-scrollbar">
-            <div className="max-w-7xl mx-auto h-full pb-10">
+          <main className="flex-1 mt-4 md:mt-10 overflow-y-auto custom-scrollbar">
+            <div className="max-w-7xl mx-auto h-full pb-20 md:pb-10">
               {children}
             </div>
           </main>

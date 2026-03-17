@@ -75,20 +75,20 @@ export const StaggeredMenu = ({
       />
 
       {/* Floating Toggle Button */}
-      <div className="absolute top-8 left-8 pointer-events-auto">
+      <div className="absolute top-4 left-4 md:top-8 md:left-8 pointer-events-auto">
         <button
           ref={triggerRef}
           onClick={toggleMenu}
-          className="flex items-center gap-3 glass px-5 py-3 rounded-full border border-white/10 hover:border-primary/50 transition-all hover:scale-105 active:scale-95 group shadow-2xl"
+          className="flex items-center gap-2 md:gap-3 glass px-3 py-2 md:px-5 md:py-3 rounded-full border border-white/10 hover:border-primary/50 transition-all hover:scale-105 active:scale-95 group shadow-2xl"
         >
-          <div className="relative w-5 h-5 flex items-center justify-center">
+          <div className="relative w-4 h-4 md:w-5 md:h-5 flex items-center justify-center">
             {open ? (
-              <X size={20} className="text-primary animate-in spin-in-90 duration-300" />
+              <X size={18} className="text-primary animate-in spin-in-90 duration-300" />
             ) : (
-              <History size={20} className="text-primary animate-in zoom-in duration-300" />
+              <History size={18} className="text-primary animate-in zoom-in duration-300" />
             )}
           </div>
-          <span className="text-xs font-black uppercase tracking-widest text-[#EBD3F8] group-hover:text-white transition-colors">
+          <span className="text-[10px] md:text-xs font-black uppercase tracking-widest text-[#EBD3F8] group-hover:text-white transition-colors">
             {open ? 'Close' : 'History'}
           </span>
         </button>
@@ -97,10 +97,10 @@ export const StaggeredMenu = ({
       {/* Sidebar Panel */}
       <aside 
         ref={panelRef} 
-        className="staggered-menu-panel absolute top-0 left-0 h-full bg-[#1e0529] border-r border-white/10 flex flex-col w-[380px] pointer-events-auto shadow-[20px_0_50px_rgba(0,0,0,0.5)] z-10"
+        className="staggered-menu-panel absolute top-0 left-0 h-full bg-[#1e0529] border-r border-white/10 flex flex-col w-[85%] sm:w-[380px] max-w-[400px] pointer-events-auto shadow-[20px_0_50px_rgba(0,0,0,0.5)] z-10"
       >
         {/* Panel Header */}
-        <div className="p-10 flex items-center justify-between">
+        <div className="p-6 md:p-10 flex items-center justify-between">
            <div className="flex items-center gap-3">
               <div className="w-10 h-10 bg-primary rounded-2xl flex items-center justify-center shadow-[0_0_20px_rgba(122,28,172,0.4)]">
                  <Zap size={22} className="text-white fill-white" />
@@ -116,10 +116,10 @@ export const StaggeredMenu = ({
         </div>
 
         {/* Action Button */}
-        <div className="px-10 mb-8">
+        <div className="px-6 md:px-10 mb-8">
           <button
             onClick={() => { onNewChat?.(); toggleMenu(); }}
-            className="w-full flex items-center justify-center gap-3 py-5 bg-primary text-white rounded-[2rem] font-black uppercase tracking-[0.15em] text-xs shadow-[0_10px_30px_rgba(122,28,172,0.3)] hover:scale-[1.02] active:scale-95 transition-all"
+            className="w-full flex items-center justify-center gap-3 py-4 md:py-5 bg-primary text-white rounded-[2rem] font-black uppercase tracking-[0.15em] text-xs shadow-[0_10px_30px_rgba(122,28,172,0.3)] hover:scale-[1.02] active:scale-95 transition-all"
           >
             <Plus size={20} />
             <span>New Chat</span>

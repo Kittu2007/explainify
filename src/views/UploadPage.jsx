@@ -141,14 +141,18 @@ export default function UploadPage() {
   
   return (
     <div className="space-y-8 animate-fade-in p-2">
-      <div className="flex flex-col gap-2">
-        <h1 className="text-5xl font-black text-white tracking-tighter">Import Knowledge</h1>
-        <p className="text-gray-500 font-medium">Feed the neural network with specialized documents.</p>
+      <div className="flex flex-col gap-2 mb-4 md:mb-8 text-center md:text-left">
+        <h1 className="text-3xl sm:text-4xl md:text-6xl font-black text-white tracking-tighter leading-tight">
+          Import Knowledge
+        </h1>
+        <p className="text-xs md:text-base text-gray-500 font-medium">
+          Feed the neural network with specialized documents.
+        </p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-8">
         {/* Main Upload Area - Large Bento Piece */}
-        <div className="lg:col-span-2 bento-card flex flex-col items-center justify-center min-h-[400px] border-dashed border-2 relative overflow-hidden group">
+        <div className="lg:col-span-2 magic-bento min-h-[320px] md:min-h-[500px] flex flex-col items-center justify-center border-dashed border-2 border-white/10 relative overflow-hidden group rounded-[2.5rem] md:rounded-[4rem] p-6 md:p-12">
            <div className="absolute inset-0 bg-primary/5 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
            
            <input
@@ -229,40 +233,40 @@ export default function UploadPage() {
         </div>
 
         {/* Info Bento Pieces */}
-        <div className="flex flex-col gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:flex lg:flex-col gap-4 md:gap-8">
           <div 
-            className="magic-bento p-10 flex flex-col justify-between h-[220px] rounded-[3rem] group"
+            className="magic-bento p-6 md:p-10 flex flex-col justify-between h-[200px] md:h-[250px] rounded-[2rem] md:rounded-[3.5rem] group"
             onMouseMove={(e) => {
               const rect = e.currentTarget.getBoundingClientRect();
               e.currentTarget.style.setProperty('--mouse-x', `${e.clientX - rect.left}px`);
               e.currentTarget.style.setProperty('--mouse-y', `${e.clientY - rect.top}px`);
             }}
           >
-             <div className="bento-icon-container bg-blue-500/10 w-fit glow-blue">
+             <div className="bento-icon-container bg-blue-500/10 w-fit glow-blue scale-90 md:scale-100">
                <Shield className="text-blue-500" size={24} />
              </div>
              <div>
-               <h4 className="font-black text-2xl text-white tracking-tight mb-1">Neural Security</h4>
-               <p className="text-[12px] text-gray-400 font-medium leading-relaxed">
+               <h4 className="font-black text-lg md:text-2xl text-white tracking-tight mb-1">Neural Security</h4>
+               <p className="text-[10px] md:text-[12px] text-gray-400 font-medium leading-relaxed">
                  Institutional-grade encryption protocols protect every document in our neural vector vault.
                </p>
              </div>
           </div>
 
           <div 
-            className="magic-bento p-10 flex flex-col justify-between h-[220px] rounded-[3rem] group"
+            className="magic-bento p-6 md:p-10 flex flex-col justify-between h-[200px] md:h-[250px] rounded-[2rem] md:rounded-[3.5rem] group"
             onMouseMove={(e) => {
               const rect = e.currentTarget.getBoundingClientRect();
               e.currentTarget.style.setProperty('--mouse-x', `${e.clientX - rect.left}px`);
               e.currentTarget.style.setProperty('--mouse-y', `${e.clientY - rect.top}px`);
             }}
           >
-             <div className="bento-icon-container bg-emerald-500/10 w-fit glow-emerald">
+             <div className="bento-icon-container bg-emerald-500/10 w-fit glow-emerald scale-90 md:scale-100">
                <Zap className="text-emerald-500" size={24} />
              </div>
              <div>
-               <h4 className="font-black text-2xl text-white tracking-tight mb-1">Rapid Indexing</h4>
-               <p className="text-[12px] text-gray-400 font-medium leading-relaxed">
+               <h4 className="font-black text-lg md:text-2xl text-white tracking-tight mb-1">Rapid Indexing</h4>
+               <p className="text-[10px] md:text-[12px] text-gray-400 font-medium leading-relaxed">
                  Sub-millisecond retrieval architecture for massive high-dimensional knowledge bases.
                </p>
              </div>
