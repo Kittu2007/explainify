@@ -28,6 +28,27 @@ export default function VideoLearning() {
 
   const isSynthesizingVideoRef = useRef(false);
   const isSynthesizingAudioRef = useRef(false);
+  const audioUrlsRef = useRef({}); // Cache object URLs
+  const [isAudioPrimed, setIsAudioPrimed] = useState(false);
+
+  // Helper: Convert base64 data URI to Blob Object URL
+  const dataUriToBlobUrl = (dataUri) => {
+    try {
+      const parts = dataUri.split(';base64,');
+      const contentType = parts[0].split(':')[1];
+      const raw = window.atob(parts[1]);
+      const rawLength = raw.length;
+      const uInt8Array = new Uint8Array(rawLength);
+      for (let i = 0; i < rawLength; ++i) {
+        uInt8Array[i] = raw.charCodeAt(i);
+      }
+      const blob = new Blob([uInt8Array], { type: contentType });
+      return URL.createObjectURL(blob);
+    } catch (e) {
+      console.error("Blob conversion failed:", e);
+      return dataUri;
+    }
+  };
 
   // EFFECT: Lazy-load video clips for each scene
   useEffect(() => {
@@ -91,10 +112,13 @@ export default function VideoLearning() {
                 });
                 
                 if (res.ok) {
-                  const { audioUrl } = await res.json();
+                  const data = await res.json();
+                  const blobUrl = dataUriToBlobUrl(data.audioUrl);
+                  audioUrlsRef.current[i] = blobUrl;
+                  
                   setScenes(prev => {
                     const updated = [...prev];
-                    updated[i] = { ...updated[i], audioUrl };
+                    updated[i] = { ...updated[i], audioUrl: blobUrl };
                     return updated;
                   });
                   setAudioSynthesizedCount(prev => prev + 1);
@@ -177,23 +201,42 @@ export default function VideoLearning() {
 
   useEffect(() => {
     if (isPlaying && scenes[currentSceneIndex]?.audioUrl) {
-      if (audioRef.current) {
-        // More robust src check
+      const audio = audioRef.current;
+      if (audio) {
         const targetSrc = scenes[currentSceneIndex].audioUrl;
-        if (audioRef.current.getAttribute('data-src') !== targetSrc) {
-          audioRef.current.src = targetSrc;
-          audioRef.current.setAttribute('data-src', targetSrc);
-          audioRef.current.load();
+        
+        if (audio.getAttribute('data-src') !== targetSrc) {
+          audio.pause();
+          audio.src = targetSrc;
+          audio.setAttribute('data-src', targetSrc);
+          audio.load();
         }
         
-        audioRef.current.play().catch(e => {
-          console.warn("Autoplay blocked or audio error:", e);
-        });
+        // Ensure volume is up and primed
+        audio.volume = 1.0;
+        audio.muted = false;
+
+        const playPromise = audio.play();
+        if (playPromise !== undefined) {
+          playPromise.catch(e => {
+            console.warn("[Audio] Playback stalled/blocked:", e);
+            // If blocked, we rely on the heartbeat fallback
+          });
+        }
       }
     } else if (!isPlaying) {
       audioRef.current?.pause();
     }
   }, [currentSceneIndex, isPlaying, scenes[currentSceneIndex]?.audioUrl]);
+
+  // Clean up ObjectURLs on unmount
+  useEffect(() => {
+    return () => {
+      Object.values(audioUrlsRef.current).forEach(url => {
+        if (url.startsWith('blob:')) URL.revokeObjectURL(url);
+      });
+    };
+  }, []);
 
   const handleRestart = () => {
     setProgress(0)
@@ -304,7 +347,15 @@ export default function VideoLearning() {
              {/* Play/Pause Overlay */}
              <div 
                className="absolute inset-0 z-30 opacity-0 group-hover:opacity-100 transition-all duration-700 flex items-center justify-center bg-black/40 backdrop-blur-[2px] cursor-pointer"
-               onClick={() => setIsPlaying(!isPlaying)}
+               onClick={() => {
+                 if (!isPlaying && !isAudioPrimed) {
+                    audioRef.current?.play().then(() => {
+                      audioRef.current?.pause();
+                      setIsAudioPrimed(true);
+                    }).catch(() => {});
+                 }
+                 setIsPlaying(!isPlaying);
+               }}
              >
                 <div className="w-16 h-16 md:w-24 md:h-24 bg-white/10 hover:bg-white/20 rounded-full backdrop-blur-3xl flex items-center justify-center border border-white/10 shadow-2xl transform hover:scale-110 active:scale-95 transition-all">
                   {isPlaying ? (
@@ -362,7 +413,18 @@ export default function VideoLearning() {
                     <button onClick={() => setCurrentSceneIndex(Math.max(0, currentSceneIndex - 1))} className="p-2 md:p-3 text-gray-500 hover:text-white transition-colors">
                        <ChevronLeft className="w-6 h-6 md:w-7 md:h-7" strokeWidth={3} />
                     </button>
-                    <button onClick={() => setIsPlaying(!isPlaying)} className="w-12 h-12 md:w-16 md:h-16 bg-white text-black rounded-full flex items-center justify-center hover:scale-110 active:scale-95 transition-all shadow-[0_0_30px_rgba(255,255,255,0.2)]">
+                    <button 
+                      onClick={() => {
+                        if (!isPlaying && !isAudioPrimed) {
+                           audioRef.current?.play().then(() => {
+                             audioRef.current?.pause();
+                             setIsAudioPrimed(true);
+                           }).catch(() => {});
+                        }
+                        setIsPlaying(!isPlaying);
+                      }} 
+                      className="w-12 h-12 md:w-16 md:h-16 bg-white text-black rounded-full flex items-center justify-center hover:scale-110 active:scale-95 transition-all shadow-[0_0_30px_rgba(255,255,255,0.2)]"
+                    >
                        {isPlaying ? <Pause className="w-6 h-6 md:w-7 md:h-7" fill="black" /> : <Play className="w-6 h-6 md:w-7 md:h-7 ml-1" fill="black" />}
                     </button>
                     <button onClick={() => setCurrentSceneIndex(Math.min(scenes.length - 1, currentSceneIndex + 1))} className="p-2 md:p-3 text-gray-500 hover:text-white transition-colors">
