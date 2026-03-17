@@ -9,38 +9,40 @@ const sdk = new Bytez(BYTEZ_API_KEY);
  *
  * @param text - The script text to narrate
  */
-export async function generateNarrationAudio(text: string): Promise<string> {
+/**
+ * Generate audio narration Buffer from text.
+ */
+export async function generateNarrationBuffer(text: string): Promise<Buffer> {
   try {
-    console.log(`[TTS] Generating audio for: "${text.substring(0, 50)}..."`);
-    
-    // choose tts-1
+    console.log(`[TTS] Buffer Gen: "${text.substring(0, 50)}..."`);
     const model = sdk.model("openai/tts-1");
-
-    // send input to model
     const { error, output } = await model.run(text);
 
-    if (error) {
-      console.error("[TTS] Generation error:", error);
-      throw new Error(`TTS generation failed: ${JSON.stringify(error)}`);
+    if (error) throw new Error(`TTS failed: ${JSON.stringify(error)}`);
+
+    if (Buffer.isBuffer(output)) return output;
+    
+    if (typeof output === 'string' && output.startsWith('http')) {
+      const res = await fetch(output);
+      return Buffer.from(await res.arrayBuffer());
+    }
+    
+    if (typeof output === 'string' && output.startsWith('data:')) {
+      const base64 = output.split(',')[1];
+      return Buffer.from(base64, 'base64');
     }
 
-    if (Buffer.isBuffer(output)) {
-      const base64 = output.toString("base64");
-      console.log(`[TTS] Generated payload: ${base64.length} bytes`);
-      return `data:audio/mpeg;base64,${base64}`;
-    }
-
-    if (typeof output === 'string') {
-      if (output.startsWith('data:') || output.startsWith('http')) {
-        console.log(`[TTS] Success: Output is a valid ${output.startsWith('data:') ? 'Data URI' : 'URL'}`);
-        return output;
-      }
-    }
-
-    console.warn("[TTS] Unexpected output format:", typeof output, output);
-    return "";
+    throw new Error("Unsupported TTS output format");
   } catch (err: any) {
-    console.error("[TTS] Unhandled error:", err.message);
+    console.error("[TTS] Buffer Error:", err.message);
     throw err;
   }
+}
+
+/**
+ * Legacy wrapper: returns base64 Data URI
+ */
+export async function generateNarrationAudio(text: string): Promise<string> {
+  const buffer = await generateNarrationBuffer(text);
+  return `data:audio/mpeg;base64,${buffer.toString('base64')}`;
 }
