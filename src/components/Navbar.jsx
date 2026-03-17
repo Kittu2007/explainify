@@ -31,10 +31,7 @@ export default function Navbar() {
         <div className="flex justify-between items-center h-20">
           {/* Logo */}
           <Link href="/" className="flex items-center space-x-2 group">
-            <div className="w-10 h-10 bg-gradient-to-br from-primary to-secondary rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
-              <span className="font-bold text-lg">E</span>
-            </div>
-            <span className="text-2xl font-bold hidden sm:inline">Explainify</span>
+            <img src="/logo.png" alt="Explainify" className="h-12 w-auto object-contain group-hover:scale-105 transition-transform" />
           </Link>
           
           {/* Desktop Navigation */}

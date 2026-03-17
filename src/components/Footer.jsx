@@ -15,8 +15,7 @@ export default function Footer() {
           {/* Brand */}
           <div>
             <div className="flex items-center space-x-2 mb-4">
-              <div className="w-8 h-8 bg-gradient-to-br from-primary to-secondary rounded-lg"></div>
-              <span className="text-xl font-bold">Explainify</span>
+              <img src="/logo.png" alt="Explainify" className="h-8 w-auto object-contain" />
             </div>
             <p className="text-gray-400 text-sm">
               Transform your documents into interactive learning experiences powered by AI.
