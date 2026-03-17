@@ -102,8 +102,8 @@ export const StaggeredMenu = ({
         {/* Panel Header */}
         <div className="p-6 md:p-10 flex items-center justify-between">
            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-primary rounded-2xl flex items-center justify-center shadow-[0_0_20px_rgba(122,28,172,0.4)]">
-                 <Zap size={22} className="text-white fill-white" />
+              <div className="w-10 h-10 shadow-[0_0_20px_rgba(122,28,172,0.4)]">
+                 <img src="/favicon.png" alt="Explainify" className="w-full h-full object-contain rounded-2xl" />
               </div>
               <div>
                  <h2 className="font-black text-xl text-white tracking-tighter leading-none">Explainify</h2>

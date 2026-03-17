@@ -83,8 +83,8 @@ export default function RegisterView() {
         >
           <div className="bg-[#000810]/90 backdrop-blur-2xl p-8 md:p-10 border border-white/5 rounded-[2.5rem]">
             <div className="text-center mb-8">
-              <div className="w-16 h-16 bg-gradient-to-br from-secondary to-accent rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-2xl shadow-secondary/20 -rotate-3 transition-transform hover:rotate-0 text-white">
-                <UserPlus size={32} />
+              <div className="mx-auto mb-6 transition-transform hover:scale-110">
+                <img src="/favicon.png" alt="Explainify" className="w-16 h-16 object-contain rounded-2xl shadow-2xl shadow-secondary/20" />
               </div>
               <h1 className="text-3xl font-black text-white mb-2 tracking-tight uppercase italic">Join Explainify</h1>
               <p className="text-white/40 text-[10px] font-black uppercase tracking-[0.2em]">Generate New Identity</p>

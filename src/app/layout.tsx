@@ -9,6 +9,9 @@ export const metadata: Metadata = {
   title: "Explainify — AI-Powered Knowledge Retrieval",
   description:
     "Upload documents, ask questions, generate summaries, and learn through AI-powered visual explanations.",
+  icons: {
+    icon: "/favicon.png",
+  },
 };
 
 export default function RootLayout({
