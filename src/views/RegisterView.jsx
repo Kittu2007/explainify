@@ -14,16 +14,17 @@ export default function RegisterView() {
   const [name, setName] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [isGoogleLoading, setIsGoogleLoading] = useState(false)
+  const [isRedirecting, setIsRedirecting] = useState(false)
   const [error, setError] = useState(null)
   const [success, setSuccess] = useState(false)
   const router = useRouter()
   const { user, signInWithGoogle, signUpWithEmail, isAuthAvailable, isLoading: isAuthLoading } = useAuth()
 
   useEffect(() => {
-    if (user && !isAuthLoading) {
-      window.location.href = '/dashboard/upload'
+    if (user && !isAuthLoading && !isRedirecting) {
+      router.push('/dashboard/upload')
     }
-  }, [user, isAuthLoading])
+  }, [user, isAuthLoading, isRedirecting, router])
 
   const handleRegister = async (e) => {
     e.preventDefault()
@@ -36,7 +37,12 @@ export default function RegisterView() {
       setError(regError.message)
       setIsLoading(false)
     } else {
-      window.location.href = '/dashboard/upload'
+      setIsRedirecting(true)
+      setIsLoading(false)
+      setSuccess(true)
+      setTimeout(() => {
+        window.location.href = '/dashboard/upload'
+      }, 5000)
     }
   }
 
@@ -49,7 +55,12 @@ export default function RegisterView() {
         setError(googleError.message)
         setIsGoogleLoading(false)
       } else if (gUser) {
-        window.location.href = '/dashboard/upload'
+        setIsRedirecting(true)
+        setIsGoogleLoading(false)
+        setSuccess(true)
+        setTimeout(() => {
+          window.location.href = '/dashboard/upload'
+        }, 5000)
       }
     } catch (err) {
       setError(err.message)
@@ -106,6 +117,15 @@ export default function RegisterView() {
                 </div>
               )}
 
+              {isRedirecting && (
+                <div className="bg-cyan-500/10 border-l-4 border-cyan-500 p-4 rounded-r-xl flex items-center gap-3">
+                  <div className="w-2 h-2 bg-cyan-500 rounded-full animate-ping" />
+                  <p className="text-[10px] text-cyan-500 font-black uppercase tracking-tight">
+                    Identity Provisioned. Nexus initialization in 5s...
+                  </p>
+                </div>
+              )}
+
               <div className="space-y-1.5 focus-within:-translate-x-1 transition-transform">
                 <label className="text-[10px] font-black uppercase tracking-widest text-white/30 ml-1">Alias</label>
                 <div className="relative">
@@ -154,11 +174,16 @@ export default function RegisterView() {
 
               <button
                 type="submit"
-                disabled={isLoading || success || !isAuthAvailable}
+                disabled={isLoading || isRedirecting || !isAuthAvailable}
                 className="w-full py-4 bg-secondary hover:bg-accent text-white rounded-2xl font-black uppercase tracking-widest text-xs transition-all shadow-xl shadow-secondary/20 flex items-center justify-center gap-2 group disabled:opacity-50 active:scale-95"
               >
                 {isLoading ? (
                   <Loader2 className="animate-spin" size={18} />
+                ) : isRedirecting ? (
+                  <div className="flex items-center gap-2">
+                    <Loader2 className="animate-spin" size={16} />
+                    <span>PROVISIONING...</span>
+                  </div>
                 ) : (
                   <>
                     Initialize Profile
@@ -179,7 +204,7 @@ export default function RegisterView() {
               <button
                 type="button"
                 onClick={handleGoogleLogin}
-                disabled={isLoading || isGoogleLoading || success || !isAuthAvailable}
+                disabled={isLoading || isGoogleLoading || isRedirecting || !isAuthAvailable}
                 className="w-full h-14 bg-white/5 border border-white/10 hover:border-white/20 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all shadow-sm hover:shadow-secondary/10 flex items-center justify-center gap-3 active:scale-[0.98] disabled:opacity-50"
               >
                 {isGoogleLoading ? (

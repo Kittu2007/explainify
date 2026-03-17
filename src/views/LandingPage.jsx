@@ -1,15 +1,16 @@
 "use client";
 import ParticlesBackground from "../components/ParticlesBackground";
-import HeroSection from "../components/HeroSection";
+import Hero from "../components/Hero";
 import FeaturesSection from "../components/FeaturesSection";
 import WorkflowSection from "../components/WorkflowSection";
 import DemoSection from "../components/DemoSection";
+import YouAskWeAnswer from "../components/YouAskWeAnswer";
 import CircularText from "../components/ui/CircularText";
 
 export default function LandingPage() {
   return (
     <div className="relative min-h-screen bg-[#020617] text-white overflow-x-hidden">
-      {/* Animated Particles Background */}
+      {/* Animated Particles Background (Static Background Layer) */}
       <ParticlesBackground />
       
       {/* Floating Circular Text Badge */}
@@ -21,16 +22,12 @@ export default function LandingPage() {
         />
       </div>
 
-      {/* Floating Lines for subtle accent */}
-      <div className="absolute inset-0 z-0 pointer-events-none">
-        {/* Optionally add FloatingLinesBackground for extra depth */}
-        {/* <FloatingLinesBackground /> */}
-      </div>
-      {/* Content layers above backgrounds */}
+      {/* Content layers */}
       <div className="relative z-10">
-        <HeroSection />
+        <Hero />
         <FeaturesSection />
         <WorkflowSection />
+        <YouAskWeAnswer />
         <DemoSection />
       </div>
     </div>

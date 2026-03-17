@@ -13,15 +13,17 @@ export default function LoginView() {
   const [password, setPassword] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [isGoogleLoading, setIsGoogleLoading] = useState(false)
+  const [isRedirecting, setIsRedirecting] = useState(false)
   const [error, setError] = useState(null)
   const router = useRouter()
   const { user, signInWithGoogle, signInWithEmail, isAuthAvailable, isLoading: isAuthLoading } = useAuth()
 
   useEffect(() => {
-    if (user && !isAuthLoading) {
-      window.location.href = '/dashboard/upload'
+    // Only auto-redirect if NOT already in the middle of a purposeful success flow
+    if (user && !isAuthLoading && !isRedirecting) {
+      router.push('/dashboard/upload')
     }
-  }, [user, isAuthLoading])
+  }, [user, isAuthLoading, isRedirecting, router])
 
   const handleLogin = async (e) => {
     e.preventDefault()
@@ -34,17 +36,27 @@ export default function LoginView() {
       setError(loginError.message)
       setIsLoading(false)
     } else {
-      window.location.href = '/dashboard/upload'
+      setIsRedirecting(true)
+      setIsLoading(false)
+      setTimeout(() => {
+        window.location.href = '/dashboard/upload'
+      }, 5000)
     }
   }
 
   const handleGoogleLogin = async () => {
     setIsGoogleLoading(true)
     setError(null)
-    const { error: googleError } = await signInWithGoogle()
+    const { user: gUser, error: googleError } = await signInWithGoogle()
     if (googleError) {
       setError(googleError.message)
       setIsGoogleLoading(false)
+    } else if (gUser) {
+      setIsRedirecting(true)
+      setIsGoogleLoading(false)
+      setTimeout(() => {
+        window.location.href = '/dashboard/upload'
+      }, 5000)
     }
   }
 
@@ -98,6 +110,15 @@ export default function LoginView() {
                 </div>
               )}
 
+              {isRedirecting && (
+                <div className="bg-green-500/10 border-l-4 border-green-500 p-4 rounded-r-xl flex items-center gap-3">
+                  <div className="w-2 h-2 bg-green-500 rounded-full animate-ping" />
+                  <p className="text-[10px] text-green-500 font-black uppercase tracking-tight">
+                    Connection Established. Redirecting to Nexus in 5s...
+                  </p>
+                </div>
+              )}
+
               <div className="space-y-1.5 focus-within:translate-x-1 transition-transform">
                 <label className="text-[10px] font-black uppercase tracking-widest text-white/30 ml-1">Identity</label>
                 <div className="relative">
@@ -130,11 +151,16 @@ export default function LoginView() {
 
               <button
                 type="submit"
-                disabled={isLoading || isGoogleLoading || !isAuthAvailable}
+                disabled={isLoading || isGoogleLoading || isRedirecting || !isAuthAvailable}
                 className="w-full py-4 bg-primary hover:bg-secondary text-white rounded-2xl font-black uppercase tracking-widest text-xs transition-all shadow-xl shadow-primary/20 flex items-center justify-center gap-2 group disabled:opacity-50 active:scale-95"
               >
                 {isLoading ? (
                   <Loader2 className="animate-spin" size={18} />
+                ) : isRedirecting ? (
+                  <div className="flex items-center gap-2">
+                    <Loader2 className="animate-spin" size={16} />
+                    <span>SYNCHING...</span>
+                  </div>
                 ) : (
                   <>
                     Initialize Connection
