@@ -5,6 +5,21 @@ import { Play, Pause, RotateCcw, Video, Volume2, Settings, Share2, Loader2, Spar
 import { useDocument } from '../context/DocumentContext'
 import VisualScene from '../components/VisualScene'
 
+const WaveVisualizer = ({ isPlaying }) => (
+  <div className="flex items-end gap-[2px] h-3 md:h-4">
+    {[...Array(5)].map((_, i) => (
+      <div 
+        key={i} 
+        className={`w-1 bg-primary rounded-full transition-all duration-300 ${isPlaying ? 'animate-bounce' : 'h-1'}`}
+        style={{ 
+          animationDelay: `${i * 0.1}s`,
+          height: isPlaying ? `${Math.random() * 80 + 20}%` : '4px'
+        }}
+      />
+    ))}
+  </div>
+);
+
 export default function VideoLearning() {
   const { document, documentId } = useDocument()
   const router = useRouter()
@@ -16,6 +31,8 @@ export default function VideoLearning() {
   const [error, setError] = useState(null)
   const [synthesizedCount, setSynthesizedCount] = useState(0)
   const [audioSynthesizedCount, setAudioSynthesizedCount] = useState(0)
+  const [isMuted, setIsMuted] = useState(false)
+  const [volume, setVolume] = useState(1.0)
   const audioRef = useRef(null)
   
   useEffect(() => {
@@ -31,24 +48,26 @@ export default function VideoLearning() {
   const audioUrlsRef = useRef({}); // Cache object URLs
   const [isAudioPrimed, setIsAudioPrimed] = useState(false);
 
-  // Helper: Convert base64 data URI to Blob Object URL
-  const dataUriToBlobUrl = (dataUri) => {
+  // Robust Blob conversion using fetch (handles Data URIs more reliably)
+  const dataUriToBlobUrl = async (dataUri) => {
     try {
-      const parts = dataUri.split(';base64,');
-      const contentType = parts[0].split(':')[1];
-      const raw = window.atob(parts[1]);
-      const rawLength = raw.length;
-      const uInt8Array = new Uint8Array(rawLength);
-      for (let i = 0; i < rawLength; ++i) {
-        uInt8Array[i] = raw.charCodeAt(i);
-      }
-      const blob = new Blob([uInt8Array], { type: contentType });
+      const response = await fetch(dataUri);
+      const blob = await response.blob();
       return URL.createObjectURL(blob);
     } catch (e) {
       console.error("Blob conversion failed:", e);
       return dataUri;
     }
   };
+
+  // Prime with silence on Mount to unlock Audio Context
+  useEffect(() => {
+    const silentBeep = "data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAA==";
+    if (audioRef.current) {
+      audioRef.current.src = silentBeep;
+      audioRef.current.load();
+    }
+  }, []);
 
   // EFFECT: Lazy-load video clips for each scene
   useEffect(() => {
@@ -113,7 +132,7 @@ export default function VideoLearning() {
                 
                 if (res.ok) {
                   const data = await res.json();
-                  const blobUrl = dataUriToBlobUrl(data.audioUrl);
+                  const blobUrl = await dataUriToBlobUrl(data.audioUrl);
                   audioUrlsRef.current[i] = blobUrl;
                   
                   setScenes(prev => {
@@ -206,28 +225,22 @@ export default function VideoLearning() {
         const targetSrc = scenes[currentSceneIndex].audioUrl;
         
         if (audio.getAttribute('data-src') !== targetSrc) {
-          audio.pause();
           audio.src = targetSrc;
           audio.setAttribute('data-src', targetSrc);
           audio.load();
         }
         
-        // Ensure volume is up and primed
-        audio.volume = 1.0;
-        audio.muted = false;
+        audio.volume = isMuted ? 0 : volume;
+        audio.muted = isMuted;
 
-        const playPromise = audio.play();
-        if (playPromise !== undefined) {
-          playPromise.catch(e => {
-            console.warn("[Audio] Playback stalled/blocked:", e);
-            // If blocked, we rely on the heartbeat fallback
-          });
-        }
+        audio.play().catch(e => {
+          console.warn("[Audio] Playback blocked:", e);
+        });
       }
     } else if (!isPlaying) {
       audioRef.current?.pause();
     }
-  }, [currentSceneIndex, isPlaying, scenes[currentSceneIndex]?.audioUrl]);
+  }, [currentSceneIndex, isPlaying, scenes[currentSceneIndex]?.audioUrl, isMuted, volume]);
 
   // Clean up ObjectURLs on unmount
   useEffect(() => {
@@ -433,9 +446,32 @@ export default function VideoLearning() {
                  </div>
  
                    <div className="flex items-center gap-3 md:gap-6">
-                      <div className="px-3 md:px-6 py-2 md:py-3 glass rounded-xl md:rounded-2xl border-white/10 flex items-center gap-2 md:gap-3">
-                         <div className={`w-1.5 h-1.5 md:w-2 md:h-2 rounded-full animate-pulse ${scenes[currentSceneIndex]?.audioUrl ? 'bg-primary' : 'bg-gray-600'}`} />
-                         <Volume2 className={scenes[currentSceneIndex]?.audioUrl ? "text-primary transition-all scale-125 animate-pulse" : "text-gray-600"} size={16} />
+                      <div className="px-3 md:px-6 py-2 md:py-3 glass rounded-xl md:rounded-2xl border-white/10 flex items-center gap-3 md:gap-4 group/vol relative">
+                         <div className={`w-1.5 h-1.5 md:w-2 md:h-2 rounded-full ${scenes[currentSceneIndex]?.audioUrl ? 'bg-primary animate-pulse' : 'bg-gray-600'}`} />
+                         
+                         <div className="flex items-center gap-2">
+                           <button onClick={() => setIsMuted(!isMuted)} className="hover:scale-110 transition-transform">
+                             <Volume2 className={scenes[currentSceneIndex]?.audioUrl ? "text-primary" : "text-gray-600"} size={16} />
+                           </button>
+                           {isPlaying && scenes[currentSceneIndex]?.audioUrl && <WaveVisualizer isPlaying={isPlaying} />}
+                         </div>
+
+                         {/* Volume Slider HUD */}
+                         <div className="hidden group-hover/vol:flex absolute bottom-full left-1/2 -translate-x-1/2 mb-4 bg-black/90 backdrop-blur-xl p-4 rounded-2xl border border-white/10 flex-col items-center gap-3 animate-in fade-in slide-in-from-bottom-2 shadow-2xl z-50">
+                            <span className="text-[8px] font-black text-white/40 uppercase tracking-widest">Master Volume</span>
+                            <div className="h-24 w-1.5 bg-white/5 rounded-full relative flex items-end">
+                               <input 
+                                 type="range" 
+                                 min="0" max="1" step="0.01" 
+                                 value={volume} 
+                                 onChange={(e) => setVolume(parseFloat(e.target.value))}
+                                 className="absolute inset-0 w-24 h-1.5 -rotate-90 origin-center bg-transparent appearance-none cursor-pointer accent-primary"
+                                 style={{ left: '-11px', top: '45px' }}
+                                />
+                                <div className="w-full bg-primary rounded-full shadow-[0_0_10px_rgba(230,41,255,0.5)]" style={{ height: `${volume * 100}%` }} />
+                            </div>
+                         </div>
+                         
                          <span className="text-[8px] md:text-[10px] font-black text-white uppercase tracking-widest whitespace-nowrap">{currentScene.scene_type || 'neural'} mode</span>
                       </div>
                       <button onClick={handleRestart} className="p-3 md:p-4 bg-white/5 hover:bg-white/10 rounded-xl md:rounded-2xl border border-white/10 text-gray-400 hover:text-white transition-all">
@@ -586,7 +622,8 @@ export default function VideoLearning() {
                               </div>
                           )}
                        </div>
-                       {currentSceneIndex === idx && <Zap size={12} className="text-primary fill-primary animate-pulse" />}
+                     {currentSceneIndex === idx && <WaveVisualizer isPlaying={isPlaying} />}
+                     {currentSceneIndex === idx && <Zap size={12} className="text-primary fill-primary animate-pulse" />}
                     </div>
                     <h4 className={`text-sm font-black mb-1 tracking-tight ${currentSceneIndex === idx ? 'text-white' : 'text-gray-400'}`}>{scene.title || `Segment 0${idx + 1}`}</h4>
                     <p className={`text-[10px] font-medium leading-relaxed line-clamp-2 ${currentSceneIndex === idx ? 'text-primary/70' : 'text-gray-600'}`}>{scene.narration}</p>
