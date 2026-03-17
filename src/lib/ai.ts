@@ -99,6 +99,12 @@ export async function generateVideoScript(
   description: string;
   scenes: Array<{
     title: string;
+    concept: string;
+    diagram_type: string;
+    specification: {
+      labels: string[];
+      connections: string[];
+    };
     video_prompt: string;
     narration: string;
     duration: number;
@@ -116,15 +122,22 @@ export async function generateVideoScript(
         role: "system",
         content: `You are Explainify Technical Visualization Designer. Your task is to transform complex document content into a precise, TEXTBOOK-QUALITY SCIENTIFIC FIGURE plan.
         
+You MUST follow this 4-step architectural process for EVERY scene:
+
+STEP 1 — CONCEPT EXTRACTION: Identify ONE core scientific concept (e.g., "Structure of Nd:YAG laser").
+STEP 2 — DIAGRAM TYPE SELECTION: Select the correct style:
+  - component diagram (for devices)
+  - flow diagram (for processes)
+  - comparison diagram (for comparisons)
+  - spectrum chart (for wavelengths)
+  - physics energy diagram (for energy levels)
+STEP 3 — DIAGRAM SPECIFICATION: List all physical components and their logical connections/relationships.
+STEP 4 — BASE PROMPT COMPOSITION: Build a strict scientific prompt for a high-fidelity illustrator.
+
 CRITICAL RULES:
-1. FOCUS on technical accuracy, formal schematics, and HIGHLY LABELED functional diagrams.
-2. Every scene MUST have a precise 'video_prompt' targeting a professional scientific illustrator.
-3. VISUAL STYLE: "Textbook Figure Style". Think clean white or slate backgrounds, glowing technical elements, CLEAR LABELS with ARROWS, and numbered component callouts.
-4. BENCHMARK STYLE: Like university physics/engineering textbook diagrams (e.g., HeNe laser schematics with 'Anode', 'Cathode', 'Output Coupler' labels).
-5. PROMPT CONTENT: Explicitly include "technical labels, clear arrows pointing to parts, and a legend if necessary" in the video_prompt.
-6. DESCRIBE the visuals: "Professional 2D scientific schematic of a HeNe laser. Include a central glass tube with glowing red gas, clear arrows pointing to the Anode and Cathode, and high-visibility text labels: 'He-Ne gas mixture', 'Output Coupler', 'High Reflector'. Clean textbook style, 4k."
-7. The 'narration' should be a concise technical summary analysis of the segment.
-8. NO abstract art. Visuals MUST be directly educational and functional.
+1. BENCHMARK STYLE: Like university physics/engineering textbook diagrams (labeled figures, clean white background).
+2. NO ABSTRACT ART. Visuals MUST be directly educational and functional.
+3. Every 'video_prompt' MUST include: scientific textbook diagram, labeled components, arrows showing relationships, simple vector schematic, white background, minimal colors.
 
 Return ONLY a valid JSON object.
 
@@ -134,9 +147,15 @@ JSON Structure:
   "description": "Short explanation",
   "scenes": [
     {
-      "title": "Component Architecture",
-      "video_prompt": "Textbook schematic of an Nd:YAG laser system. Clean diagram with clear labels and arrows for 'Flash Lamp', 'Nd:YAG Rod', and 'Optical Resonator'. Highly technical, labeled figures, white background, 4k.",
-      "narration": "The system consists of an excitation source and an active medium within a resonant cavity to achieve light amplification.",
+      "title": "Scene Heading",
+      "concept": "Core scientific concept here",
+      "diagram_type": "Selected diagram type here",
+      "specification": {
+         "labels": ["label1", "label2"],
+         "connections": ["relationship1", "relationship2"]
+      },
+      "video_prompt": "Final combined scientific textbook diagram prompt...",
+      "narration": "Technical analysis narration.",
       "duration": 15
     }
   ]
