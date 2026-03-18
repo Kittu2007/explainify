@@ -1,7 +1,7 @@
 const fetch = require('node-fetch');
 
 async function testOpenRouter() {
-  const API_KEY = "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";
+  const API_KEY = "sk-or-v1-f5a813e5ac19e030d8bcac82c0c94eecd5cdbfb06a9daca79a1e652a3beaf2";
   const modelId = "sourceful/riverflow-v2-pro";
   const prompt = "Professional 2D scientific schematic of a HeNe laser. Include a central glass tube with glowing red gas, clear arrows pointing to the Anode and Cathode, and high-visibility text labels: 'He-Ne gas mixture', 'Output Coupler', 'High Reflector'. Clean textbook style, 4k.";
 

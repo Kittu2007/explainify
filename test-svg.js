@@ -1,7 +1,7 @@
 const fetch = require('node-fetch');
 
 async function testGeminiSVG() {
-  const API_KEY = "AIzaSyDmiEPgBZABGKXOxjjj3kQcfavansY9e0E";
+  const API_KEY = "AIzaSyDmiEPgBZABGKXOxjjj3kQcfavansY9e";
   const modelId = "gemini-2.0-flash"; 
   const prompt = "Generate a high-fidelity, professional 2D scientific SVG schematic of a HeNe laser. Include the discharge tube, anode, cathode, mirrors, and clear labels for each. Use a clean academic style. Return ONLY the SVG code without any markdown or conversational text.";
 
