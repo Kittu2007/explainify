@@ -1,6 +1,6 @@
 # Explainify 🚀
 
-**Explainify** is a premium, AI-powered knowledge retrieval and learning platform designed to transform complex documents into interactive, easy-to-digest experiences. Upload your files, ask deep questions, and learn through AI-generated summaries and cinematic video explanations.
+**Explainify** is a premium, AI-powered knowledge retrieval and learning platform designed to transform complex documents into interactive, easy-to-digest experiences. Upload your files, ask deep questions, and learn through AI-generated summaries and clean visual explanations.
 
 🔗 **Live Demo:** [explainify-ai.onrender.com](https://explainify-ai.onrender.com)
 
@@ -9,7 +9,7 @@
 ## ✨ Key Features
 
 - **📄 Document Intelligence:** Upload PDFs and extract core insights using advanced RAG (Retrieval-Augmented Generation).
-- **🎬 AI Video Explanations:** Automatically generate logic-driven video scripts and cinematic visual flows to "see" your document's meaning.
+- **🎬 AI Visual Explanations:** Automatically generate logic-driven visual scripts and cinematic visual flows to "see" your document's meaning.
 - **💬 Deep Query Interface:** A neural-themed chat interface for asking complex questions with source-backed answers.
 - **💎 Premium UI/UX:** Built with high-fidelity components like `Aurora` backgrounds, `MagicBento` layouts, `GlowCursor` interactions, and `LiquidEther` fluid simulations.
 - **🔒 Secure Neural Auth:** Next-generation authentication bridge with Google Nexus integration.
